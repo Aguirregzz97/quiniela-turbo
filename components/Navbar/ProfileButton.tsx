@@ -1,4 +1,5 @@
 "use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Moon, Sun, LogIn, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
 
 const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
   const { theme, setTheme } = useTheme();
+
+  const { data: session } = useSession();
 
   return (
     <DropdownMenu>
@@ -21,14 +25,14 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
         {isComputer ? (
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 bg-muted">
-              <AvatarImage src="/img/profile.png" />
+              <AvatarImage src={session?.user?.image ?? "/img/profile.png"} />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
             <div>Profile</div>
           </div>
         ) : (
           <Avatar className="h-8 w-8 bg-muted">
-            <AvatarImage src="/img/profile.png" />
+            <AvatarImage src={session?.user?.image ?? "/img/profile.png"} />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         )}
