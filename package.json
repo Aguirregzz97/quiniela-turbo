@@ -13,6 +13,8 @@
     "push": "drizzle-kit push:pg"
   },
   "dependencies": {
+    "@auth/core": "^0.40.0",
+    "@auth/drizzle-adapter": "^1.10.0",
     "@hookform/resolvers": "^3.3.2",
     "@mantine/hooks": "^7.3.2",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -45,6 +47,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tanstack/react-query": "^5.14.0",
     "@uploadthing/react": "^6.0.2",
+    "add": "^2.0.6",
     "axios": "^1.6.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -55,7 +58,9 @@
     "geist": "^1.2.0",
     "lucide-react": "^0.295.0",
     "next": "15.3.0",
+    "next-auth": "^4.24.11",
     "next-themes": "^0.2.1",
+    "pg-core@latest": "link:drizzle-orm/pg-core@latest",
     "postgres": "^3.4.7",
     "react": "^18",
     "react-day-picker": "^8.9.1",

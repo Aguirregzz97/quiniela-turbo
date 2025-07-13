@@ -1,9 +1,17 @@
 "use client";
+import { signIn, signOut, useSession } from "next-auth/react";
 
-import useUser from "@/queries/user/useUser";
+export default function Login() {
+  const { data: session } = useSession();
 
-export default function Page() {
-  const user = useUser("12345");
+  if (session) {
+    return (
+      <div>
+        <p>Welcome, {session.user?.name}</p>
+        <button onClick={() => signOut()}>Sign out</button>
+      </div>
+    );
+  }
 
-  return <div className="mt-8 flex min-h-screen justify-center">sign in</div>;
+  return <button onClick={() => signIn("google")}>Sign in with Google</button>;
 }

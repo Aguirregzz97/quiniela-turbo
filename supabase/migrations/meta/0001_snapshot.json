@@ -1,6 +1,6 @@
 {
-  "id": "a13fd741-c4a7-4efc-a16b-e2a12d8cba9b",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "ec059470-6340-4dc4-8cff-12efbbbfe455",
+  "prevId": "a13fd741-c4a7-4efc-a16b-e2a12d8cba9b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -18,7 +18,7 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "provider": {
           "name": "provider",
@@ -32,14 +32,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "refresh_token": {
-          "name": "refresh_token",
+        "access_token": {
+          "name": "access_token",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "access_token": {
-          "name": "access_token",
+        "refresh_token": {
+          "name": "refresh_token",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -64,6 +64,12 @@
         },
         "session_state": {
           "name": "session_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_type": {
+          "name": "token_type",
           "type": "text",
           "primaryKey": false,
           "notNull": false
