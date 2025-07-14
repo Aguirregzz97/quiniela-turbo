@@ -17,6 +17,7 @@ export default async function Login() {
       <div>
         <p>Welcome, {session.user?.name}</p>
         <p>{session.user.id}</p>
+        <p>{session.user.email}</p>
         <SignoutButton />
       </div>
     );

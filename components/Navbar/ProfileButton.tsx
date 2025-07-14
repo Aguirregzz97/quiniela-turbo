@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Moon, Sun, LogIn, UserPlus } from "lucide-react";
+import { Moon, Sun, Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
@@ -40,16 +40,16 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
       <DropdownMenuContent style={{ backgroundColor: "var(--background)" }}>
         <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Link href="sign-in">
+        <Link href="settings">
           <DropdownMenuItem className="cursor-pointer">
-            <LogIn className="mr-2 h-4 w-4" />
-            Iniciar Sesion
+            <Settings className="mr-2 h-4 w-4" />
+            Ajustes
           </DropdownMenuItem>
         </Link>
-        <Link href="sign-up">
+        <Link href="/api/auth/signout">
           <DropdownMenuItem className="cursor-pointer">
             <UserPlus className="mr-2 h-4 w-4" />
-            Crear Cuenta
+            Cerrar Sesion
           </DropdownMenuItem>
         </Link>
         <DropdownMenuItem
