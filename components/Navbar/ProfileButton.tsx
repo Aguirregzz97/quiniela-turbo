@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Moon, Sun, Settings, UserPlus } from "lucide-react";
+import { Moon, Sun, Settings, UserPlus, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
@@ -23,7 +23,7 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         {isComputer ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer">
             <Avatar className="h-8 w-8 bg-muted">
               <AvatarImage src={session?.user?.image ?? "/img/profile.png"} />
               <AvatarFallback>U</AvatarFallback>
@@ -48,7 +48,7 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
         </Link>
         <Link href="/api/auth/signout">
           <DropdownMenuItem className="cursor-pointer">
-            <UserPlus className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-4 w-4" />
             Cerrar Sesion
           </DropdownMenuItem>
         </Link>
