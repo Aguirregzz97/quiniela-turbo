@@ -9,8 +9,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelRightClose,
   Trophy,
   TrendingUp,
   Award,
@@ -77,9 +77,9 @@ const Sidebar = () => {
               className="h-8 w-8 p-0"
             >
               {collapsed ? (
-                <ChevronRight className="h-4 w-4" />
+                <PanelRightClose className="h-5 w-5" />
               ) : (
-                <ChevronLeft className="h-4 w-4" />
+                <PanelLeftClose className="h-5 w-5" />
               )}
             </Button>
           </div>
