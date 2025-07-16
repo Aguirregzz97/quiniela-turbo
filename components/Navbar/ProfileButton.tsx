@@ -39,7 +39,7 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ backgroundColor: "var(--background)" }}>
+      <DropdownMenuContent style={{ backgroundColor: "var(--card)" }}>
         <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <Link href="settings">
