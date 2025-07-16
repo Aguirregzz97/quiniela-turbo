@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Trophy,
+  TrendingUp,
+  Award,
 } from "lucide-react";
 import ProfileButton from "./ProfileButton";
 import { useTheme } from "next-themes";
@@ -33,9 +35,14 @@ const Sidebar = () => {
 
   const routes = [
     {
-      href: "/test-nav",
-      label: "Test Nav",
-      icon: Navigation,
+      href: "/quinielas",
+      label: "Quinielas",
+      icon: Award,
+    },
+    {
+      href: "/estadisticas",
+      label: "Estadisticas",
+      icon: TrendingUp,
     },
   ];
 
@@ -109,13 +116,13 @@ const Sidebar = () => {
           {/* Settings Menu Items */}
           <div className="space-y-2">
             <Button
-              variant="ghost"
+              variant={pathname.includes("/ajustes") ? "secondary" : "ghost"}
               className={`justify-start text-foreground hover:text-foreground/80 ${
                 collapsed ? "w-full px-2" : "w-full"
               }`}
               asChild
             >
-              <Link href="/settings">
+              <Link href="/ajustes">
                 <Settings className="h-4 w-4" />
                 {!collapsed && <span className="ml-2">Ajustes</span>}
               </Link>
