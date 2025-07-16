@@ -43,22 +43,26 @@ const Sidebar = () => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`fixed left-0 top-0 hidden h-full flex-col border-r border-border bg-card text-card-foreground transition-all duration-300 ease-in-out md:flex ${
+        className={`fixed left-0 top-0 hidden h-full flex-col overflow-hidden border-r border-border bg-card text-card-foreground transition-all duration-300 ease-in-out md:flex ${
           collapsed ? "w-16" : "w-64"
         }`}
       >
         {/* Top Section - Logo and Toggle */}
         <div className="border-b border-border p-6">
           <div className="flex items-center justify-between">
-            {!collapsed && (
-              <Link
-                href="/"
-                className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
-              >
-                <Trophy className="mr-4 h-8 w-8 text-primary" />
-                <h1 className="text-xl font-bold">QUINIELA TURBO</h1>
-              </Link>
-            )}
+            <div
+              className={`transition-opacity duration-300 ${collapsed ? "opacity-0" : "opacity-100"}`}
+            >
+              {!collapsed && (
+                <Link
+                  href="/"
+                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
+                >
+                  <Trophy className="mr-4 h-8 w-8 text-primary" />
+                  <h1 className="text-xl font-bold">QUINIELA TURBO</h1>
+                </Link>
+              )}
+            </div>
             <Button
               variant="ghost"
               size="sm"
