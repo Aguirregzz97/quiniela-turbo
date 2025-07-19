@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, ArrowLeft, Copy, Users, Edit } from "lucide-react";
+import { Award, ArrowLeft, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -71,7 +71,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Trophy className="h-6 w-6 text-primary" />
+            <Award className="h-6 w-6 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-bold sm:text-3xl">

@@ -76,6 +76,7 @@ export default async function QuinielasPage() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Existing Quinielas */}
             {userQuinielas.map((quiniela) => (
               <Card
                 key={quiniela.id}
@@ -140,6 +141,32 @@ export default async function QuinielasPage() {
                 </Link>
               </Card>
             ))}
+            {/* Add New Quiniela Card */}
+            <Card className="group cursor-pointer border-2 border-dashed transition-all hover:border-primary hover:shadow-lg">
+              <CardContent className="p-6 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Plus className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">Nueva Quiniela</h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Crea una nueva quiniela o únete a una existente
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Button asChild size="sm">
+                    <Link href="/quinielas/create">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Crear Quiniela
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/quinielas/join">
+                      <Users className="mr-2 h-4 w-4" />
+                      Unirse a Quiniela
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
