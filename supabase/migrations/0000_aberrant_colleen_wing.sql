@@ -73,7 +73,6 @@ CREATE TABLE "quiniela_settings" (
 	"allowEditPredictions" boolean DEFAULT true NOT NULL,
 	"pointsForExactResultPrediction" integer DEFAULT 2 NOT NULL,
 	"pointsForCorrectResultPrediction" integer DEFAULT 1 NOT NULL,
-	"pointsForCorrectResultAndScorePrediction" integer DEFAULT 3 NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "quiniela_settings_quinielaId_unique" UNIQUE("quinielaId")

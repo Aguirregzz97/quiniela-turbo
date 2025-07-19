@@ -1,7 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function EstadisticasPage() {
+export default async function EstadisticasPage() {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/api/auth/signin?callbackUrl=/estadisticas");
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">

@@ -21,7 +21,7 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
   // For desktop, just return a simple avatar that links to settings
   if (isComputer) {
     return (
-      <Link href="/settings">
+      <Link href="/ajustes">
         <Avatar className="h-8 w-8 cursor-pointer bg-muted">
           <AvatarImage src={session?.user?.image ?? "/img/profile.png"} />
           <AvatarFallback>U</AvatarFallback>

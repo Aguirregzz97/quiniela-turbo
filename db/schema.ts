@@ -10,7 +10,8 @@ import {
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { AdapterAccountType } from "@auth/core/adapters";
-import { relations } from "drizzle-orm";
+import { InferModel, relations } from "drizzle-orm";
+import { generateJoinCode } from "@/lib/utils";
 
 const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle";
 const pool = postgres(connectionString, { max: 1 });
@@ -112,7 +113,11 @@ export const quinielas = pgTable("quiniela", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  description: text("description"),
+  description: text("description").notNull(),
+  joinCode: text("joinCode")
+    .notNull()
+    .unique()
+    .$defaultFn(() => generateJoinCode()),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
@@ -135,11 +140,6 @@ export const quiniela_settings = pgTable("quiniela_settings", {
   pointsForCorrectResultPrediction: integer("pointsForCorrectResultPrediction")
     .notNull()
     .default(1),
-  pointsForCorrectResultAndScorePrediction: integer(
-    "pointsForCorrectResultAndScorePrediction",
-  )
-    .notNull()
-    .default(3),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
@@ -241,3 +241,37 @@ export const participantsRelations = relations(
     }),
   }),
 );
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+export type Account = typeof accounts.$inferSelect;
+export type NewAccount = typeof accounts.$inferInsert;
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type NewVerificationToken = typeof verificationTokens.$inferInsert;
+
+export type Authenticator = typeof authenticators.$inferSelect;
+export type NewAuthenticator = typeof authenticators.$inferInsert;
+
+// App types
+export type Quiniela = typeof quinielas.$inferSelect;
+export type NewQuiniela = typeof quinielas.$inferInsert;
+
+export type QuinielaSetting = typeof quiniela_settings.$inferSelect;
+export type NewQuinielaSetting = typeof quiniela_settings.$inferInsert;
+
+export type QuinielaParticipant = typeof quiniela_participants.$inferSelect;
+export type NewQuinielaParticipant = typeof quiniela_participants.$inferInsert;
+
+export type Match = typeof matches.$inferSelect;
+export type NewMatch = typeof matches.$inferInsert;
+
+export type QuinielaMatch = typeof quiniela_matches.$inferSelect;
+export type NewQuinielaMatch = typeof quiniela_matches.$inferInsert;
+
+export type Prediction = typeof predictions.$inferSelect;
+export type NewPrediction = typeof predictions.$inferInsert;

@@ -9,8 +9,6 @@ import { Toaster } from "@/components/ui/toaster";
 import TanstackProvider from "@/Providers/TanstackProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SessionProvider from "@/Providers/SessionProvider";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,12 +22,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session) {
-    redirect("api/auth/signin?callbackUrl=/");
-  }
-
   return (
     <html
       suppressHydrationWarning

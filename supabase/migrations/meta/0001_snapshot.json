@@ -1,6 +1,6 @@
 {
-  "id": "b1db712b-c553-4f5d-8f2e-a58b470d36a8",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "89bd64d6-b3d3-4bcb-a1d8-c093ae95da80",
+  "prevId": "b1db712b-c553-4f5d-8f2e-a58b470d36a8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -617,6 +617,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "joinCode": {
+          "name": "joinCode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -649,7 +655,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "quiniela_joinCode_unique": {
+          "name": "quiniela_joinCode_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "joinCode"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

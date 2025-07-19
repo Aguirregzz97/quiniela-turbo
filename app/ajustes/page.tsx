@@ -3,10 +3,16 @@ import Image from "next/image";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import SignoutButton from "@/components/SessionComponents/SignoutButton";
 import { Settings } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
   const session = await auth();
-  const user = session?.user;
+
+  if (!session) {
+    redirect("/api/auth/signin?callbackUrl=/ajustes");
+  }
+
+  const user = session.user;
 
   return (
     <div className="container mx-auto p-6">

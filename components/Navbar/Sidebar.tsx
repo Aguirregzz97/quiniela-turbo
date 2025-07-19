@@ -173,7 +173,7 @@ const Sidebar = () => {
             >
               <Link
                 className={`${collapsed ? "px-[3px]" : "px-[8px]"}`}
-                href="/settings"
+                href="/ajustes"
               >
                 <div className="flex items-center gap-2">
                   <div className="relative h-6 w-6 rounded-full bg-muted">
