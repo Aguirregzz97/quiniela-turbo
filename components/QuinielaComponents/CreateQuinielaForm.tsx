@@ -9,12 +9,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Settings, FileText } from "lucide-react";
 import { createQuiniela } from "@/app/quinielas/create-action";
 import { Switch } from "@/components/ui/switch";
 import PrizeDistributionForm from "./PrizeDistributionForm";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+
+// Temporary hardcoded leagues - will come from API later
+const LEAGUES = [
+  { id: 1, name: "Liga MX 2025" },
+  { id: 2, name: "Premier League 2024/25" },
+  { id: 3, name: "La Liga 2024/25" },
+  { id: 4, name: "Serie A 2024/25" },
+  { id: 5, name: "Bundesliga 2024/25" },
+];
 
 // Zod schema for quiniela details
 const createQuinielaSchema = z.object({
@@ -26,6 +42,8 @@ const createQuinielaSchema = z.object({
     .string()
     .min(1, "La descripción es requerida")
     .max(500, "La descripción no puede exceder 500 caracteres"),
+  league: z.string().min(1, "La liga es requerida"),
+  externalLeagueId: z.string().min(1, "ID de liga requerido"),
   pointsForExactResultPrediction: z
     .number()
     .min(1, "Mínimo 1 punto")
@@ -75,6 +93,8 @@ export default function CreateQuinielaForm() {
     defaultValues: {
       name: "",
       description: "",
+      league: "",
+      externalLeagueId: "",
       pointsForExactResultPrediction: 2,
       pointsForCorrectResultPrediction: 1,
       allowEditPredictions: true,
@@ -98,6 +118,16 @@ export default function CreateQuinielaForm() {
   } = form;
 
   const allowEditPredictions = watch("allowEditPredictions");
+
+  const handleLeagueChange = (value: string) => {
+    const selectedLeague = LEAGUES.find(
+      (league) => league.id.toString() === value,
+    );
+    if (selectedLeague) {
+      setValue("league", selectedLeague.name);
+      setValue("externalLeagueId", selectedLeague.id.toString());
+    }
+  };
 
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {
@@ -160,6 +190,27 @@ export default function CreateQuinielaForm() {
               {errors.description && (
                 <p className="text-sm text-destructive">
                   {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="league">Liga *</Label>
+              <Select onValueChange={handleLeagueChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona una liga" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEAGUES.map((league) => (
+                    <SelectItem key={league.id} value={league.id.toString()}>
+                      {league.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.league && (
+                <p className="text-sm text-destructive">
+                  {errors.league.message}
                 </p>
               )}
             </div>

@@ -23,6 +23,10 @@ export async function updateQuiniela(
       throw new Error("El nombre y descripción son requeridos");
     }
 
+    if (!data.league || !data.externalLeagueId) {
+      throw new Error("La liga es requerida");
+    }
+
     // Check if user owns the quiniela
     const existingQuiniela = await db
       .select()
@@ -44,6 +48,8 @@ export async function updateQuiniela(
       .set({
         name: data.name,
         description: data.description,
+        league: data.league,
+        externalLeagueId: data.externalLeagueId,
         updatedAt: new Date(),
       })
       .where(eq(quinielas.id, quinielaId));

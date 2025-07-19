@@ -42,7 +42,7 @@ const ProfileButton = ({ isComputer = false }: { isComputer?: boolean }) => {
       <DropdownMenuContent style={{ backgroundColor: "var(--card)" }}>
         <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Link href="settings">
+        <Link href="ajustes">
           <DropdownMenuItem className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             Ajustes

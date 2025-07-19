@@ -27,13 +27,21 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       throw new Error("El nombre y descripción son requeridos");
     }
 
+    if (!data.league || !data.externalLeagueId) {
+      throw new Error("La liga es requerida");
+    }
+
     // Create the quiniela data object
-    const quinielaData: Pick<NewQuiniela, "name" | "description" | "ownerId"> =
-      {
-        name: data.name,
-        description: data.description,
-        ownerId: session.user.id,
-      };
+    const quinielaData: Pick<
+      NewQuiniela,
+      "name" | "description" | "ownerId" | "league" | "externalLeagueId"
+    > = {
+      name: data.name,
+      description: data.description,
+      ownerId: session.user.id,
+      league: data.league,
+      externalLeagueId: data.externalLeagueId,
+    };
 
     // Create the quiniela in the database
     const newQuiniela = await db

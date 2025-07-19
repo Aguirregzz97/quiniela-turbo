@@ -118,6 +118,8 @@ export const quinielas = pgTable("quiniela", {
     .notNull()
     .unique()
     .$defaultFn(() => generateJoinCode()),
+  league: text("league").notNull(),
+  externalLeagueId: text("externalLeagueId").notNull(),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
