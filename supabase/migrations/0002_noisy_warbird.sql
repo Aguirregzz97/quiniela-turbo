@@ -1,0 +1,1 @@
+ALTER TABLE "quiniela" ALTER COLUMN "description" SET NOT NULL;

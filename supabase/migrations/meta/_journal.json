@@ -15,6 +15,13 @@
       "when": 1752898796092,
       "tag": "0001_opposite_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1752905097691,
+      "tag": "0002_noisy_warbird",
+      "breakpoints": true
     }
   ]
 }
