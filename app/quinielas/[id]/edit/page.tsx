@@ -3,6 +3,7 @@ import EditQuinielaForm from "@/components/QuinielaComponents/EditQuinielaForm";
 import { db } from "@/db";
 import { quinielas, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { Trophy } from "lucide-react";
 import { redirect, notFound } from "next/navigation";
 
 interface EditQuinielaPageProps {
@@ -30,7 +31,11 @@ export default async function EditQuinielaPage({
       ownerId: quinielas.ownerId,
       createdAt: quinielas.createdAt,
       updatedAt: quinielas.updatedAt,
+      league: quinielas.league,
+      externalLeagueId: quinielas.externalLeagueId,
+      roundsSelected: quinielas.roundsSelected,
       // Settings
+      prizeToWin: quiniela_settings.prizeToWin,
       prizeDistribution: quiniela_settings.prizeDistribution,
       allowEditPredictions: quiniela_settings.allowEditPredictions,
       pointsForExactResultPrediction:
@@ -61,7 +66,10 @@ export default async function EditQuinielaPage({
   return (
     <div className="container mx-auto p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold sm:text-3xl">Editar Quiniela</h1>
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
+          <Trophy className="h-8 w-8 text-primary" />
+          Editar Quiniela
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Modifica los detalles y configuraciones de tu quiniela
         </p>

@@ -181,11 +181,12 @@ export default function CreateQuinielaForm() {
     }
   };
 
+  // Watch the form values
+  const desde = watch("desde");
+  const hasta = watch("hasta");
+
   // Convert desde/hasta selection to roundsSelected format
   useEffect(() => {
-    const desde = watch("desde");
-    const hasta = watch("hasta");
-
     if (!rounds?.response || !desde || !hasta) {
       setValue("roundsSelected", []);
       return;
@@ -212,7 +213,7 @@ export default function CreateQuinielaForm() {
     if (desde && hasta) {
       trigger(["desde", "hasta"]);
     }
-  }, [watch("desde"), watch("hasta"), rounds, setValue, trigger]);
+  }, [desde, hasta, rounds, setValue, trigger]);
 
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {

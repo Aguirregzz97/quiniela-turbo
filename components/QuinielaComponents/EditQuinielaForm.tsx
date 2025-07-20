@@ -188,11 +188,12 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
 
   const allowEditPredictions = watch("allowEditPredictions");
 
+  // Watch the form values
+  const desde = watch("desde");
+  const hasta = watch("hasta");
+
   // Convert desde/hasta selection to roundsSelected format
   useEffect(() => {
-    const desde = watch("desde");
-    const hasta = watch("hasta");
-
     if (!rounds?.response || !desde || !hasta) {
       setValue("roundsSelected", []);
       return;
@@ -219,7 +220,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
     if (desde && hasta) {
       trigger(["desde", "hasta"]);
     }
-  }, [watch("desde"), watch("hasta"), rounds, setValue, trigger]);
+  }, [desde, hasta, rounds, setValue, trigger]);
 
   const handleLeagueChange = (value: string) => {
     const selectedLeague = LEAGUES.find(
@@ -253,10 +254,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mx-auto max-w-2xl space-y-6"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
         {/* Quiniela Details Section */}
         <Card>
           <CardHeader>
