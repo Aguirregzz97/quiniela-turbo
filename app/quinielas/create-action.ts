@@ -60,7 +60,7 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       "id" | "createdAt" | "updatedAt"
     > = {
       quinielaId: newQuiniela[0].id,
-      prizeToWin: data.prizeToWin,
+      moneyToEnter: data.moneyToEnter,
       prizeDistribution: data.prizeDistribution,
       allowEditPredictions: data.allowEditPredictions,
       pointsForExactResultPrediction: data.pointsForExactResultPrediction,

@@ -1,5 +1,5 @@
 {
-  "id": "b1db712b-c553-4f5d-8f2e-a58b470d36a8",
+  "id": "099b895b-980f-4943-b22a-4d4052123212",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -180,99 +180,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.matches": {
-      "name": "matches",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "externalId": {
-          "name": "externalId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "externalLeagueId": {
-          "name": "externalLeagueId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "homeTeam": {
-          "name": "homeTeam",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "awayTeam": {
-          "name": "awayTeam",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "league": {
-          "name": "league",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "season": {
-          "name": "season",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "round": {
-          "name": "round",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "homeTeamScore": {
-          "name": "homeTeamScore",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "awayTeamScore": {
-          "name": "awayTeamScore",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "matchDate": {
-          "name": "matchDate",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.predictions": {
       "name": "predictions",
       "schema": "",
@@ -283,14 +190,20 @@
           "primaryKey": true,
           "notNull": true
         },
-        "quinielaMatchId": {
-          "name": "quinielaMatchId",
+        "quinielaId": {
+          "name": "quinielaId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userId": {
+          "name": "userId",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
+        "externalFixtureId": {
+          "name": "externalFixtureId",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -324,12 +237,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "predictions_quinielaMatchId_quiniela_matches_id_fk": {
-          "name": "predictions_quinielaMatchId_quiniela_matches_id_fk",
+        "predictions_quinielaId_quiniela_id_fk": {
+          "name": "predictions_quinielaId_quiniela_id_fk",
           "tableFrom": "predictions",
-          "tableTo": "quiniela_matches",
+          "tableTo": "quiniela",
           "columnsFrom": [
-            "quinielaMatchId"
+            "quinielaId"
           ],
           "columnsTo": [
             "id"
@@ -343,78 +256,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.quiniela_matches": {
-      "name": "quiniela_matches",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "quinielaId": {
-          "name": "quinielaId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "matchId": {
-          "name": "matchId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "quiniela_matches_quinielaId_quiniela_id_fk": {
-          "name": "quiniela_matches_quinielaId_quiniela_id_fk",
-          "tableFrom": "quiniela_matches",
-          "tableTo": "quiniela",
-          "columnsFrom": [
-            "quinielaId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "quiniela_matches_matchId_matches_id_fk": {
-          "name": "quiniela_matches_matchId_matches_id_fk",
-          "tableFrom": "quiniela_matches",
-          "tableTo": "matches",
-          "columnsFrom": [
-            "matchId"
           ],
           "columnsTo": [
             "id"
@@ -517,6 +358,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "moneyToEnter": {
+          "name": "moneyToEnter",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "prizeDistribution": {
           "name": "prizeDistribution",
           "type": "jsonb",
@@ -615,7 +462,31 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "joinCode": {
+          "name": "joinCode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "league": {
+          "name": "league",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalLeagueId": {
+          "name": "externalLeagueId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roundsSelected": {
+          "name": "roundsSelected",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -649,7 +520,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "quiniela_joinCode_unique": {
+          "name": "quiniela_joinCode_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "joinCode"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Plus, Calendar, Users, Award, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { quinielas, quiniela_participants } from "@/db/schema";
@@ -20,6 +21,8 @@ export default async function QuinielasPage() {
       id: quinielas.id,
       name: quinielas.name,
       description: quinielas.description,
+      league: quinielas.league,
+      externalLeagueId: quinielas.externalLeagueId,
       joinCode: quinielas.joinCode,
       createdAt: quinielas.createdAt,
       updatedAt: quinielas.updatedAt,
@@ -85,13 +88,28 @@ export default async function QuinielasPage() {
                 <Link href={`/quinielas/${quiniela.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                          <Trophy className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-sm">
+                          {quiniela.externalLeagueId ? (
+                            <Image
+                              src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                              alt={quiniela.league || "Liga"}
+                              width={32}
+                              height={32}
+                              className="h-8 w-8 object-contain"
+                            />
+                          ) : (
+                            <Trophy className="h-5 w-5 text-primary" />
+                          )}
                         </div>
-                        <CardTitle className="text-lg transition-colors group-hover:text-primary">
-                          {quiniela.name}
-                        </CardTitle>
+                        <div>
+                          <CardTitle className="text-lg transition-colors group-hover:text-primary">
+                            {quiniela.name}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {quiniela.league}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>

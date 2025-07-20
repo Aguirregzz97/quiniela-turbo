@@ -135,7 +135,7 @@ export const quiniela_settings = pgTable("quiniela_settings", {
     .notNull()
     .unique()
     .references(() => quinielas.id, { onDelete: "cascade" }),
-  prizeToWin: integer("prizeToWin").notNull(),
+  moneyToEnter: integer("moneyToEnter").notNull(),
   prizeDistribution: jsonb("prizeDistribution")
     .$type<{ position: number; percentage: number }[]>()
     .notNull(),

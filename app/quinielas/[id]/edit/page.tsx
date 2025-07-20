@@ -35,7 +35,7 @@ export default async function EditQuinielaPage({
       externalLeagueId: quinielas.externalLeagueId,
       roundsSelected: quinielas.roundsSelected,
       // Settings
-      prizeToWin: quiniela_settings.prizeToWin,
+      moneyToEnter: quiniela_settings.moneyToEnter,
       prizeDistribution: quiniela_settings.prizeDistribution,
       allowEditPredictions: quiniela_settings.allowEditPredictions,
       pointsForExactResultPrediction:

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, ArrowLeft, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { quinielas, users } from "@/db/schema";
@@ -29,6 +30,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       name: quinielas.name,
       description: quinielas.description,
       league: quinielas.league,
+      externalLeagueId: quinielas.externalLeagueId,
       joinCode: quinielas.joinCode,
       createdAt: quinielas.createdAt,
       updatedAt: quinielas.updatedAt,
@@ -53,7 +55,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       <div className="mb-6">
         <div className="mb-4 flex items-center justify-between">
           <Button variant="ghost" asChild>
-            <Link href="/quinielas">
+            <Link className="pl-0" href="/quinielas">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver a Quinielas
             </Link>
@@ -69,14 +71,29 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Award className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl border bg-white shadow-md">
+            {quinielaData.externalLeagueId ? (
+              <Image
+                src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                alt={quinielaData.league || "Liga"}
+                width={48}
+                height={48}
+                className="h-12 w-12 object-contain"
+              />
+            ) : (
+              <Award className="h-8 w-8 text-primary" />
+            )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">
-              {quinielaData.name}
-            </h1>
+            <div className="mb-1 flex items-center gap-2">
+              <h1 className="text-2xl font-bold sm:text-3xl">
+                {quinielaData.name}
+              </h1>
+            </div>
+            <p className="font-medium text-muted-foreground">
+              {quinielaData.league}
+            </p>
           </div>
         </div>
       </div>

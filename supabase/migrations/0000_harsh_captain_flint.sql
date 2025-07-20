@@ -24,36 +24,13 @@ CREATE TABLE "authenticator" (
 	CONSTRAINT "authenticator_credentialID_unique" UNIQUE("credentialID")
 );
 --> statement-breakpoint
-CREATE TABLE "matches" (
-	"id" text PRIMARY KEY NOT NULL,
-	"externalId" text NOT NULL,
-	"externalLeagueId" text NOT NULL,
-	"homeTeam" text NOT NULL,
-	"awayTeam" text NOT NULL,
-	"league" text NOT NULL,
-	"season" text NOT NULL,
-	"round" text NOT NULL,
-	"homeTeamScore" integer,
-	"awayTeamScore" integer,
-	"matchDate" timestamp NOT NULL,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "predictions" (
 	"id" text PRIMARY KEY NOT NULL,
-	"quinielaMatchId" text NOT NULL,
+	"quinielaId" text,
 	"userId" text NOT NULL,
+	"externalFixtureId" text NOT NULL,
 	"predictedHomeScore" integer,
 	"predictedAwayScore" integer,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "quiniela_matches" (
-	"id" text PRIMARY KEY NOT NULL,
-	"quinielaId" text NOT NULL,
-	"matchId" text NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
@@ -69,6 +46,7 @@ CREATE TABLE "quiniela_participants" (
 CREATE TABLE "quiniela_settings" (
 	"id" text PRIMARY KEY NOT NULL,
 	"quinielaId" text NOT NULL,
+	"moneyToEnter" integer NOT NULL,
 	"prizeDistribution" jsonb NOT NULL,
 	"allowEditPredictions" boolean DEFAULT true NOT NULL,
 	"pointsForExactResultPrediction" integer DEFAULT 2 NOT NULL,
@@ -82,9 +60,14 @@ CREATE TABLE "quiniela" (
 	"id" text PRIMARY KEY NOT NULL,
 	"ownerId" text NOT NULL,
 	"name" text NOT NULL,
-	"description" text,
+	"description" text NOT NULL,
+	"joinCode" text NOT NULL,
+	"league" text NOT NULL,
+	"externalLeagueId" text NOT NULL,
+	"roundsSelected" jsonb NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp DEFAULT now() NOT NULL
+	"updatedAt" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "quiniela_joinCode_unique" UNIQUE("joinCode")
 );
 --> statement-breakpoint
 CREATE TABLE "session" (
@@ -110,10 +93,8 @@ CREATE TABLE "verificationToken" (
 --> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "authenticator" ADD CONSTRAINT "authenticator_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "predictions" ADD CONSTRAINT "predictions_quinielaMatchId_quiniela_matches_id_fk" FOREIGN KEY ("quinielaMatchId") REFERENCES "public"."quiniela_matches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "predictions" ADD CONSTRAINT "predictions_quinielaId_quiniela_id_fk" FOREIGN KEY ("quinielaId") REFERENCES "public"."quiniela"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "predictions" ADD CONSTRAINT "predictions_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "quiniela_matches" ADD CONSTRAINT "quiniela_matches_quinielaId_quiniela_id_fk" FOREIGN KEY ("quinielaId") REFERENCES "public"."quiniela"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "quiniela_matches" ADD CONSTRAINT "quiniela_matches_matchId_matches_id_fk" FOREIGN KEY ("matchId") REFERENCES "public"."matches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quiniela_participants" ADD CONSTRAINT "quiniela_participants_quinielaId_quiniela_id_fk" FOREIGN KEY ("quinielaId") REFERENCES "public"."quiniela"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quiniela_participants" ADD CONSTRAINT "quiniela_participants_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quiniela_settings" ADD CONSTRAINT "quiniela_settings_quinielaId_quiniela_id_fk" FOREIGN KEY ("quinielaId") REFERENCES "public"."quiniela"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

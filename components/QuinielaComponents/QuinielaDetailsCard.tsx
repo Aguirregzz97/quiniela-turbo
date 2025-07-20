@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,6 +17,7 @@ interface QuinielaDetailsCardProps {
     name: string;
     description: string | null;
     league: string | null;
+    externalLeagueId: string | null;
     joinCode: string;
     createdAt: Date;
     ownerName: string | null;
@@ -61,21 +63,24 @@ export default function QuinielaDetailsCard({
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <h3 className="mb-2 font-semibold">Descripción</h3>
-                  <p className="text-muted-foreground">
-                    {quinielaData.description || "Sin descripción"}
-                  </p>
-                </div>
-
-                <div>
                   <h3 className="mb-2 font-semibold">Liga</h3>
-                  <p className="text-muted-foreground">
-                    {quinielaData.league || "No especificada"}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    {quinielaData.externalLeagueId ? (
+                      <div className="flex h-8 w-8 items-center justify-center rounded border bg-white shadow-sm">
+                        <Image
+                          src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                          alt={quinielaData.league || "Liga"}
+                          width={24}
+                          height={24}
+                          className="h-6 w-6 object-contain"
+                        />
+                      </div>
+                    ) : null}
+                    <p className="text-muted-foreground">
+                      {quinielaData.league || "No especificada"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <h3 className="mb-2 font-semibold">Propietario</h3>
                   <div className="space-y-1">
@@ -84,12 +89,16 @@ export default function QuinielaDetailsCard({
                         {quinielaData.ownerName}
                       </p>
                     )}
-                    {quinielaData.ownerEmail && (
-                      <p className="text-sm text-muted-foreground">
-                        {quinielaData.ownerEmail}
-                      </p>
-                    )}
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 font-semibold">Descripción</h3>
+                  <p className="text-muted-foreground">
+                    {quinielaData.description || "Sin descripción"}
+                  </p>
                 </div>
 
                 <div>

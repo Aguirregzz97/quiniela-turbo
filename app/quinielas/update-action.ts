@@ -23,10 +23,6 @@ export async function updateQuiniela(
       throw new Error("El nombre y descripción son requeridos");
     }
 
-    if (!data.league || !data.externalLeagueId) {
-      throw new Error("La liga es requerida");
-    }
-
     // Check if user owns the quiniela
     const existingQuiniela = await db
       .select()
@@ -42,15 +38,12 @@ export async function updateQuiniela(
       throw new Error("No tienes permisos para editar esta quiniela");
     }
 
-    // Update the quiniela
+    // Update the quiniela (only name and description)
     await db
       .update(quinielas)
       .set({
         name: data.name,
         description: data.description,
-        league: data.league,
-        externalLeagueId: data.externalLeagueId,
-        roundsSelected: data.roundsSelected,
         updatedAt: new Date(),
       })
       .where(eq(quinielas.id, quinielaId));
@@ -59,7 +52,7 @@ export async function updateQuiniela(
     await db
       .update(quiniela_settings)
       .set({
-        prizeToWin: data.prizeToWin,
+        moneyToEnter: data.moneyToEnter,
         prizeDistribution: data.prizeDistribution,
         allowEditPredictions: data.allowEditPredictions,
         pointsForExactResultPrediction: data.pointsForExactResultPrediction,

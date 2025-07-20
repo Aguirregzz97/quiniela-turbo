@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1752897018630,
-      "tag": "0000_aberrant_colleen_wing",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1752898796092,
-      "tag": "0001_opposite_sunfire",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1752905097691,
-      "tag": "0002_noisy_warbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1752952295013,
-      "tag": "0003_deep_cassandra_nova",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1752983477801,
-      "tag": "0004_tense_maelstrom",
+      "when": 1753036649181,
+      "tag": "0000_harsh_captain_flint",
       "breakpoints": true
     }
   ]

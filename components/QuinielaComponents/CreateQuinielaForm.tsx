@@ -16,23 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Settings, FileText, Trophy } from "lucide-react";
+import { Loader2, Settings, FileText, Trophy, CheckCircle } from "lucide-react";
 import { createQuiniela } from "@/app/quinielas/create-action";
 import { Switch } from "@/components/ui/switch";
 
 import PrizeDistributionForm from "./PrizeDistributionForm";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
-import { useRounds } from "@/hooks/useRounds";
-
-// Temporary hardcoded leagues - will come from API later
-const LEAGUES = [
-  { id: 1, name: "Liga MX 2025" },
-  { id: 2, name: "Premier League 2024/25" },
-  { id: 3, name: "La Liga 2024/25" },
-  { id: 4, name: "Serie A 2024/25" },
-  { id: 5, name: "Bundesliga 2024/25" },
-];
+import { useRounds } from "@/hooks/api-football/useRounds";
+import Image from "next/image";
 
 // Zod schema for quiniela details
 const createQuinielaSchema = z.object({
@@ -46,10 +38,10 @@ const createQuinielaSchema = z.object({
     .max(500, "La descripción no puede exceder 500 caracteres"),
   league: z.string().min(1, "La liga es requerida"),
   externalLeagueId: z.string().min(1, "ID de liga requerido"),
-  prizeToWin: z
+  moneyToEnter: z
     .number()
-    .min(1, "El premio debe ser mayor a 0")
-    .int("El premio debe ser un número entero"),
+    .min(1, "El dinero de entrada debe ser mayor a 0")
+    .int("El dinero de entrada debe ser un número entero"),
   desde: z.string().min(1, "Debe seleccionar una jornada de inicio"),
   hasta: z.string().min(1, "Debe seleccionar una jornada de fin"),
   roundsSelected: z
@@ -110,18 +102,38 @@ export default function CreateQuinielaForm() {
     error: roundsError,
   } = useRounds();
 
+  // Filter future rounds only - rounds that haven't started yet
+  const futureRounds = useMemo(() => {
+    if (!rounds?.response) return [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
+
+    return rounds.response.filter((round) => {
+      // Check if the round hasn't started yet (earliest date is in the future)
+      const earliestDate = round.dates
+        .map((dateStr) => new Date(dateStr))
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      if (!earliestDate) return false;
+
+      earliestDate.setHours(0, 0, 0, 0);
+      return earliestDate >= today;
+    });
+  }, [rounds]);
+
   // Create dynamic schema with rounds validation
   const createQuinielaSchemaWithValidation = useMemo(() => {
     return createQuinielaSchema.refine(
       (data) => {
-        if (!rounds?.response || !data.desde || !data.hasta) {
+        if (!futureRounds.length || !data.desde || !data.hasta) {
           return true; // Skip validation if data not available
         }
 
-        const desdeIndex = rounds.response.findIndex(
+        const desdeIndex = futureRounds.findIndex(
           (r) => r.round === data.desde,
         );
-        const hastaIndex = rounds.response.findIndex(
+        const hastaIndex = futureRounds.findIndex(
           (r) => r.round === data.hasta,
         );
 
@@ -133,7 +145,7 @@ export default function CreateQuinielaForm() {
         path: ["hasta"],
       },
     );
-  }, [rounds]);
+  }, [futureRounds]);
 
   const form = useForm<CreateQuinielaFormData>({
     resolver: zodResolver(createQuinielaSchemaWithValidation),
@@ -142,7 +154,7 @@ export default function CreateQuinielaForm() {
       description: "",
       league: "",
       externalLeagueId: "",
-      prizeToWin: 100,
+      moneyToEnter: 100,
       desde: "",
       hasta: "",
       roundsSelected: [],
@@ -171,36 +183,26 @@ export default function CreateQuinielaForm() {
 
   const allowEditPredictions = watch("allowEditPredictions");
 
-  const handleLeagueChange = (value: string) => {
-    const selectedLeague = LEAGUES.find(
-      (league) => league.id.toString() === value,
-    );
-    if (selectedLeague) {
-      setValue("league", selectedLeague.name);
-      setValue("externalLeagueId", selectedLeague.id.toString());
-    }
-  };
-
   // Watch the form values
   const desde = watch("desde");
   const hasta = watch("hasta");
 
   // Convert desde/hasta selection to roundsSelected format
   useEffect(() => {
-    if (!rounds?.response || !desde || !hasta) {
+    if (!futureRounds.length || !desde || !hasta) {
       setValue("roundsSelected", []);
       return;
     }
 
-    const desdeIndex = rounds.response.findIndex((r) => r.round === desde);
-    const hastaIndex = rounds.response.findIndex((r) => r.round === hasta);
+    const desdeIndex = futureRounds.findIndex((r) => r.round === desde);
+    const hastaIndex = futureRounds.findIndex((r) => r.round === hasta);
 
     if (desdeIndex === -1 || hastaIndex === -1 || desdeIndex > hastaIndex) {
       setValue("roundsSelected", []);
       return;
     }
 
-    const selectedRoundsData = rounds.response
+    const selectedRoundsData = futureRounds
       .slice(desdeIndex, hastaIndex + 1)
       .map((round) => ({
         roundName: round.round,
@@ -213,7 +215,7 @@ export default function CreateQuinielaForm() {
     if (desde && hasta) {
       trigger(["desde", "hasta"]);
     }
-  }, [desde, hasta, rounds, setValue, trigger]);
+  }, [desde, hasta, futureRounds, setValue, trigger]);
 
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {
@@ -240,6 +242,52 @@ export default function CreateQuinielaForm() {
         onSubmit={handleSubmit(onSubmit)}
         className="mx-auto max-w-2xl space-y-6"
       >
+        {/* League Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Selecciona Liga</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                watch("league") === "Liga MX"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-primary/50"
+              }`}
+              onClick={() => {
+                setValue("league", "Liga MX");
+                setValue("externalLeagueId", "262");
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <Image
+                  src="https://media.api-sports.io/football/leagues/262.png"
+                  alt="Liga MX"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 object-contain"
+                />
+                <div>
+                  <h3 className="font-semibold">Liga MX</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Temporada 2025
+                  </p>
+                </div>
+                {watch("league") === "Liga MX" && (
+                  <div className="ml-auto">
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+              </div>
+            </div>
+            {errors.league && (
+              <p className="mt-2 text-sm text-destructive">
+                {errors.league.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Quiniela Details Section */}
         <Card>
           <CardHeader>
@@ -280,30 +328,12 @@ export default function CreateQuinielaForm() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="league">Liga *</Label>
-              <Select onValueChange={handleLeagueChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona una liga" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LEAGUES.map((league) => (
-                    <SelectItem key={league.id} value={league.id.toString()}>
-                      {league.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.league && (
-                <p className="text-sm text-destructive">
-                  {errors.league.message}
-                </p>
-              )}
-            </div>
-
             {/* Rounds Selection */}
             <div className="space-y-4 border-t pt-4">
               <h3 className="text-lg font-semibold">Selección de Jornadas</h3>
+              <p className="text-sm text-muted-foreground">
+                Solo se muestran jornadas futuras disponibles para predicciones.
+              </p>
               {roundsLoading ? (
                 <div className="flex items-center justify-center rounded-md border p-3">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -326,7 +356,7 @@ export default function CreateQuinielaForm() {
                         <SelectValue placeholder="Selecciona jornada inicial" />
                       </SelectTrigger>
                       <SelectContent>
-                        {rounds?.response.map((round) => (
+                        {futureRounds.map((round) => (
                           <SelectItem key={round.round} value={round.round}>
                             {round.round}
                           </SelectItem>
@@ -347,7 +377,7 @@ export default function CreateQuinielaForm() {
                         <SelectValue placeholder="Selecciona jornada final" />
                       </SelectTrigger>
                       <SelectContent>
-                        {rounds?.response.map((round) => (
+                        {futureRounds.map((round) => (
                           <SelectItem key={round.round} value={round.round}>
                             {round.round}
                           </SelectItem>
@@ -385,21 +415,21 @@ export default function CreateQuinielaForm() {
               {/* Prize Configuration */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="prizeToWin">Premio Total a Ganar *</Label>
+                  <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
                   <div className="relative">
                     <Input
-                      id="prizeToWin"
+                      id="moneyToEnter"
                       type="number"
-                      {...register("prizeToWin", { valueAsNumber: true })}
+                      {...register("moneyToEnter", { valueAsNumber: true })}
                       placeholder="Ej: 1000"
                       className="w-full pl-8"
                       min={1}
                     />
                     <Trophy className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   </div>
-                  {errors.prizeToWin && (
+                  {errors.moneyToEnter && (
                     <p className="text-sm text-destructive">
-                      {errors.prizeToWin.message}
+                      {errors.moneyToEnter.message}
                     </p>
                   )}
                 </div>
