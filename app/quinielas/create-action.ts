@@ -12,7 +12,6 @@ import {
   NewQuinielaParticipant,
 } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function createQuiniela(data: CreateQuinielaFormData) {
   try {
@@ -34,13 +33,19 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
     // Create the quiniela data object
     const quinielaData: Pick<
       NewQuiniela,
-      "name" | "description" | "ownerId" | "league" | "externalLeagueId"
+      | "name"
+      | "description"
+      | "ownerId"
+      | "league"
+      | "externalLeagueId"
+      | "roundsSelected"
     > = {
       name: data.name,
       description: data.description,
       ownerId: session.user.id,
       league: data.league,
       externalLeagueId: data.externalLeagueId,
+      roundsSelected: data.roundsSelected,
     };
 
     // Create the quiniela in the database
@@ -55,6 +60,7 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       "id" | "createdAt" | "updatedAt"
     > = {
       quinielaId: newQuiniela[0].id,
+      prizeToWin: data.prizeToWin,
       prizeDistribution: data.prizeDistribution,
       allowEditPredictions: data.allowEditPredictions,
       pointsForExactResultPrediction: data.pointsForExactResultPrediction,

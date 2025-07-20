@@ -1,0 +1,226 @@
+{
+  "get": "fixtures",
+  "parameters": {
+    "league": "262",
+    "season": "2021",
+    "team": "2282"
+  },
+  "errors": [],
+  "results": 3,
+  "paging": {
+    "current": 1,
+    "total": 1
+  },
+  "response": [
+    {
+      "fixture": {
+        "id": 721728,
+        "referee": "Oscar Mejia Garcia, Mexico",
+        "timezone": "UTC",
+        "date": "2021-07-26T00:06:00+00:00",
+        "timestamp": 1627257960,
+        "periods": {
+          "first": 1627257960,
+          "second": 1627261560
+        },
+        "venue": {
+          "id": 11905,
+          "name": "Estadio BBVA",
+          "city": "Guadalupe"
+        },
+        "status": {
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 262,
+        "name": "Liga MX",
+        "country": "Mexico",
+        "logo": "https://media.api-sports.io/football/leagues/262.png",
+        "flag": "https://media.api-sports.io/flags/mx.svg",
+        "season": 2021,
+        "round": "Apertura - 1",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 2282,
+          "name": "Monterrey",
+          "logo": "https://media.api-sports.io/football/teams/2282.png",
+          "winner": null
+        },
+        "away": {
+          "id": 2291,
+          "name": "Puebla",
+          "logo": "https://media.api-sports.io/football/teams/2291.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": 1,
+        "away": 1
+      },
+      "score": {
+        "halftime": {
+          "home": 0,
+          "away": 0
+        },
+        "fulltime": {
+          "home": 1,
+          "away": 1
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 721734,
+        "referee": "Adonai Escobedo Gonzalez, Mexico",
+        "timezone": "UTC",
+        "date": "2021-08-01T02:00:00+00:00",
+        "timestamp": 1627783200,
+        "periods": {
+          "first": 1627783200,
+          "second": 1627786800
+        },
+        "venue": {
+          "id": 11905,
+          "name": "Estadio BBVA",
+          "city": "Guadalupe"
+        },
+        "status": {
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 262,
+        "name": "Liga MX",
+        "country": "Mexico",
+        "logo": "https://media.api-sports.io/football/leagues/262.png",
+        "flag": "https://media.api-sports.io/flags/mx.svg",
+        "season": 2021,
+        "round": "Apertura - 2",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 2282,
+          "name": "Monterrey",
+          "logo": "https://media.api-sports.io/football/teams/2282.png",
+          "winner": true
+        },
+        "away": {
+          "id": 2286,
+          "name": "U.N.A.M. - Pumas",
+          "logo": "https://media.api-sports.io/football/teams/2286.png",
+          "winner": false
+        }
+      },
+      "goals": {
+        "home": 2,
+        "away": 0
+      },
+      "score": {
+        "halftime": {
+          "home": 1,
+          "away": 0
+        },
+        "fulltime": {
+          "home": 2,
+          "away": 0
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 721741,
+        "referee": "Mario Humberto Vargas Mata, Mexico",
+        "timezone": "UTC",
+        "date": "2021-08-07T00:00:00+00:00",
+        "timestamp": 1628294400,
+        "periods": {
+          "first": 1628294400,
+          "second": 1628298000
+        },
+        "venue": {
+          "id": 10546,
+          "name": "Estadio de Mazatlán",
+          "city": "Mazatlán"
+        },
+        "status": {
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 262,
+        "name": "Liga MX",
+        "country": "Mexico",
+        "logo": "https://media.api-sports.io/football/leagues/262.png",
+        "flag": "https://media.api-sports.io/flags/mx.svg",
+        "season": 2021,
+        "round": "Apertura - 3",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 14002,
+          "name": "Mazatlán",
+          "logo": "https://media.api-sports.io/football/teams/14002.png",
+          "winner": null
+        },
+        "away": {
+          "id": 2282,
+          "name": "Monterrey",
+          "logo": "https://media.api-sports.io/football/teams/2282.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": 1,
+        "away": 1
+      },
+      "score": {
+        "halftime": {
+          "home": 1,
+          "away": 1
+        },
+        "fulltime": {
+          "home": 1,
+          "away": 1
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    }
+  ]
+}

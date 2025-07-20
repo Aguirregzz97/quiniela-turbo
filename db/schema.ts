@@ -10,7 +10,7 @@ import {
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { AdapterAccountType } from "@auth/core/adapters";
-import { InferModel, relations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import { generateJoinCode } from "@/lib/utils";
 
 const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle";
@@ -120,6 +120,9 @@ export const quinielas = pgTable("quiniela", {
     .$defaultFn(() => generateJoinCode()),
   league: text("league").notNull(),
   externalLeagueId: text("externalLeagueId").notNull(),
+  roundsSelected: jsonb("roundsSelected")
+    .$type<{ roundName: string; dates: string[] }[]>()
+    .notNull(),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
@@ -132,6 +135,7 @@ export const quiniela_settings = pgTable("quiniela_settings", {
     .notNull()
     .unique()
     .references(() => quinielas.id, { onDelete: "cascade" }),
+  prizeToWin: integer("prizeToWin").notNull(),
   prizeDistribution: jsonb("prizeDistribution")
     .$type<{ position: number; percentage: number }[]>()
     .notNull(),
@@ -162,48 +166,17 @@ export const quiniela_participants = pgTable("quiniela_participants", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
-export const matches = pgTable("matches", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  externalFixtureId: text("externalId").notNull(),
-  externalLeagueId: text("externalLeagueId").notNull(),
-  homeTeam: text("homeTeam").notNull(),
-  awayTeam: text("awayTeam").notNull(),
-  league: text("league").notNull(),
-  season: text("season").notNull(),
-  round: text("round").notNull(),
-  homeTeamScore: integer("homeTeamScore"),
-  awayTeamScore: integer("awayTeamScore"),
-  matchDate: timestamp("matchDate", { mode: "date" }).notNull(),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
-
-export const quiniela_matches = pgTable("quiniela_matches", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  quinielaId: text("quinielaId")
-    .notNull()
-    .references(() => quinielas.id, { onDelete: "cascade" }),
-  matchId: text("matchId")
-    .notNull()
-    .references(() => matches.id, { onDelete: "cascade" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
-
 export const predictions = pgTable("predictions", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  quinielaMatchId: text("quinielaMatchId")
-    .notNull()
-    .references(() => quiniela_matches.id, { onDelete: "cascade" }),
+  quinielaId: text("quinielaId").references(() => quinielas.id, {
+    onDelete: "cascade",
+  }),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  externalFixtureId: text("externalFixtureId").notNull(),
   predictedHomeScore: integer("predictedHomeScore"),
   predictedAwayScore: integer("predictedAwayScore"),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -227,7 +200,7 @@ export const quinielaRelations = relations(quinielas, ({ many, one }) => ({
     references: [quiniela_settings.quinielaId],
   }),
   participants: many(quiniela_participants),
-  matches: many(quiniela_matches),
+  predictions: many(predictions),
 }));
 
 export const participantsRelations = relations(
@@ -268,12 +241,6 @@ export type NewQuinielaSetting = typeof quiniela_settings.$inferInsert;
 
 export type QuinielaParticipant = typeof quiniela_participants.$inferSelect;
 export type NewQuinielaParticipant = typeof quiniela_participants.$inferInsert;
-
-export type Match = typeof matches.$inferSelect;
-export type NewMatch = typeof matches.$inferInsert;
-
-export type QuinielaMatch = typeof quiniela_matches.$inferSelect;
-export type NewQuinielaMatch = typeof quiniela_matches.$inferInsert;
 
 export type Prediction = typeof predictions.$inferSelect;
 export type NewPrediction = typeof predictions.$inferInsert;

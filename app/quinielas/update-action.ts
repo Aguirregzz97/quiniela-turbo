@@ -50,6 +50,7 @@ export async function updateQuiniela(
         description: data.description,
         league: data.league,
         externalLeagueId: data.externalLeagueId,
+        roundsSelected: data.roundsSelected,
         updatedAt: new Date(),
       })
       .where(eq(quinielas.id, quinielaId));
@@ -58,6 +59,7 @@ export async function updateQuiniela(
     await db
       .update(quiniela_settings)
       .set({
+        prizeToWin: data.prizeToWin,
         prizeDistribution: data.prizeDistribution,
         allowEditPredictions: data.allowEditPredictions,
         pointsForExactResultPrediction: data.pointsForExactResultPrediction,

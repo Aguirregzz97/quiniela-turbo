@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,12 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Settings, FileText } from "lucide-react";
+import { Loader2, Settings, FileText, Trophy } from "lucide-react";
 import { createQuiniela } from "@/app/quinielas/create-action";
 import { Switch } from "@/components/ui/switch";
+
 import PrizeDistributionForm from "./PrizeDistributionForm";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { useRounds } from "@/hooks/useRounds";
 
 // Temporary hardcoded leagues - will come from API later
 const LEAGUES = [
@@ -44,6 +46,20 @@ const createQuinielaSchema = z.object({
     .max(500, "La descripción no puede exceder 500 caracteres"),
   league: z.string().min(1, "La liga es requerida"),
   externalLeagueId: z.string().min(1, "ID de liga requerido"),
+  prizeToWin: z
+    .number()
+    .min(1, "El premio debe ser mayor a 0")
+    .int("El premio debe ser un número entero"),
+  desde: z.string().min(1, "Debe seleccionar una jornada de inicio"),
+  hasta: z.string().min(1, "Debe seleccionar una jornada de fin"),
+  roundsSelected: z
+    .array(
+      z.object({
+        roundName: z.string(),
+        dates: z.array(z.string()),
+      }),
+    )
+    .min(1, "Debe seleccionar al menos una jornada"),
   pointsForExactResultPrediction: z
     .number()
     .min(1, "Mínimo 1 punto")
@@ -88,13 +104,48 @@ const createQuinielaSchema = z.object({
 export type CreateQuinielaFormData = z.infer<typeof createQuinielaSchema>;
 
 export default function CreateQuinielaForm() {
+  const {
+    data: rounds,
+    isLoading: roundsLoading,
+    error: roundsError,
+  } = useRounds();
+
+  // Create dynamic schema with rounds validation
+  const createQuinielaSchemaWithValidation = useMemo(() => {
+    return createQuinielaSchema.refine(
+      (data) => {
+        if (!rounds?.response || !data.desde || !data.hasta) {
+          return true; // Skip validation if data not available
+        }
+
+        const desdeIndex = rounds.response.findIndex(
+          (r) => r.round === data.desde,
+        );
+        const hastaIndex = rounds.response.findIndex(
+          (r) => r.round === data.hasta,
+        );
+
+        return desdeIndex <= hastaIndex;
+      },
+      {
+        message:
+          "La jornada 'desde' debe ser anterior o igual a la jornada 'hasta'",
+        path: ["hasta"],
+      },
+    );
+  }, [rounds]);
+
   const form = useForm<CreateQuinielaFormData>({
-    resolver: zodResolver(createQuinielaSchema),
+    resolver: zodResolver(createQuinielaSchemaWithValidation),
     defaultValues: {
       name: "",
       description: "",
       league: "",
       externalLeagueId: "",
+      prizeToWin: 100,
+      desde: "",
+      hasta: "",
+      roundsSelected: [],
       pointsForExactResultPrediction: 2,
       pointsForCorrectResultPrediction: 1,
       allowEditPredictions: true,
@@ -115,6 +166,7 @@ export default function CreateQuinielaForm() {
     setValue,
     watch,
     reset,
+    trigger,
   } = form;
 
   const allowEditPredictions = watch("allowEditPredictions");
@@ -128,6 +180,39 @@ export default function CreateQuinielaForm() {
       setValue("externalLeagueId", selectedLeague.id.toString());
     }
   };
+
+  // Convert desde/hasta selection to roundsSelected format
+  useEffect(() => {
+    const desde = watch("desde");
+    const hasta = watch("hasta");
+
+    if (!rounds?.response || !desde || !hasta) {
+      setValue("roundsSelected", []);
+      return;
+    }
+
+    const desdeIndex = rounds.response.findIndex((r) => r.round === desde);
+    const hastaIndex = rounds.response.findIndex((r) => r.round === hasta);
+
+    if (desdeIndex === -1 || hastaIndex === -1 || desdeIndex > hastaIndex) {
+      setValue("roundsSelected", []);
+      return;
+    }
+
+    const selectedRoundsData = rounds.response
+      .slice(desdeIndex, hastaIndex + 1)
+      .map((round) => ({
+        roundName: round.round,
+        dates: round.dates,
+      }));
+
+    setValue("roundsSelected", selectedRoundsData);
+
+    // Trigger validation when fields change
+    if (desde && hasta) {
+      trigger(["desde", "hasta"]);
+    }
+  }, [watch("desde"), watch("hasta"), rounds, setValue, trigger]);
 
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {
@@ -214,6 +299,75 @@ export default function CreateQuinielaForm() {
                 </p>
               )}
             </div>
+
+            {/* Rounds Selection */}
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="text-lg font-semibold">Selección de Jornadas</h3>
+              {roundsLoading ? (
+                <div className="flex items-center justify-center rounded-md border p-3">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">
+                    Cargando jornadas...
+                  </span>
+                </div>
+              ) : roundsError ? (
+                <div className="rounded-md border border-destructive p-3">
+                  <p className="text-sm text-destructive">
+                    {roundsError?.message || "Error cargando jornadas"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="desde">Desde *</Label>
+                    <Select onValueChange={(value) => setValue("desde", value)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona jornada inicial" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rounds?.response.map((round) => (
+                          <SelectItem key={round.round} value={round.round}>
+                            {round.round}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.desde && (
+                      <p className="text-sm text-destructive">
+                        {errors.desde.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hasta">Hasta *</Label>
+                    <Select onValueChange={(value) => setValue("hasta", value)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona jornada final" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rounds?.response.map((round) => (
+                          <SelectItem key={round.round} value={round.round}>
+                            {round.round}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.hasta && (
+                      <p className="text-sm text-destructive">
+                        {errors.hasta.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {watch("desde") && watch("hasta") && (
+                <p className="text-xs text-muted-foreground">
+                  {watch("roundsSelected")?.length || 0} jornada(s)
+                  seleccionada(s)
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -227,6 +381,29 @@ export default function CreateQuinielaForm() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
+              {/* Prize Configuration */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prizeToWin">Premio Total a Ganar *</Label>
+                  <div className="relative">
+                    <Input
+                      id="prizeToWin"
+                      type="number"
+                      {...register("prizeToWin", { valueAsNumber: true })}
+                      placeholder="Ej: 1000"
+                      className="w-full pl-8"
+                      min={1}
+                    />
+                    <Trophy className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  </div>
+                  {errors.prizeToWin && (
+                    <p className="text-sm text-destructive">
+                      {errors.prizeToWin.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* Points Configuration */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">
