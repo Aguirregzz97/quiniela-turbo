@@ -1,8 +1,12 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Dices } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/db";
+import { quinielas } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import PredictionsContent from "@/components/QuinielaComponents/PredictionsContent";
 
 interface PredictionsPageProps {
   params: Promise<{
@@ -20,6 +24,19 @@ export default async function PredictionsPage({
   if (!session) {
     redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/predictions`);
   }
+
+  // Fetch quiniela data
+  const quinielaData = await db
+    .select()
+    .from(quinielas)
+    .where(eq(quinielas.id, id))
+    .limit(1);
+
+  if (!quinielaData.length) {
+    notFound();
+  }
+
+  const quiniela = quinielaData[0];
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
@@ -46,7 +63,8 @@ export default async function PredictionsPage({
         </div>
       </div>
 
-      {/* Predictions content will be implemented here */}
+      {/* Predictions content */}
+      <PredictionsContent quiniela={quiniela} />
     </div>
   );
 }
