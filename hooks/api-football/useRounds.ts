@@ -3,20 +3,16 @@ import { RoundsApiResponse } from "@/types/rounds";
 import axios from "axios";
 
 async function fetchRounds(
-  leagueId?: string,
-  season?: string,
+  leagueId: string,
+  season: string,
 ): Promise<RoundsApiResponse> {
-  const currentYear = new Date().getFullYear().toString();
-  const finalLeagueId = leagueId || "262";
-  const finalSeason = season || currentYear;
-
   try {
     console.log("Fetching rounds data from API route");
 
     const response = await axios.get("/api/football/rounds", {
       params: {
-        league: finalLeagueId,
-        season: finalSeason,
+        league: leagueId,
+        season: season,
       },
     });
 
@@ -31,7 +27,7 @@ async function fetchRounds(
   }
 }
 
-export function useRounds(leagueId?: string, season?: string) {
+export function useRounds(leagueId: string, season: string) {
   return useQuery({
     queryKey: ["rounds", leagueId, season],
     queryFn: () => fetchRounds(leagueId, season),

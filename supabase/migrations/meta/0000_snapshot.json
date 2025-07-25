@@ -1,5 +1,5 @@
 {
-  "id": "099b895b-980f-4943-b22a-4d4052123212",
+  "id": "42d8bae5-da95-4023-8bf3-7d7231d6ad77",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -204,6 +204,12 @@
         },
         "externalFixtureId": {
           "name": "externalFixtureId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalRound": {
+          "name": "externalRound",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -478,6 +484,12 @@
         },
         "externalLeagueId": {
           "name": "externalLeagueId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalSeason": {
+          "name": "externalSeason",
           "type": "text",
           "primaryKey": false,
           "notNull": true

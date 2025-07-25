@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, ArrowLeft, Edit } from "lucide-react";
+import { Award, ArrowLeft, Edit, Dices } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -102,17 +102,21 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       <div className="grid gap-6">
         <QuinielaDetailsCard quinielaData={quinielaData} />
 
-        {/* Placeholder for future content */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Funcionalidades Futuras</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Aquí se mostrarán las predicciones, participantes, y estadísticas
-              de la quiniela.
-            </p>
-          </CardContent>
+        {/* Predictions Card */}
+        <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Link href={`/quinielas/${quinielaData.id}/predictions`}>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Dices className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Registrar Pronósticos</h3>
+                <p className="text-sm text-muted-foreground">
+                  Haz tus predicciones para los partidos de esta quiniela
+                </p>
+              </div>
+            </CardContent>
+          </Link>
         </Card>
       </div>
     </div>

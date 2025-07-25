@@ -38,6 +38,7 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       | "ownerId"
       | "league"
       | "externalLeagueId"
+      | "externalSeason"
       | "roundsSelected"
     > = {
       name: data.name,
@@ -46,6 +47,7 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       league: data.league,
       externalLeagueId: data.externalLeagueId,
       roundsSelected: data.roundsSelected,
+      externalSeason: data.externalSeason,
     };
 
     // Create the quiniela in the database

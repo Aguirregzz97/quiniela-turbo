@@ -3,8 +3,16 @@ import { Trophy, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CreateQuinielaForm from "@/components/QuinielaComponents/CreateQuinielaForm";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function CreateQuinielaPage() {
+export default async function CreateQuinielaPage() {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/api/auth/signin?callbackUrl=/quinielas/create");
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">

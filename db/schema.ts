@@ -120,6 +120,7 @@ export const quinielas = pgTable("quiniela", {
     .$defaultFn(() => generateJoinCode()),
   league: text("league").notNull(),
   externalLeagueId: text("externalLeagueId").notNull(),
+  externalSeason: text("externalSeason").notNull(),
   roundsSelected: jsonb("roundsSelected")
     .$type<{ roundName: string; dates: string[] }[]>()
     .notNull(),
@@ -177,6 +178,7 @@ export const predictions = pgTable("predictions", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   externalFixtureId: text("externalFixtureId").notNull(),
+  externalRound: text("externalRound").notNull(),
   predictedHomeScore: integer("predictedHomeScore"),
   predictedAwayScore: integer("predictedAwayScore"),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),

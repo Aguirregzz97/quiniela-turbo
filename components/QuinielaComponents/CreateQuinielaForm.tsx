@@ -26,6 +26,8 @@ import { useRouter } from "next/navigation";
 import { useRounds } from "@/hooks/api-football/useRounds";
 import Image from "next/image";
 
+const CURRENT_SEASON = new Date().getFullYear().toString();
+
 // Zod schema for quiniela details
 const createQuinielaSchema = z.object({
   name: z
@@ -91,16 +93,22 @@ const createQuinielaSchema = z.object({
         path: ["prizeDistribution"],
       },
     ),
+  externalSeason: z
+    .string()
+    .min(1, "La temporada es requerida")
+    .default(CURRENT_SEASON),
 });
 
 export type CreateQuinielaFormData = z.infer<typeof createQuinielaSchema>;
 
 export default function CreateQuinielaForm() {
+  const leagueId = "262";
+
   const {
     data: rounds,
     isLoading: roundsLoading,
     error: roundsError,
-  } = useRounds();
+  } = useRounds(leagueId, CURRENT_SEASON);
 
   // Filter future rounds only - rounds that haven't started yet
   const futureRounds = useMemo(() => {
