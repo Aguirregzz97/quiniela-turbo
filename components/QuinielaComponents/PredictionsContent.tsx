@@ -7,12 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Clock, CheckCircle2, Play } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
@@ -81,6 +83,43 @@ function getMatchStatus(fixture: FixtureData): string {
   const homeGoals = fixture.goals.home ?? 0;
   const awayGoals = fixture.goals.away ?? 0;
   return `${homeGoals} - ${awayGoals}`;
+}
+
+// Helper function to get match status info
+function getMatchStatusInfo(fixture: FixtureData): {
+  icon: React.ReactNode;
+  status: "not-started" | "in-progress" | "finished";
+  statusText: string;
+} {
+  const statusShort = fixture.fixture.status.short;
+
+  if (statusShort === "NS") {
+    return {
+      icon: <Clock className="h-4 w-4 text-muted-foreground" />,
+      status: "not-started",
+      statusText: "Por comenzar",
+    };
+  }
+
+  if (statusShort === "FT" || statusShort === "AET" || statusShort === "PEN") {
+    return {
+      icon: <CheckCircle2 className="h-4 w-4 text-green-600" />,
+      status: "finished",
+      statusText: "Finalizado",
+    };
+  }
+
+  // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
+  return {
+    icon: (
+      <div className="flex items-center">
+        <Play className="h-4 w-4 animate-pulse text-red-600" />
+        <span className="ml-1 text-xs font-medium text-red-600">EN VIVO</span>
+      </div>
+    ),
+    status: "in-progress",
+    statusText: "En progreso",
+  };
 }
 
 // Helper function to format date and time
@@ -191,18 +230,22 @@ export default function PredictionsContent({
           roundFixtures.map((fixture) => {
             const { date, time } = formatDateTime(fixture.fixture.date);
             const matchStatus = getMatchStatus(fixture);
+            const statusInfo = getMatchStatusInfo(fixture);
 
             return (
               <Card key={fixture.fixture.id} className="overflow-hidden">
                 <CardContent className="p-0">
                   {/* Match Header */}
                   <div className="border-b bg-muted/30 px-4 py-3">
-                    <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4" />
                         <span>
                           {date} {time}
                         </span>
+                        <div className="flex items-center gap-1">
+                          {statusInfo.icon}
+                        </div>
                       </div>
                       {fixture.fixture.venue && (
                         <div className="flex items-center gap-1 text-muted-foreground">
@@ -269,31 +312,45 @@ export default function PredictionsContent({
 
                       {/* Predictions Row */}
                       <div className="flex items-center justify-center gap-8">
-                        <Select>
-                          <SelectTrigger className="w-16">
-                            <SelectValue placeholder="0" />
+                        <Select defaultValue="0">
+                          <SelectTrigger className="mx-auto w-16">
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
-                              <SelectItem key={score} value={score.toString()}>
-                                {score}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              <SelectItem value="0">0</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="6">6</SelectItem>
+                              <SelectItem value="7">7</SelectItem>
+                              <SelectItem value="8">8</SelectItem>
+                              <SelectItem value="9">9</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
 
                         <span className="text-muted-foreground">-</span>
 
-                        <Select>
-                          <SelectTrigger className="w-16">
-                            <SelectValue placeholder="0" />
+                        <Select defaultValue="0">
+                          <SelectTrigger className="mx-auto w-16">
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
-                              <SelectItem key={score} value={score.toString()}>
-                                {score}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              <SelectItem value="0">0</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="6">6</SelectItem>
+                              <SelectItem value="7">7</SelectItem>
+                              <SelectItem value="8">8</SelectItem>
+                              <SelectItem value="9">9</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </div>
@@ -322,16 +379,23 @@ export default function PredictionsContent({
                         </div>
 
                         {/* Home Team Prediction */}
-                        <Select>
+                        <Select defaultValue="0">
                           <SelectTrigger className="mx-auto w-16">
-                            <SelectValue placeholder="0" />
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
-                              <SelectItem key={score} value={score.toString()}>
-                                {score}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              <SelectItem value="0">0</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="6">6</SelectItem>
+                              <SelectItem value="7">7</SelectItem>
+                              <SelectItem value="8">8</SelectItem>
+                              <SelectItem value="9">9</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </div>
@@ -364,16 +428,23 @@ export default function PredictionsContent({
                         </div>
 
                         {/* Away Team Prediction */}
-                        <Select>
+                        <Select defaultValue="0">
                           <SelectTrigger className="mx-auto w-16">
-                            <SelectValue placeholder="0" />
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
-                              <SelectItem key={score} value={score.toString()}>
-                                {score}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              <SelectItem value="0">0</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="6">6</SelectItem>
+                              <SelectItem value="7">7</SelectItem>
+                              <SelectItem value="8">8</SelectItem>
+                              <SelectItem value="9">9</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </div>
