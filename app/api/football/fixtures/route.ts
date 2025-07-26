@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
 
     const data = response.data as FixturesApiResponse;
 
-    // Cache the result for 30 minutes (1800 seconds)
-    await redis.setex(cacheKey, 1800, JSON.stringify(data));
+    // Cache the result for 10 minutes (600 seconds)
+    await redis.setex(cacheKey, 600, JSON.stringify(data));
 
     return NextResponse.json(data);
   } catch (error) {
