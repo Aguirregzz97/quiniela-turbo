@@ -64,7 +64,7 @@ export default async function PredictionsPage({
       </div>
 
       {/* Predictions content */}
-      <PredictionsContent quiniela={quiniela} />
+      <PredictionsContent quiniela={quiniela} userId={session.user.id} />
     </div>
   );
 }

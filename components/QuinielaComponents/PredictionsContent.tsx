@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useFixtures } from "@/hooks/api-football/useFixtures";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,13 +14,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, Clock, CheckCircle2, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  CalendarDays,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  Play,
+  Upload,
+  Check,
+  Ban,
+} from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
+import { usePredictions } from "@/hooks/predictions/usePredictions";
+import {
+  savePredictions,
+  PredictionInput,
+} from "@/app/quinielas/predictions-action";
+import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PredictionsContentProps {
   quiniela: Quiniela;
+  userId: string;
 }
 
 // Helper function to determine the default active round
@@ -77,7 +95,7 @@ function filterFixturesByRound(
 // Helper function to format match status
 function getMatchStatus(fixture: FixtureData): string {
   if (fixture.fixture.status.short === "NS") {
-    return "N.I.";
+    return "vs";
   }
 
   const homeGoals = fixture.goals.home ?? 0;
@@ -103,7 +121,7 @@ function getMatchStatusInfo(fixture: FixtureData): {
 
   if (statusShort === "FT" || statusShort === "AET" || statusShort === "PEN") {
     return {
-      icon: <CheckCircle2 className="h-4 w-4 text-green-600" />,
+      icon: <CheckCircle2 className="h-4 w-4 text-primary" />,
       status: "finished",
       statusText: "Finalizado",
     };
@@ -144,7 +162,10 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 
 export default function PredictionsContent({
   quiniela,
+  userId,
 }: PredictionsContentProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
 
   const {
@@ -158,6 +179,8 @@ export default function PredictionsContent({
     fixturesParams.toDate,
   );
 
+  const { data: existingPredictions = [] } = usePredictions(quiniela.id);
+
   // Get available rounds from quiniela data
   const availableRounds = quiniela.roundsSelected || [];
 
@@ -165,10 +188,122 @@ export default function PredictionsContent({
   const defaultRound = getDefaultActiveRound(availableRounds);
   const [selectedRound, setSelectedRound] = useState<string>(defaultRound);
 
+  // State to manage all predictions for the current round
+  const [predictions, setPredictions] = useState<
+    Record<string, { home: string; away: string }>
+  >({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
     return filterFixturesByRound(fixturesData?.response, selectedRound);
   }, [fixturesData?.response, selectedRound]);
+
+  // Initialize predictions with existing data when round changes
+  useEffect(() => {
+    if (roundFixtures.length > 0) {
+      const initialPredictions: Record<string, { home: string; away: string }> =
+        {};
+
+      roundFixtures.forEach((fixture) => {
+        const fixtureId = fixture.fixture.id.toString();
+        const existingPrediction = existingPredictions.find(
+          (p) =>
+            p.externalFixtureId === fixtureId &&
+            p.externalRound === selectedRound,
+        );
+
+        initialPredictions[fixtureId] = {
+          home: existingPrediction?.predictedHomeScore?.toString() || "0",
+          away: existingPrediction?.predictedAwayScore?.toString() || "0",
+        };
+      });
+
+      // Only update if the predictions actually changed
+      setPredictions((prev) => {
+        const hasChanged =
+          Object.keys(initialPredictions).some(
+            (fixtureId) =>
+              prev[fixtureId]?.home !== initialPredictions[fixtureId]?.home ||
+              prev[fixtureId]?.away !== initialPredictions[fixtureId]?.away,
+          ) ||
+          Object.keys(prev).length !== Object.keys(initialPredictions).length;
+
+        return hasChanged ? initialPredictions : prev;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRound, roundFixtures.length, existingPredictions.length]);
+
+  // Handle prediction updates
+  const updatePrediction = (
+    fixtureId: string,
+    team: "home" | "away",
+    score: string,
+  ) => {
+    setPredictions((prev) => ({
+      ...prev,
+      [fixtureId]: {
+        ...prev[fixtureId],
+        [team]: score,
+      },
+    }));
+  };
+
+  // Check if fixture has existing prediction
+  const hasExistingPrediction = (fixtureId: string) => {
+    return existingPredictions.some(
+      (p) =>
+        p.externalFixtureId === fixtureId && p.externalRound === selectedRound,
+    );
+  };
+
+  // Handle form submission
+  const handleSubmitPredictions = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const predictionInputs: PredictionInput[] = Object.entries(
+        predictions,
+      ).map(([fixtureId, scores]) => ({
+        externalFixtureId: fixtureId,
+        externalRound: selectedRound,
+        predictedHomeScore: parseInt(scores.home),
+        predictedAwayScore: parseInt(scores.away),
+      }));
+
+      const result = await savePredictions(quiniela.id, predictionInputs);
+
+      if (result.success) {
+        toast({
+          title: "¡Pronósticos guardados!",
+          description: result.message,
+        });
+
+        // Invalidate and refetch predictions
+        queryClient.invalidateQueries({
+          queryKey: ["predictions", quiniela.id],
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al guardar los pronósticos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Check if we have any predictions to submit
+  const hasValidPredictions = Object.keys(predictions).length > 0;
 
   if (isLoading) {
     return (
@@ -187,7 +322,10 @@ export default function PredictionsContent({
   }
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6 pb-24"
+      style={{ scrollbarGutter: "stable", overflowX: "hidden" }}
+    >
       {/* Round Selector Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -231,30 +369,47 @@ export default function PredictionsContent({
             const { date, time } = formatDateTime(fixture.fixture.date);
             const matchStatus = getMatchStatus(fixture);
             const statusInfo = getMatchStatusInfo(fixture);
+            const hasPrediction = hasExistingPrediction(
+              fixture.fixture.id.toString(),
+            );
+            const matchStarted = statusInfo.status !== "not-started";
 
             return (
               <Card key={fixture.fixture.id} className="overflow-hidden">
                 <CardContent className="p-0">
                   {/* Match Header */}
                   <div className="border-b bg-muted/30 px-4 py-3">
-                    <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4" />
-                        <span>
-                          {date} {time}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {statusInfo.icon}
-                        </div>
-                      </div>
-                      {fixture.fixture.venue && (
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <MapPin className="h-4 w-4 flex-shrink-0" />
-                          <span className="break-words sm:max-w-48 sm:truncate">
-                            {fixture.fixture.venue.name}
+                    <div className="grid grid-cols-[1fr_1px_1fr] gap-3 text-sm sm:gap-4">
+                      {/* Left Side - Date & Status */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <CalendarDays className="h-4 w-4" />
+                          <span className="text-sm">
+                            {date} {time}
                           </span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-2">
+                          {statusInfo.icon}
+                          <span className="text-xs text-muted-foreground sm:text-sm">
+                            {statusInfo.statusText}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="bg-border"></div>
+
+                      {/* Right Side - Venue */}
+                      <div className="flex flex-col gap-1.5 justify-self-end text-right sm:gap-2">
+                        {fixture.fixture.venue && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                            <span className="break-words text-right text-sm">
+                              {fixture.fixture.venue.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -284,9 +439,21 @@ export default function PredictionsContent({
                         </div>
 
                         {/* Score */}
-                        <div className="mx-4 flex-shrink-0">
+                        <div className="mx-4 flex-shrink-0 text-center">
                           <div className="rounded-lg bg-muted/50 px-3 py-1 text-lg font-bold">
                             {matchStatus}
+                          </div>
+                          {/* Subtle Prediction Status */}
+                          <div className="mt-1">
+                            {hasPrediction ? (
+                              <span className="text-xs text-primary/70">
+                                ✓ Pronosticado
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/60">
+                                Sin pronóstico
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -312,7 +479,20 @@ export default function PredictionsContent({
 
                       {/* Predictions Row */}
                       <div className="flex items-center justify-center gap-8">
-                        <Select defaultValue="0">
+                        <Select
+                          value={
+                            predictions[fixture.fixture.id.toString()]?.home ||
+                            "0"
+                          }
+                          onValueChange={(value) =>
+                            updatePrediction(
+                              fixture.fixture.id.toString(),
+                              "home",
+                              value,
+                            )
+                          }
+                          disabled={matchStarted}
+                        >
                           <SelectTrigger className="mx-auto w-16">
                             <SelectValue />
                           </SelectTrigger>
@@ -334,7 +514,20 @@ export default function PredictionsContent({
 
                         <span className="text-muted-foreground">-</span>
 
-                        <Select defaultValue="0">
+                        <Select
+                          value={
+                            predictions[fixture.fixture.id.toString()]?.away ||
+                            "0"
+                          }
+                          onValueChange={(value) =>
+                            updatePrediction(
+                              fixture.fixture.id.toString(),
+                              "away",
+                              value,
+                            )
+                          }
+                          disabled={matchStarted}
+                        >
                           <SelectTrigger className="mx-auto w-16">
                             <SelectValue />
                           </SelectTrigger>
@@ -379,7 +572,20 @@ export default function PredictionsContent({
                         </div>
 
                         {/* Home Team Prediction */}
-                        <Select defaultValue="0">
+                        <Select
+                          value={
+                            predictions[fixture.fixture.id.toString()]?.home ||
+                            "0"
+                          }
+                          onValueChange={(value) =>
+                            updatePrediction(
+                              fixture.fixture.id.toString(),
+                              "home",
+                              value,
+                            )
+                          }
+                          disabled={matchStarted}
+                        >
                           <SelectTrigger className="mx-auto w-16">
                             <SelectValue />
                           </SelectTrigger>
@@ -405,6 +611,18 @@ export default function PredictionsContent({
                         <div className="min-w-20 rounded-lg bg-muted/50 px-4 py-2 text-2xl font-bold sm:text-3xl">
                           {matchStatus}
                         </div>
+                        {/* Subtle Prediction Status */}
+                        <div className="mt-2">
+                          {hasPrediction ? (
+                            <span className="text-sm text-primary/70">
+                              ✓ Pronosticado
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/60">
+                              Sin pronóstico
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Away Team */}
@@ -428,7 +646,20 @@ export default function PredictionsContent({
                         </div>
 
                         {/* Away Team Prediction */}
-                        <Select defaultValue="0">
+                        <Select
+                          value={
+                            predictions[fixture.fixture.id.toString()]?.away ||
+                            "0"
+                          }
+                          onValueChange={(value) =>
+                            updatePrediction(
+                              fixture.fixture.id.toString(),
+                              "away",
+                              value,
+                            )
+                          }
+                          disabled={matchStarted}
+                        >
                           <SelectTrigger className="mx-auto w-16">
                             <SelectValue />
                           </SelectTrigger>
@@ -456,6 +687,39 @@ export default function PredictionsContent({
           })
         )}
       </div>
+
+      {/* Sticky Submit Button */}
+      {hasValidPredictions && (
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 p-4 pb-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:left-64 md:pb-4">
+          <div className="mx-auto max-w-4xl px-4">
+            <Button
+              onClick={handleSubmitPredictions}
+              disabled={isSubmitting}
+              className="h-14 w-full text-sm font-semibold md:h-12 md:text-base"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <div className="flex flex-col items-center md:flex-row md:items-center">
+                    <span className="text-sm leading-tight md:text-base">
+                      Pronosticar para {selectedRound}
+                    </span>
+                    <span className="text-xs opacity-75 md:ml-2">
+                      ({Object.keys(predictions).length} partidos)
+                    </span>
+                  </div>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
