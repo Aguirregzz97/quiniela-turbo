@@ -449,7 +449,7 @@ export default function AllPredictionsTable({
                   <X className="h-4 w-4 text-red-900" />
                   <div className="h-4 w-6 rounded bg-red-300"></div>
                 </div>
-                <span className="text-xs sm:text-sm">Error</span>
+                <span className="text-xs sm:text-sm">Incorrecto</span>
               </div>
 
               <div className="col-span-2 flex items-center gap-2 sm:col-span-1">
