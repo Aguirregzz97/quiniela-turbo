@@ -372,7 +372,12 @@ export default function PredictionsContent({
             const hasPrediction = hasExistingPrediction(
               fixture.fixture.id.toString(),
             );
-            const matchStarted = statusInfo.status !== "not-started";
+            const allowPredictionsIndefinitely =
+              process.env.NEXT_PUBLIC_ALLOW_PREDICTIONS_IDEFINITELY === "true";
+
+            const matchStarted = allowPredictionsIndefinitely
+              ? false
+              : statusInfo.status !== "not-started";
 
             return (
               <Card key={fixture.fixture.id} className="overflow-hidden">

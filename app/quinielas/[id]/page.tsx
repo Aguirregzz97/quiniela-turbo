@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, ArrowLeft, Edit, Dices } from "lucide-react";
+import { Award, ArrowLeft, Edit, Dices, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -102,22 +102,40 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       <div className="grid gap-6">
         <QuinielaDetailsCard quinielaData={quinielaData} />
 
-        {/* Predictions Card */}
-        <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-          <Link href={`/quinielas/${quinielaData.id}/predictions`}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Dices className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Registrar Pronósticos</h3>
-                <p className="text-sm text-muted-foreground">
-                  Haz tus predicciones para los partidos de esta quiniela
-                </p>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
+        {/* Predictions Cards */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+            <Link href={`/quinielas/${quinielaData.id}/predictions`}>
+              <CardContent className="flex items-center gap-4 p-6">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Dices className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Registrar Pronósticos</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Haz tus predicciones para los partidos de esta quiniela
+                  </p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+            <Link href={`/quinielas/${quinielaData.id}/pronosticos`}>
+              <CardContent className="flex items-center gap-4 p-6">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Eye className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Ver Pronósticos</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Ve todos los pronósticos de los participantes
+                  </p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+        </div>
       </div>
     </div>
   );
