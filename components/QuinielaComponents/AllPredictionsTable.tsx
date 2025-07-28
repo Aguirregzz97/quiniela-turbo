@@ -634,7 +634,92 @@ export default function AllPredictionsTable({
                   <CollapsibleContent>
                     <CardContent className="mt-3 px-5 pb-5 pt-0 sm:px-6 sm:pb-6">
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {roundFixtures.map((fixture) => {
+                        {(() => {
+                          // Sort fixtures by prediction evaluation type
+                          const sortedFixtures = [...roundFixtures].sort(
+                            (a, b) => {
+                              const aPrediction = userPredictions.find(
+                                (p) =>
+                                  p.externalFixtureId ===
+                                  a.fixture.id.toString(),
+                              );
+                              const bPrediction = userPredictions.find(
+                                (p) =>
+                                  p.externalFixtureId ===
+                                  b.fixture.id.toString(),
+                              );
+
+                              const aResult = {
+                                homeScore: a.goals.home,
+                                awayScore: a.goals.away,
+                              };
+                              const bResult = {
+                                homeScore: b.goals.home,
+                                awayScore: b.goals.away,
+                              };
+
+                              const aFinished =
+                                a.fixture.status.short === "FT" ||
+                                a.fixture.status.short === "AET" ||
+                                a.fixture.status.short === "PEN";
+                              const bFinished =
+                                b.fixture.status.short === "FT" ||
+                                b.fixture.status.short === "AET" ||
+                                b.fixture.status.short === "PEN";
+
+                              const aEvaluation = evaluatePrediction(
+                                aPrediction
+                                  ? {
+                                      predictedHomeScore:
+                                        aPrediction.predictedHomeScore,
+                                      predictedAwayScore:
+                                        aPrediction.predictedAwayScore,
+                                    }
+                                  : {
+                                      predictedHomeScore: null,
+                                      predictedAwayScore: null,
+                                    },
+                                aResult,
+                                aFinished,
+                                exactPoints,
+                                correctResultPoints,
+                              );
+
+                              const bEvaluation = evaluatePrediction(
+                                bPrediction
+                                  ? {
+                                      predictedHomeScore:
+                                        bPrediction.predictedHomeScore,
+                                      predictedAwayScore:
+                                        bPrediction.predictedAwayScore,
+                                    }
+                                  : {
+                                      predictedHomeScore: null,
+                                      predictedAwayScore: null,
+                                    },
+                                bResult,
+                                bFinished,
+                                exactPoints,
+                                correctResultPoints,
+                              );
+
+                              // Define sort order: exact -> correct-result -> miss -> no-prediction
+                              const typeOrder = {
+                                exact: 0,
+                                "correct-result": 1,
+                                miss: 2,
+                                "no-prediction": 3,
+                              };
+
+                              return (
+                                typeOrder[aEvaluation.type] -
+                                typeOrder[bEvaluation.type]
+                              );
+                            },
+                          );
+
+                          return sortedFixtures;
+                        })().map((fixture) => {
                           const prediction = userPredictions.find(
                             (p) =>
                               p.externalFixtureId ===
