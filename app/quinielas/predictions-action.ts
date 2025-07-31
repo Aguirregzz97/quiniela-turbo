@@ -58,7 +58,7 @@ export async function savePredictions(
     await db.insert(predictions).values(predictionRecords);
 
     // Revalidate the predictions page
-    revalidatePath(`/quinielas/${quinielaId}/predictions`);
+    revalidatePath(`/quinielas/${quinielaId}/registrar-pronosticos`);
 
     return {
       success: true,

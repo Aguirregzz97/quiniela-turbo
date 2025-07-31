@@ -32,8 +32,9 @@ import Image from "next/image";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
+import { getDefaultActiveRound } from "./RegistrarPronosticos";
 
-interface AllPredictionsTableProps {
+interface VerPronosticosProps {
   quiniela: Quiniela;
   userId: string;
   exactPoints?: number;
@@ -46,42 +47,6 @@ interface UserStats {
   miss: number;
   noPrediction: number;
   totalPoints: number;
-}
-
-// Helper function to determine the default active round
-function getDefaultActiveRound(
-  rounds: { roundName: string; dates: string[] }[],
-): string {
-  if (!rounds.length) return "";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (const round of rounds) {
-    if (round.dates.length === 0) continue;
-
-    const roundStart = new Date(round.dates[0]);
-    const roundEnd = new Date(round.dates[round.dates.length - 1]);
-    roundStart.setHours(0, 0, 0, 0);
-    roundEnd.setHours(23, 59, 59, 999);
-
-    if (today >= roundStart && today <= roundEnd) {
-      return round.roundName;
-    }
-  }
-
-  const firstRound = rounds[0];
-  const lastRound = rounds[rounds.length - 1];
-  const firstRoundStart = new Date(firstRound.dates[0]);
-  const lastRoundEnd = new Date(lastRound.dates[lastRound.dates.length - 1]);
-
-  if (today < firstRoundStart) {
-    return firstRound.roundName;
-  } else if (today > lastRoundEnd) {
-    return lastRound.roundName;
-  }
-
-  return firstRound.roundName;
 }
 
 // Helper function to filter fixtures by round
@@ -210,12 +175,12 @@ function getMatchResult(fixture: FixtureData): string {
   return `${homeGoals}-${awayGoals}`;
 }
 
-export default function AllPredictionsTable({
+export default function VerPronosticos({
   quiniela,
   userId,
   exactPoints = 2,
   correctResultPoints = 1,
-}: AllPredictionsTableProps) {
+}: VerPronosticosProps) {
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
 
   const {
@@ -408,11 +373,13 @@ export default function AllPredictionsTable({
               <SelectValue placeholder="Seleccionar jornada" />
             </SelectTrigger>
             <SelectContent>
-              {availableRounds.map((round) => (
-                <SelectItem key={round.roundName} value={round.roundName}>
-                  {round.roundName}
-                </SelectItem>
-              ))}
+              {availableRounds.map(
+                (round: { roundName: string; dates: string[] }) => (
+                  <SelectItem key={round.roundName} value={round.roundName}>
+                    {round.roundName}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -789,7 +756,7 @@ export default function AllPredictionsTable({
 
                                 {/* User Prediction */}
                                 <div className="text-center">
-                                  <div className="mb-1 text-xs text-muted-foreground">
+                                  <div className="mb-1 text-xs">
                                     Tu pronóstico:
                                   </div>
                                   <div className="font-mono text-sm font-medium">

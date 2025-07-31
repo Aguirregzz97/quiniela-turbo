@@ -6,23 +6,25 @@ import Link from "next/link";
 import { db } from "@/db";
 import { quinielas } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import PredictionsContent from "@/components/QuinielaComponents/PredictionsContent";
+import RegistrarPronosticos from "@/components/QuinielaComponents/RegistrarPronosticos";
 
-interface PredictionsPageProps {
+interface RegistrarPronosticosPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export default async function PredictionsPage({
+export default async function RegistrarPronosticosPage({
   params,
-}: PredictionsPageProps) {
+}: RegistrarPronosticosPageProps) {
   const { id } = await params;
 
   const session = await auth();
 
   if (!session) {
-    redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/predictions`);
+    redirect(
+      `/api/auth/signin?callbackUrl=/quinielas/${id}/registrar-pronosticos`,
+    );
   }
 
   // Fetch quiniela data
@@ -64,7 +66,7 @@ export default async function PredictionsPage({
       </div>
 
       {/* Predictions content */}
-      <PredictionsContent quiniela={quiniela} userId={session.user.id} />
+      <RegistrarPronosticos quiniela={quiniela} userId={session.user.id} />
     </div>
   );
 }

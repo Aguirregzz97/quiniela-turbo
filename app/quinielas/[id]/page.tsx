@@ -105,7 +105,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         {/* Predictions Cards */}
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-            <Link href={`/quinielas/${quinielaData.id}/predictions`}>
+            <Link href={`/quinielas/${quinielaData.id}/registrar-pronosticos`}>
               <CardContent className="flex items-center gap-4 p-6">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <Dices className="h-6 w-6 text-primary" />
@@ -121,7 +121,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           </Card>
 
           <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-            <Link href={`/quinielas/${quinielaData.id}/pronosticos`}>
+            <Link href={`/quinielas/${quinielaData.id}/ver-pronosticos`}>
               <CardContent className="flex items-center gap-4 p-6">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
                   <Eye className="h-6 w-6 text-blue-600" />

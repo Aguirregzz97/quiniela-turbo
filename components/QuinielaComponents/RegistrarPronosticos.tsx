@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,8 +21,6 @@ import {
   CheckCircle2,
   Play,
   Upload,
-  Check,
-  Ban,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -36,13 +33,13 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface PredictionsContentProps {
+interface RegistrarPronosticosProps {
   quiniela: Quiniela;
   userId: string;
 }
 
 // Helper function to determine the default active round
-function getDefaultActiveRound(
+export function getDefaultActiveRound(
   rounds: { roundName: string; dates: string[] }[],
 ): string {
   if (!rounds.length) return "";
@@ -54,33 +51,15 @@ function getDefaultActiveRound(
   for (const round of rounds) {
     if (round.dates.length === 0) continue;
 
-    const roundStart = new Date(round.dates[0]);
     const roundEnd = new Date(round.dates[round.dates.length - 1]);
-    roundStart.setHours(0, 0, 0, 0);
     roundEnd.setHours(23, 59, 59, 999);
 
-    if (today >= roundStart && today <= roundEnd) {
+    if (roundEnd >= today) {
       return round.roundName;
     }
   }
 
-  // If today doesn't fall in any round, find the closest one
-  const firstRound = rounds[0];
-  const lastRound = rounds[rounds.length - 1];
-
-  const firstRoundStart = new Date(firstRound.dates[0]);
-  const lastRoundEnd = new Date(lastRound.dates[lastRound.dates.length - 1]);
-
-  if (today < firstRoundStart) {
-    // Before all rounds, use first round
-    return firstRound.roundName;
-  } else if (today > lastRoundEnd) {
-    // After all rounds, use last round
-    return lastRound.roundName;
-  }
-
-  // Default to first round
-  return firstRound.roundName;
+  return rounds[0].roundName;
 }
 
 // Helper function to filter fixtures by round
@@ -160,10 +139,10 @@ function formatDateTime(dateString: string): { date: string; time: string } {
   return { date: formattedDate, time: formattedTime };
 }
 
-export default function PredictionsContent({
+export default function RegistrarPronosticos({
   quiniela,
   userId,
-}: PredictionsContentProps) {
+}: RegistrarPronosticosProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
@@ -344,11 +323,13 @@ export default function PredictionsContent({
               <SelectValue placeholder="Seleccionar jornada" />
             </SelectTrigger>
             <SelectContent>
-              {availableRounds.map((round) => (
-                <SelectItem key={round.roundName} value={round.roundName}>
-                  {round.roundName}
-                </SelectItem>
-              ))}
+              {availableRounds.map(
+                (round: { roundName: string; dates: string[] }) => (
+                  <SelectItem key={round.roundName} value={round.roundName}>
+                    {round.roundName}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>

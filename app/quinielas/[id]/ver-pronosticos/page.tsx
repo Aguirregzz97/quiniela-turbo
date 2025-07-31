@@ -6,23 +6,23 @@ import Link from "next/link";
 import { db } from "@/db";
 import { quinielas, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import AllPredictionsTable from "@/components/QuinielaComponents/AllPredictionsTable";
+import VerPronosticos from "@/components/QuinielaComponents/VerPronosticos";
 
-interface PronosticosPageProps {
+interface VerPronosticosPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export default async function PronosticosPage({
+export default async function VerPronosticosPage({
   params,
-}: PronosticosPageProps) {
+}: VerPronosticosPageProps) {
   const { id } = await params;
 
   const session = await auth();
 
   if (!session) {
-    redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/pronosticos`);
+    redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/ver-pronosticos`);
   }
 
   // Fetch quiniela data with settings
@@ -69,7 +69,7 @@ export default async function PronosticosPage({
       </div>
 
       {/* All Predictions content */}
-      <AllPredictionsTable
+      <VerPronosticos
         quiniela={quiniela}
         userId={session.user.id}
         exactPoints={settings?.pointsForExactResultPrediction ?? 2}
