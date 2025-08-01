@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { quinielas, users } from "@/db/schema";
+import { quinielas, users, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
-import QuinielaDetailsCard from "@/components/QuinielaComponents/QuinielaDetailsCard";
+import QuinielaDetailsDrawer from "@/components/QuinielaComponents/QuinielaDetailsDrawer";
+import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderboard";
 
 interface QuinielaPageProps {
   params: Promise<{
@@ -24,30 +25,37 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}`);
   }
 
-  const quinielaWithOwner = await db
+  const quinielaWithOwnerAndSettings = await db
     .select({
       id: quinielas.id,
       name: quinielas.name,
       description: quinielas.description,
       league: quinielas.league,
       externalLeagueId: quinielas.externalLeagueId,
+      externalSeason: quinielas.externalSeason,
       joinCode: quinielas.joinCode,
       createdAt: quinielas.createdAt,
       updatedAt: quinielas.updatedAt,
       ownerId: quinielas.ownerId,
       ownerName: users.name,
       ownerEmail: users.email,
+      roundsSelected: quinielas.roundsSelected,
+      pointsForExactResultPrediction:
+        quiniela_settings.pointsForExactResultPrediction,
+      pointsForCorrectResultPrediction:
+        quiniela_settings.pointsForCorrectResultPrediction,
     })
     .from(quinielas)
     .innerJoin(users, eq(quinielas.ownerId, users.id))
+    .leftJoin(quiniela_settings, eq(quinielas.id, quiniela_settings.quinielaId))
     .where(eq(quinielas.id, id))
     .limit(1);
 
-  if (!quinielaWithOwner.length) {
+  if (!quinielaWithOwnerAndSettings.length) {
     notFound();
   }
 
-  const quinielaData = quinielaWithOwner[0];
+  const quinielaData = quinielaWithOwnerAndSettings[0];
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
@@ -61,14 +69,17 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             </Link>
           </Button>
 
-          {session.user.id === quinielaData.ownerId && (
-            <Button asChild>
-              <Link href={`/quinielas/${quinielaData.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Quiniela
-              </Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <QuinielaDetailsDrawer quinielaData={quinielaData} />
+            {session.user.id === quinielaData.ownerId && (
+              <Button asChild>
+                <Link href={`/quinielas/${quinielaData.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar Quiniela
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -98,10 +109,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         </div>
       </div>
 
-      {/* Quiniela Details */}
+      {/* Quiniela Actions */}
       <div className="grid gap-6">
-        <QuinielaDetailsCard quinielaData={quinielaData} />
-
         {/* Predictions Cards */}
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="cursor-pointer transition-colors hover:bg-muted/50">
@@ -136,6 +145,27 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             </Link>
           </Card>
         </div>
+
+        {/* Leaderboard */}
+        <QuinielaLeaderboard
+          quiniela={{
+            id: quinielaData.id,
+            name: quinielaData.name,
+            description: quinielaData.description,
+            league: quinielaData.league,
+            externalLeagueId: quinielaData.externalLeagueId,
+            externalSeason: quinielaData.externalSeason,
+            joinCode: quinielaData.joinCode,
+            createdAt: quinielaData.createdAt,
+            updatedAt: quinielaData.updatedAt,
+            ownerId: quinielaData.ownerId,
+            roundsSelected: quinielaData.roundsSelected,
+          }}
+          exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
+          correctResultPoints={
+            quinielaData.pointsForCorrectResultPrediction ?? 1
+          }
+        />
       </div>
     </div>
   );
