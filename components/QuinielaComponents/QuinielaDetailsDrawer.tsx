@@ -54,7 +54,34 @@ export default function QuinielaDetailsDrawer({
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mx-auto max-w-2xl space-y-6">
-            {/* League and Owner Info */}
+            {/* Join Code Section - Now at top */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-foreground">Código de Unión</h3>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <ClickableJoinCode joinCode={quinielaData.joinCode} />
+                <p className="mt-2 text-center text-sm text-muted-foreground">
+                  Haz clic en el código para copiarlo
+                </p>
+              </div>
+            </div>
+
+            {/* Join Link Section - Also at top */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-foreground">Enlace de Unión</h3>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="mb-3 break-all rounded-md bg-background px-3 py-2 font-mono text-sm">
+                  {`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/quinielas/join/${quinielaData.joinCode}`}
+                </div>
+                <div className="flex justify-center">
+                  <CopyJoinLinkButton joinCode={quinielaData.joinCode} />
+                </div>
+                <p className="mt-2 text-center text-sm text-muted-foreground">
+                  Comparte este enlace para que otros puedan unirse directamente
+                </p>
+              </div>
+            </div>
+
+            {/* League and Admin Info */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <h3 className="font-semibold text-foreground">Liga</h3>
@@ -86,13 +113,13 @@ export default function QuinielaDetailsDrawer({
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-foreground">Propietario</h3>
+                <h3 className="font-semibold text-foreground">Admin</h3>
                 <div className="rounded-lg bg-muted/50 p-3">
                   <p className="font-medium">
-                    {quinielaData.ownerName || "Propietario"}
+                    {quinielaData.ownerName || "Admin"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Creador de la quiniela
+                    Administrador de la quiniela
                   </p>
                 </div>
               </div>
@@ -134,33 +161,6 @@ export default function QuinielaDetailsDrawer({
                     )}
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Join Code Section */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-foreground">Código de Unión</h3>
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <ClickableJoinCode joinCode={quinielaData.joinCode} />
-                <p className="mt-2 text-center text-sm text-muted-foreground">
-                  Haz clic en el código para copiarlo
-                </p>
-              </div>
-            </div>
-
-            {/* Join Link Section */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-foreground">Enlace de Unión</h3>
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <div className="mb-3 break-all rounded-md bg-background px-3 py-2 font-mono text-sm">
-                  {`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/quinielas/join/${quinielaData.joinCode}`}
-                </div>
-                <div className="flex justify-center">
-                  <CopyJoinLinkButton joinCode={quinielaData.joinCode} />
-                </div>
-                <p className="mt-2 text-center text-sm text-muted-foreground">
-                  Comparte este enlace para que otros puedan unirse directamente
-                </p>
               </div>
             </div>
           </div>
