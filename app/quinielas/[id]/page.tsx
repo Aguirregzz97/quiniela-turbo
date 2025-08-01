@@ -61,8 +61,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     <div className="container mx-auto p-4 sm:p-6">
       {/* Header with back button */}
       <div className="mb-6">
-        <div className="mb-4 flex items-center justify-between">
-          <Button variant="ghost" asChild>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="ghost" asChild className="self-start">
             <Link className="pl-0" href="/quinielas">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver a Quinielas
@@ -72,10 +72,11 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           <div className="flex items-center gap-2">
             <QuinielaDetailsDrawer quinielaData={quinielaData} />
             {session.user.id === quinielaData.ownerId && (
-              <Button asChild>
+              <Button asChild size="sm" className="sm:size-default">
                 <Link href={`/quinielas/${quinielaData.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Editar Quiniela
+                  <span className="hidden sm:inline">Editar Quiniela</span>
+                  <span className="sm:hidden">Editar</span>
                 </Link>
               </Button>
             )}
