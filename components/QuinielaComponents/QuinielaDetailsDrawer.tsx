@@ -30,8 +30,6 @@ interface QuinielaDetailsDrawerProps {
 export default function QuinielaDetailsDrawer({
   quinielaData,
 }: QuinielaDetailsDrawerProps) {
-  console.log(process.env.NEXT_PUBLIC_APP_URL, "heere");
-
   return (
     <Drawer>
       <DrawerTrigger asChild>
