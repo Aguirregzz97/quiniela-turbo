@@ -30,6 +30,7 @@ interface QuinielaDetailsDrawerProps {
 export default function QuinielaDetailsDrawer({
   quinielaData,
 }: QuinielaDetailsDrawerProps) {
+
   return (
     <Drawer>
       <DrawerTrigger asChild>

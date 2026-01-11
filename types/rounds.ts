@@ -21,4 +21,5 @@ export interface RoundsApiResponse {
   results: number;
   paging: RoundPaging;
   response: RoundData[];
+  currentTournament?: "apertura" | "clausura";
 }

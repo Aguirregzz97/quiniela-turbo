@@ -26,7 +26,14 @@ import { useRouter } from "next/navigation";
 import { useRounds } from "@/hooks/api-football/useRounds";
 import Image from "next/image";
 
-const CURRENT_SEASON = new Date().getFullYear().toString();
+const getLigaMXSeason = () => {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  return month < 5 ? (year - 1).toString() : year.toString();
+};
+
+const CURRENT_SEASON = getLigaMXSeason();
 
 // Zod schema for quiniela details
 const createQuinielaSchema = z.object({
