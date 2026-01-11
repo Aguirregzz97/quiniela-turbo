@@ -61,7 +61,7 @@
     "install": "^0.13.0",
     "ioredis": "^5.6.1",
     "lucide-react": "^0.295.0",
-    "next": "15.3.0",
+    "next": "15.5.7",
     "next-auth": "5.0.0-beta.29",
     "next-themes": "^0.2.1",
     "pg-core@latest": "link:drizzle-orm/pg-core@latest",
