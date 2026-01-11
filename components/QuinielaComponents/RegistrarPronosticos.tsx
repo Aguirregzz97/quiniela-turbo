@@ -16,16 +16,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
-  MapPin,
   Clock,
   CheckCircle2,
   Play,
   Upload,
+  BarChart3,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
 import { usePredictions } from "@/hooks/predictions/usePredictions";
+import { useMultipleOdds } from "@/hooks/api-football/useOdds";
+import { OddsApiResponse, Bet, Value } from "@/types/odds";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
   savePredictions,
   PredictionInput,
@@ -139,6 +148,107 @@ function formatDateTime(dateString: string): { date: string; time: string } {
   return { date: formattedDate, time: formattedTime };
 }
 
+// Bet ID constants
+const MATCH_WINNER_BET_ID = 1;
+const BOTH_TEAMS_SCORE_BET_ID = 8;
+const CLEAN_SHEET_HOME_BET_ID = 27;
+const CLEAN_SHEET_AWAY_BET_ID = 28;
+
+// Types for extracted odds
+interface MatchWinnerOdds {
+  home: string;
+  draw: string;
+  away: string;
+}
+
+interface BothTeamsScoreOdds {
+  yes: string;
+  no: string;
+}
+
+interface CleanSheetOdds {
+  home: string;
+  away: string;
+}
+
+interface AllOdds {
+  matchWinner: MatchWinnerOdds | null;
+  bothTeamsScore: BothTeamsScoreOdds | null;
+  cleanSheet: CleanSheetOdds | null;
+}
+
+// Helper function to extract all odds from API response
+function getAllOdds(oddsData: OddsApiResponse | undefined): AllOdds {
+  const result: AllOdds = {
+    matchWinner: null,
+    bothTeamsScore: null,
+    cleanSheet: null,
+  };
+
+  if (!oddsData?.response?.length) return result;
+
+  const bookmaker = oddsData.response[0]?.bookmakers[0];
+  if (!bookmaker?.bets) return result;
+
+  // Match Winner (id: 1)
+  const matchWinnerBet = bookmaker.bets.find(
+    (bet: Bet) => bet.id === MATCH_WINNER_BET_ID,
+  );
+  if (matchWinnerBet) {
+    const homeOdd = matchWinnerBet.values.find(
+      (v: Value) => v.value === "Home",
+    )?.odd;
+    const drawOdd = matchWinnerBet.values.find(
+      (v: Value) => v.value === "Draw",
+    )?.odd;
+    const awayOdd = matchWinnerBet.values.find(
+      (v: Value) => v.value === "Away",
+    )?.odd;
+
+    if (homeOdd && drawOdd && awayOdd) {
+      result.matchWinner = { home: homeOdd, draw: drawOdd, away: awayOdd };
+    }
+  }
+
+  // Both Teams Score (id: 8)
+  const bothTeamsScoreBet = bookmaker.bets.find(
+    (bet: Bet) => bet.id === BOTH_TEAMS_SCORE_BET_ID,
+  );
+  if (bothTeamsScoreBet) {
+    const yesOdd = bothTeamsScoreBet.values.find(
+      (v: Value) => v.value === "Yes",
+    )?.odd;
+    const noOdd = bothTeamsScoreBet.values.find(
+      (v: Value) => v.value === "No",
+    )?.odd;
+
+    if (yesOdd && noOdd) {
+      result.bothTeamsScore = { yes: yesOdd, no: noOdd };
+    }
+  }
+
+  // Clean Sheet - Home (id: 27) and Away (id: 28)
+  const cleanSheetHomeBet = bookmaker.bets.find(
+    (bet: Bet) => bet.id === CLEAN_SHEET_HOME_BET_ID,
+  );
+  const cleanSheetAwayBet = bookmaker.bets.find(
+    (bet: Bet) => bet.id === CLEAN_SHEET_AWAY_BET_ID,
+  );
+
+  const cleanSheetHomeOdd = cleanSheetHomeBet?.values.find(
+    (v: Value) => v.value === "Yes",
+  )?.odd;
+  const cleanSheetAwayOdd = cleanSheetAwayBet?.values.find(
+    (v: Value) => v.value === "Yes",
+  )?.odd;
+
+  if (cleanSheetHomeOdd && cleanSheetAwayOdd) {
+    result.cleanSheet = { home: cleanSheetHomeOdd, away: cleanSheetAwayOdd };
+  }
+
+  return result;
+}
+
 export default function RegistrarPronosticos({
   quiniela,
   userId,
@@ -177,6 +287,14 @@ export default function RegistrarPronosticos({
   const roundFixtures = useMemo(() => {
     return filterFixturesByRound(fixturesData?.response, selectedRound);
   }, [fixturesData?.response, selectedRound]);
+
+  // Get fixture IDs for odds fetching
+  const fixtureIds = useMemo(() => {
+    return roundFixtures.map((fixture) => fixture.fixture.id);
+  }, [roundFixtures]);
+
+  // Fetch odds for all fixtures in the round
+  const { data: oddsData } = useMultipleOdds(fixtureIds);
 
   // Initialize predictions with existing data when round changes
   useEffect(() => {
@@ -360,12 +478,20 @@ export default function RegistrarPronosticos({
               ? false
               : statusInfo.status !== "not-started";
 
+            // Get odds for this fixture
+            const fixtureOdds = oddsData?.[fixture.fixture.id];
+            const allOdds = getAllOdds(fixtureOdds);
+            const hasAnyOdds =
+              allOdds.matchWinner ||
+              allOdds.bothTeamsScore ||
+              allOdds.cleanSheet;
+
             return (
               <Card key={fixture.fixture.id} className="overflow-hidden">
                 <CardContent className="p-0">
                   {/* Match Header */}
                   <div className="border-b bg-muted/30 px-4 py-3">
-                    <div className="grid grid-cols-[1fr_1px_1fr] gap-3 text-sm sm:gap-4">
+                    <div className="flex items-center justify-between gap-3 text-sm">
                       {/* Left Side - Date & Status */}
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
@@ -382,20 +508,155 @@ export default function RegistrarPronosticos({
                         </div>
                       </div>
 
-                      {/* Divider */}
-                      <div className="bg-border"></div>
+                      {/* Right Side - Odds Button */}
+                      {hasAnyOdds && (
+                        <Drawer>
+                          <DrawerTrigger asChild>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="gap-2"
+                            >
+                              <BarChart3 className="h-4 w-4" />
+                              <span>Probabilidades</span>
+                            </Button>
+                          </DrawerTrigger>
+                          <DrawerContent>
+                            <div className="mx-auto w-full max-w-md">
+                              <DrawerHeader>
+                                <DrawerTitle className="flex items-center justify-center gap-2">
+                                  <BarChart3 className="h-5 w-5 text-primary" />
+                                  Probabilidades
+                                </DrawerTitle>
+                              </DrawerHeader>
+                              <div className="px-4 pb-8">
+                                {/* Match Info */}
+                                <div className="mb-6 flex items-center justify-center gap-4">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Image
+                                      src={fixture.teams.home.logo}
+                                      alt={fixture.teams.home.name}
+                                      width={40}
+                                      height={40}
+                                      className="h-10 w-10 object-contain"
+                                    />
+                                    <span className="text-xs font-medium">
+                                      {fixture.teams.home.name}
+                                    </span>
+                                  </div>
+                                  <span className="text-lg font-bold text-muted-foreground">
+                                    vs
+                                  </span>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Image
+                                      src={fixture.teams.away.logo}
+                                      alt={fixture.teams.away.name}
+                                      width={40}
+                                      height={40}
+                                      className="h-10 w-10 object-contain"
+                                    />
+                                    <span className="text-xs font-medium">
+                                      {fixture.teams.away.name}
+                                    </span>
+                                  </div>
+                                </div>
 
-                      {/* Right Side - Venue */}
-                      <div className="flex flex-col gap-1.5 justify-self-end text-right sm:gap-2">
-                        {fixture.fixture.venue && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                            <span className="break-words text-right text-sm">
-                              {fixture.fixture.venue.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                                {/* All Odds Sections */}
+                                <div className="space-y-6">
+                                  {/* Match Winner */}
+                                  {allOdds.matchWinner && (
+                                    <div className="space-y-3">
+                                      <p className="text-center text-sm font-medium">
+                                        Ganador del partido
+                                      </p>
+                                      <div className="grid grid-cols-3 gap-3">
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Local
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.matchWinner.home}
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Empate
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.matchWinner.draw}
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Visitante
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.matchWinner.away}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Both Teams Score */}
+                                  {allOdds.bothTeamsScore && (
+                                    <div className="space-y-3">
+                                      <p className="text-center text-sm font-medium">
+                                        Ambos equipos anotan
+                                      </p>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Sí
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.bothTeamsScore.yes}
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            No
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.bothTeamsScore.no}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Clean Sheet */}
+                                  {allOdds.cleanSheet && (
+                                    <div className="space-y-3">
+                                      <p className="text-center text-sm font-medium">
+                                        Portería a cero
+                                      </p>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Local
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.cleanSheet.home}
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg bg-muted p-4 text-center">
+                                          <p className="text-sm text-muted-foreground">
+                                            Visitante
+                                          </p>
+                                          <p className="text-2xl font-bold text-primary">
+                                            {allOdds.cleanSheet.away}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </DrawerContent>
+                        </Drawer>
+                      )}
                     </div>
                   </div>
 
