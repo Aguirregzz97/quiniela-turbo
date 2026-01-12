@@ -1,5 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Plus, Calendar, Users, Award, User } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Trophy,
+  Plus,
+  Calendar,
+  Users,
+  Award,
+  Crown,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,158 +44,192 @@ export default async function QuinielasPage() {
     .orderBy(quiniela_participants.createdAt);
 
   return (
-    <div className="container mx-auto p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="mt-4 flex items-center gap-2 text-2xl font-bold sm:text-3xl">
-          <Award className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
-          Mis Quinielas
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Gestiona y participa en quinielas de padel
-        </p>
+    <div className="max-w-6xl px-4 py-6 sm:ml-6 sm:mt-6">
+      {/* Header */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 sm:h-12 sm:w-12">
+            <Award className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+              Mis Quinielas
+            </h1>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              Gestiona y participa en quinielas de fútbol
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-6">
-        {/* Existing Quinielas */}
-        {userQuinielas.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                <Trophy className="h-8 w-8 text-muted-foreground" />
+      {/* Content */}
+      {userQuinielas.length === 0 ? (
+        <Card className="overflow-hidden border-border/50">
+          <CardContent className="p-0">
+            <div className="bg-gradient-to-b from-primary/5 to-transparent p-8 text-center sm:p-12">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-muted/80 backdrop-blur">
+                <Trophy className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold">
+              <h3 className="mb-2 text-xl font-semibold">
                 No tienes quinielas aún
               </h3>
-              <p className="mb-4 text-muted-foreground">
-                Únete a una quiniela existente o crea tu primera quiniela
+              <p className="mx-auto mb-6 max-w-sm text-muted-foreground">
+                Únete a una quiniela existente con un código de invitación o
+                crea tu primera quiniela
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <Button asChild>
-                  <Link href="/quinielas/join">
-                    <Users className="mr-2 h-4 w-4" />
-                    Unirse a Quiniela
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/quinielas/create">
+                    <Plus className="h-4 w-4" />
+                    Crear Quiniela
                   </Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" size="lg" className="gap-2">
+                  <Link href="/quinielas/join">
+                    <Users className="h-4 w-4" />
+                    Unirse con Código
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Existing Quinielas */}
+          {userQuinielas.map((quiniela) => {
+            const isOwner = quiniela.ownerId === session.user.id;
+            return (
+              <Link
+                key={quiniela.id}
+                href={`/quinielas/${quiniela.id}`}
+                className="group"
+              >
+                <Card className="relative h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+                  {/* League Image Background */}
+                  <div className="absolute -right-6 -top-6 h-32 w-32 opacity-[0.07] transition-transform duration-500 group-hover:scale-110">
+                    {quiniela.externalLeagueId ? (
+                      <Image
+                        src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                        alt=""
+                        fill
+                        className="object-contain"
+                      />
+                    ) : (
+                      <Trophy className="h-full w-full" />
+                    )}
+                  </div>
+
+                  <CardContent className="relative p-4 sm:p-5">
+                    {/* Top Row: League Badge + Title */}
+                    <div className="mb-3 flex items-start gap-3 sm:mb-4">
+                      <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-md ring-1 ring-black/5 sm:h-12 sm:w-12 sm:rounded-xl">
+                        {quiniela.externalLeagueId ? (
+                          <Image
+                            src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                            alt={quiniela.league || "Liga"}
+                            width={40}
+                            height={40}
+                            className="h-7 w-7 object-contain sm:h-9 sm:w-9"
+                          />
+                        ) : (
+                          <Trophy className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-base font-semibold transition-colors group-hover:text-primary sm:text-lg">
+                          {quiniela.name}
+                        </h3>
+                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                          {quiniela.league}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                    </div>
+
+                    {/* Description */}
+                    {quiniela.description && (
+                      <p className="mb-3 line-clamp-2 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
+                        {quiniela.description}
+                      </p>
+                    )}
+
+                    {/* Meta Info */}
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      {/* Owner Badge */}
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs ${
+                          isOwner
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {isOwner ? (
+                          <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        ) : (
+                          <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        )}
+                        {isOwner ? "Propietario" : "Participante"}
+                      </span>
+
+                      {/* Date */}
+                      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs">
+                        <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        {new Date(quiniela.joinedAt).toLocaleDateString(
+                          "es-ES",
+                          {
+                            day: "numeric",
+                            month: "short",
+                          },
+                        )}
+                      </span>
+
+                      {/* Join Code */}
+                      <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary sm:rounded-md sm:px-2 sm:py-1 sm:text-xs">
+                        {quiniela.joinCode}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+
+          {/* Add New Quiniela Card */}
+          <Card className="group relative h-full overflow-hidden border-2 border-dashed border-border/50 bg-transparent transition-all duration-300 hover:border-primary/50 hover:bg-primary/5">
+            <CardContent className="flex h-full min-h-[180px] flex-col items-center justify-center p-4 text-center sm:min-h-[200px] sm:p-6">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-transform duration-300 group-hover:scale-110 sm:mb-4 sm:h-14 sm:w-14 sm:rounded-2xl">
+                <Plus className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
+              </div>
+              <h3 className="mb-1 text-base font-semibold sm:text-lg">
+                Nueva Quiniela
+              </h3>
+              <p className="mb-4 text-xs text-muted-foreground sm:mb-5 sm:text-sm">
+                Crea o únete a una quiniela
+              </p>
+              <div className="flex w-full flex-col gap-2">
+                <Button asChild size="sm" className="w-full gap-2">
                   <Link href="/quinielas/create">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Crear Primera Quiniela
+                    <Plus className="h-4 w-4" />
+                    Crear Quiniela
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                >
+                  <Link href="/quinielas/join">
+                    <Users className="h-4 w-4" />
+                    Unirse a Quiniela
                   </Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Existing Quinielas */}
-            {userQuinielas.map((quiniela) => (
-              <Card
-                key={quiniela.id}
-                className="group cursor-pointer transition-shadow hover:shadow-lg"
-              >
-                <Link href={`/quinielas/${quiniela.id}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-sm">
-                          {quiniela.externalLeagueId ? (
-                            <Image
-                              src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
-                              alt={quiniela.league || "Liga"}
-                              width={32}
-                              height={32}
-                              className="h-8 w-8 object-contain"
-                            />
-                          ) : (
-                            <Trophy className="h-5 w-5 text-primary" />
-                          )}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg transition-colors group-hover:text-primary">
-                            {quiniela.name}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {quiniela.league}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-                      {quiniela.description}
-                    </p>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {quiniela.ownerId === session.user.id
-                            ? "Creada"
-                            : "Unida"}{" "}
-                          el{" "}
-                          {new Date(quiniela.joinedAt).toLocaleDateString(
-                            "es-ES",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        <span>
-                          {quiniela.ownerId === session.user.id
-                            ? "Propietario"
-                            : "Participante"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="rounded bg-primary/10 px-2 py-1 font-mono font-semibold text-primary">
-                          {quiniela.joinCode}
-                        </span>
-                        <span className="text-muted-foreground">
-                          Código de unión
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-            {/* Add New Quiniela Card */}
-            <Card className="group cursor-pointer border-2 border-dashed transition-all hover:border-primary hover:shadow-lg">
-              <CardContent className="p-6 text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <Plus className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold">Nueva Quiniela</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Crea una nueva quiniela o únete a una existente
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button asChild size="sm">
-                    <Link href="/quinielas/create">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Crear Quiniela
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/quinielas/join">
-                      <Users className="mr-2 h-4 w-4" />
-                      Unirse a Quiniela
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

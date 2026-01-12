@@ -16,7 +16,7 @@ export default function MainContent({
 
   // Normal layout with sidebar margins
   return (
-    <main className="ml-0 mt-14 p-6 md:ml-64 md:mt-0">{children}</main>
+    <main className="ml-0 mt-14 md:ml-72 md:mt-0">{children}</main>
   );
 }
 
