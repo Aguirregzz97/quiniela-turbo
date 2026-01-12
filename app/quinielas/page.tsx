@@ -38,7 +38,7 @@ export default async function QuinielasPage() {
   return (
     <div className="container mx-auto p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
+        <h1 className="mt-4 flex items-center gap-2 text-2xl font-bold sm:text-3xl">
           <Award className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
           Mis Quinielas
         </h1>

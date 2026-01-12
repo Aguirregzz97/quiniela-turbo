@@ -9,7 +9,6 @@ import {
   Sun,
   PanelLeftClose,
   PanelRightClose,
-  Trophy,
   TrendingUp,
   Award,
   Menu,
@@ -66,7 +65,7 @@ const Sidebar = () => {
         }`}
       >
         {/* Top Section - Logo and Toggle */}
-        <div className="border-b border-border p-6">
+        <div className="border-b border-border p-6 px-4">
           <div className="flex items-center justify-between">
             <div
               className={`transition-opacity duration-300 ${collapsed ? "opacity-0" : "opacity-100"}`}
@@ -76,7 +75,13 @@ const Sidebar = () => {
                   href="/"
                   className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
                 >
-                  <Trophy className="mr-4 h-8 w-8 text-primary" />
+                  <Image
+                    src="/img/logo.png"
+                    alt="Logo"
+                    width={240}
+                    height={240}
+                    className="h-16 w-16"
+                  />
                   <h1 className="text-xl font-bold">QUINIELA TURBO</h1>
                 </Link>
               )}
@@ -201,7 +206,13 @@ const Sidebar = () => {
             href="/quinielas"
             className="flex items-center gap-2 text-foreground hover:text-foreground/80"
           >
-            <Trophy className="h-6 w-6 text-primary" />
+            <Image
+              src="/img/logo.png"
+              alt="Logo"
+              width={240}
+              height={240}
+              className="ml-1 h-16 w-16"
+            />
             <span className="text-lg font-bold">Quiniela Turbo</span>
           </Link>
 

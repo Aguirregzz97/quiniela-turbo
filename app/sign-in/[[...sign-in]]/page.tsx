@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trophy } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Suspense } from "react";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -52,8 +52,14 @@ function SignInContent() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo and Title */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/20">
-            <Trophy className="h-8 w-8 text-primary" />
+          <div className="h-18 w-18 mb-4 flex items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/20">
+            <Image
+              src="/img/logo.png"
+              alt="Quiniela Turbo Logo"
+              width={240}
+              height={240}
+              className="h-18 w-18 p-1"
+            />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Quiniela Turbo</h1>
           <p className="mt-2 text-muted-foreground">
