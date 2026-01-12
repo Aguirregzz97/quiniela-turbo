@@ -179,6 +179,14 @@ interface AllOdds {
   cleanSheet: CleanSheetOdds | null;
 }
 
+// Helper function to convert decimal odds to percentage
+function oddsToPercentage(decimalOdds: string): string {
+  const odds = parseFloat(decimalOdds);
+  if (isNaN(odds) || odds <= 0) return "0%";
+  const percentage = (1 / odds) * 100;
+  return `${percentage.toFixed(0)}%`;
+}
+
 // Helper function to extract all odds from API response
 function getAllOdds(oddsData: OddsApiResponse | undefined): AllOdds {
   const result: AllOdds = {
@@ -612,7 +620,7 @@ export default function RegistrarPronosticos({
                                             Local
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.matchWinner.home}
+                                            {oddsToPercentage(allOdds.matchWinner.home)}
                                           </p>
                                         </div>
                                         <div className="rounded-lg bg-muted px-2 py-3 text-center">
@@ -620,7 +628,7 @@ export default function RegistrarPronosticos({
                                             Empate
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.matchWinner.draw}
+                                            {oddsToPercentage(allOdds.matchWinner.draw)}
                                           </p>
                                         </div>
                                         <div className="rounded-lg bg-muted px-2 py-3 text-center">
@@ -628,7 +636,7 @@ export default function RegistrarPronosticos({
                                             Visitante
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.matchWinner.away}
+                                            {oddsToPercentage(allOdds.matchWinner.away)}
                                           </p>
                                         </div>
                                       </div>
@@ -647,7 +655,7 @@ export default function RegistrarPronosticos({
                                             Sí
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.bothTeamsScore.yes}
+                                            {oddsToPercentage(allOdds.bothTeamsScore.yes)}
                                           </p>
                                         </div>
                                         <div className="rounded-lg bg-muted px-2 py-3 text-center">
@@ -655,7 +663,7 @@ export default function RegistrarPronosticos({
                                             No
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.bothTeamsScore.no}
+                                            {oddsToPercentage(allOdds.bothTeamsScore.no)}
                                           </p>
                                         </div>
                                       </div>
@@ -674,7 +682,7 @@ export default function RegistrarPronosticos({
                                             Local
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.cleanSheet.home}
+                                            {oddsToPercentage(allOdds.cleanSheet.home)}
                                           </p>
                                         </div>
                                         <div className="rounded-lg bg-muted px-2 py-3 text-center">
@@ -682,7 +690,7 @@ export default function RegistrarPronosticos({
                                             Visitante
                                           </p>
                                           <p className="text-lg font-bold text-primary">
-                                            {allOdds.cleanSheet.away}
+                                            {oddsToPercentage(allOdds.cleanSheet.away)}
                                           </p>
                                         </div>
                                       </div>
