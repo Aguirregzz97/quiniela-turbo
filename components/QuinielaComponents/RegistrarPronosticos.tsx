@@ -21,6 +21,8 @@ import {
   Play,
   Upload,
   BarChart3,
+  Loader2,
+  Ban,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -294,7 +296,8 @@ export default function RegistrarPronosticos({
   }, [roundFixtures]);
 
   // Fetch odds for all fixtures in the round
-  const { data: oddsData } = useMultipleOdds(fixtureIds);
+  const { data: oddsData, isLoading: isLoadingOdds } =
+    useMultipleOdds(fixtureIds);
 
   // Initialize predictions with existing data when round changes
   useEffect(() => {
@@ -486,6 +489,18 @@ export default function RegistrarPronosticos({
               allOdds.bothTeamsScore ||
               allOdds.cleanSheet;
 
+            // Check if odds data was fetched but is empty (not available)
+            const oddsNotAvailable =
+              !isLoadingOdds && fixtureOdds?.response?.length === 0;
+
+            if (fixture.fixture.id === 1491806) {
+              console.log(fixtureOdds);
+              console.log(isLoadingOdds);
+              console.log(oddsNotAvailable);
+              console.log(hasAnyOdds);
+              console.log(allOdds);
+            }
+
             return (
               <Card key={fixture.fixture.id} className="overflow-hidden">
                 <CardContent className="p-0">
@@ -509,7 +524,29 @@ export default function RegistrarPronosticos({
                       </div>
 
                       {/* Right Side - Odds Button */}
-                      {hasAnyOdds && (
+                      {isLoadingOdds ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          disabled
+                        >
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="hidden sm:inline">Cargando...</span>
+                        </Button>
+                      ) : oddsNotAvailable ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="cursor-not-allowed gap-2 opacity-50"
+                          disabled
+                        >
+                          <Ban className="h-4 w-4" />
+                          <span className="hidden sm:inline">
+                            No disponible
+                          </span>
+                        </Button>
+                      ) : hasAnyOdds ? (
                         <Drawer>
                           <DrawerTrigger asChild>
                             <Button
@@ -656,7 +693,7 @@ export default function RegistrarPronosticos({
                             </div>
                           </DrawerContent>
                         </Drawer>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 

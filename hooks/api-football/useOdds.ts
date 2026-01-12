@@ -37,7 +37,7 @@ export function useMultipleOdds(fixtureIds: number[]) {
     queryKey: ["odds-multiple", fixtureIds.sort().join(",")],
     queryFn: async () => {
       const results: Record<number, OddsApiResponse> = {};
-      
+
       // Fetch odds for each fixture in parallel
       const promises = fixtureIds.map(async (id) => {
         try {
@@ -58,4 +58,3 @@ export function useMultipleOdds(fixtureIds: number[]) {
     enabled: fixtureIds.length > 0,
   });
 }
-
