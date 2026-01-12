@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, ArrowLeft, Edit, Dices, Eye } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Award, ArrowLeft, Edit, Dices, Eye, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -78,21 +78,66 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     .where(eq(quiniela_participants.quinielaId, id))
     .orderBy(quiniela_participants.createdAt);
 
-  console.log(quinielaData);
-
   return (
-    <div className="container mx-auto p-4 px-2 sm:p-6">
-      {/* Header with back button */}
-      <div className="mb-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant="ghost" asChild className="self-start">
-            <Link className="pl-0" href="/quinielas">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver a Quinielas
-            </Link>
-          </Button>
+    <div className="max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      {/* Back Button */}
+      <Link
+        href="/quinielas"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver a Quinielas
+      </Link>
 
-          <div className="flex items-center gap-2">
+      {/* Hero Header */}
+      <div className="relative mb-8 overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 sm:p-8">
+        {/* Background decoration */}
+        <div className="absolute -right-8 -top-8 h-40 w-40 opacity-[0.05] sm:h-56 sm:w-56">
+          {quinielaData.externalLeagueId ? (
+            <Image
+              src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+              alt=""
+              fill
+              className="object-contain"
+            />
+          ) : (
+            <Award className="h-full w-full" />
+          )}
+        </div>
+
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          {/* Left: Logo + Info */}
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
+              {quinielaData.externalLeagueId ? (
+                <Image
+                  src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                  alt={quinielaData.league || "Liga"}
+                  width={56}
+                  height={56}
+                  className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+                />
+              ) : (
+                <Award className="h-7 w-7 text-primary sm:h-8 sm:w-8" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h1 className="mb-1 text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+                {quinielaData.name}
+              </h1>
+              <p className="text-sm text-muted-foreground sm:text-base">
+                {quinielaData.league}
+              </p>
+              {quinielaData.description && (
+                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground/80">
+                  {quinielaData.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
             <QuinielaParticipantsDrawer
               quinielaId={quinielaData.id}
               ownerId={quinielaData.ownerId}
@@ -101,7 +146,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             />
             <QuinielaDetailsDrawer quinielaData={quinielaData} />
             {session?.user?.id === quinielaData.ownerId && (
-              <Button asChild size="sm" className="sm:size-default">
+              <Button asChild size="sm">
                 <Link href={`/quinielas/${quinielaData.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Editar Quiniela</span>
@@ -111,92 +156,73 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             )}
           </div>
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl border bg-white shadow-md">
-            {quinielaData.externalLeagueId ? (
-              <Image
-                src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
-                alt={quinielaData.league || "Liga"}
-                width={48}
-                height={48}
-                className="h-12 w-12 object-contain"
-              />
-            ) : (
-              <Award className="h-8 w-8 text-primary" />
-            )}
-          </div>
-          <div>
-            <div className="mb-1 flex items-center gap-2">
-              <h1 className="text-xl font-bold sm:text-3xl">
-                {quinielaData.name}
-              </h1>
-            </div>
-            <p className="font-medium text-muted-foreground">
-              {quinielaData.league}
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* Quiniela Actions */}
-      <div className="grid gap-6">
-        {/* Predictions Cards */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-            <Link href={`/quinielas/${quinielaData.id}/registrar-pronosticos`}>
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Dices className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Registrar Pronósticos</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Haz tus predicciones para los partidos de esta quiniela
-                  </p>
-                </div>
-              </CardContent>
-            </Link>
+      {/* Quick Actions */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+        <Link
+          href={`/quinielas/${quinielaData.id}/registrar-pronosticos`}
+          className="group"
+        >
+          <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                <Dices className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold transition-colors group-hover:text-primary">
+                  Registrar Pronósticos
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Haz tus predicciones para los partidos
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+            </CardContent>
           </Card>
+        </Link>
 
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-            <Link href={`/quinielas/${quinielaData.id}/ver-pronosticos`}>
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Eye className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Ver Pronósticos</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Ve todos los pronósticos de los participantes
-                  </p>
-                </div>
-              </CardContent>
-            </Link>
+        <Link
+          href={`/quinielas/${quinielaData.id}/ver-pronosticos`}
+          className="group"
+        >
+          <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                <Eye className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold transition-colors group-hover:text-primary">
+                  Ver Pronósticos
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Ve los pronósticos de los participantes
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+            </CardContent>
           </Card>
-        </div>
-
-        {/* Leaderboard */}
-        <QuinielaLeaderboard
-          quiniela={{
-            id: quinielaData.id,
-            name: quinielaData.name,
-            description: quinielaData.description,
-            league: quinielaData.league,
-            externalLeagueId: quinielaData.externalLeagueId,
-            externalSeason: quinielaData.externalSeason,
-            joinCode: quinielaData.joinCode,
-            createdAt: quinielaData.createdAt,
-            updatedAt: quinielaData.updatedAt,
-            ownerId: quinielaData.ownerId,
-            roundsSelected: quinielaData.roundsSelected,
-          }}
-          exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
-          correctResultPoints={
-            quinielaData.pointsForCorrectResultPrediction ?? 1
-          }
-        />
+        </Link>
       </div>
+
+      {/* Leaderboard */}
+      <QuinielaLeaderboard
+        quiniela={{
+          id: quinielaData.id,
+          name: quinielaData.name,
+          description: quinielaData.description,
+          league: quinielaData.league,
+          externalLeagueId: quinielaData.externalLeagueId,
+          externalSeason: quinielaData.externalSeason,
+          joinCode: quinielaData.joinCode,
+          createdAt: quinielaData.createdAt,
+          updatedAt: quinielaData.updatedAt,
+          ownerId: quinielaData.ownerId,
+          roundsSelected: quinielaData.roundsSelected,
+        }}
+        exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
+        correctResultPoints={quinielaData.pointsForCorrectResultPrediction ?? 1}
+      />
     </div>
   );
 }
