@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -27,6 +26,9 @@ import {
   Check,
   X,
   Minus,
+  Users,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -318,7 +320,13 @@ export default function VerPronosticos({
     });
 
     return stats;
-  }, [usersWithPredictions, roundPredictions, roundFixtures]);
+  }, [
+    usersWithPredictions,
+    roundPredictions,
+    roundFixtures,
+    exactPoints,
+    correctResultPoints,
+  ]);
 
   // Sort users by points (descending)
   const sortedUsers = useMemo(() => {
@@ -336,95 +344,101 @@ export default function VerPronosticos({
 
   if (fixturesLoading || predictionsLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Cargando pronósticos...</div>
+      <div className="flex flex-col items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-3 text-sm text-muted-foreground">
+          Cargando pronósticos...
+        </p>
       </div>
     );
   }
 
   if (fixturesError || predictionsError) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error al cargar los datos</div>
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+          <AlertCircle className="h-6 w-6 text-destructive" />
+        </div>
+        <p className="mt-3 text-sm text-destructive">
+          Error al cargar los datos
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-5">
       {/* Round Selector Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">
-            Pronósticos de Participantes
-          </h2>
-          {roundFixtures.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {roundFixtures.length} partidos • {sortedUsers.length}{" "}
-              participantes
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Jornada:</span>
-          <Select value={selectedRound} onValueChange={setSelectedRound}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Seleccionar jornada" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableRounds.map(
-                (round: { roundName: string; dates: string[] }) => (
-                  <SelectItem key={round.roundName} value={round.roundName}>
-                    {round.roundName}
-                  </SelectItem>
-                ),
+      <Card className="border-border/50">
+        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold">Pronósticos de Participantes</h2>
+              {roundFixtures.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {roundFixtures.length} partidos • {sortedUsers.length}{" "}
+                  participantes
+                </p>
               )}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Jornada:</span>
+            <Select value={selectedRound} onValueChange={setSelectedRound}>
+              <SelectTrigger className="w-40 border-border/50">
+                <SelectValue placeholder="Seleccionar jornada" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableRounds.map(
+                  (round: { roundName: string; dates: string[] }) => (
+                    <SelectItem key={round.roundName} value={round.roundName}>
+                      {round.roundName}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Legend */}
-      <Card>
-        <CardContent className="p-4 sm:p-6">
-          <div className="space-y-3 sm:space-y-0">
-            <span className="block text-sm font-medium sm:mr-4 sm:inline">
+      <Card className="border-border/50 bg-muted/30">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Leyenda:
             </span>
-            <div className="grid grid-cols-2 gap-3 text-sm sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <Trophy className="h-4 w-4 text-green-600" />
-                  <div className="h-4 w-6 rounded bg-green-500"></div>
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500">
+                  <Trophy className="h-3.5 w-3.5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm">
-                  Exacto ({exactPoints} pts)
-                </span>
+                <span className="text-xs">Exacto ({exactPoints} pts)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <Check className="h-4 w-4 text-green-900" />
-                  <div className="h-4 w-6 rounded bg-green-300"></div>
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-300">
+                  <Check className="h-3.5 w-3.5 text-green-900" />
                 </div>
-                <span className="text-xs sm:text-sm">
+                <span className="text-xs">
                   Resultado ({correctResultPoints} pt)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <X className="h-4 w-4 text-red-900" />
-                  <div className="h-4 w-6 rounded bg-red-300"></div>
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-300">
+                  <X className="h-3.5 w-3.5 text-red-900" />
                 </div>
-                <span className="text-xs sm:text-sm">Incorrecto</span>
+                <span className="text-xs">Incorrecto</span>
               </div>
-
-              <div className="col-span-2 flex items-center gap-2 sm:col-span-1">
-                <div className="flex items-center gap-1">
-                  <Minus className="h-4 w-4 text-gray-500" />
-                  <div className="h-4 w-6 rounded bg-secondary"></div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary">
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
-                <span className="text-xs sm:text-sm">Sin pronóstico</span>
+                <span className="text-xs">Sin pronóstico</span>
               </div>
             </div>
           </div>
@@ -433,19 +447,23 @@ export default function VerPronosticos({
 
       {/* User Cards */}
       {roundFixtures.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">
+        <Card className="border-border/50">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Users className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
               No hay partidos disponibles para esta jornada
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3">
           {sortedUsers.map((user, index) => {
             const userPredictions = roundPredictions.get(user.id) || [];
             const stats = userStats.get(user.id);
             const isOpen = openCards[user.id] || false;
+            const isTopThree = index < 3;
 
             if (!stats) return null;
 
@@ -457,14 +475,46 @@ export default function VerPronosticos({
                   setOpenCards((prev) => ({ ...prev, [user.id]: open }))
                 }
               >
-                <Card>
+                <Card
+                  className={`border-border/50 transition-all duration-200 ${
+                    isOpen ? "ring-1 ring-primary/20" : "hover:border-border"
+                  }`}
+                >
                   <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="h-auto w-full p-0">
+                    <Button
+                      variant="ghost"
+                      className="h-auto w-full p-0 hover:bg-transparent"
+                    >
                       <CardHeader className="w-full p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-4">
                           {/* User Info */}
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 flex-shrink-0 sm:h-10 sm:w-10">
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
+                            {/* Position Badge */}
+                            <div
+                              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                                index === 0
+                                  ? "bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm shadow-yellow-500/30"
+                                  : index === 1
+                                    ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 shadow-sm shadow-gray-400/30"
+                                    : index === 2
+                                      ? "bg-gradient-to-br from-amber-500 to-amber-600 text-amber-100 shadow-sm shadow-amber-500/30"
+                                      : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              #{index + 1}
+                            </div>
+
+                            <Avatar
+                              className={`h-10 w-10 flex-shrink-0 ring-2 ${
+                                index === 0
+                                  ? "ring-yellow-400/50"
+                                  : index === 1
+                                    ? "ring-gray-400/50"
+                                    : index === 2
+                                      ? "ring-amber-500/50"
+                                      : "ring-border/50"
+                              }`}
+                            >
                               <AvatarImage
                                 src={user.image || undefined}
                                 alt={user.name || user.email || "User"}
@@ -475,131 +525,118 @@ export default function VerPronosticos({
                                   "?")[0].toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
+
                             <div className="min-w-0 flex-1 text-left">
-                              <h3 className="truncate text-base font-semibold sm:text-lg">
+                              <h3 className="truncate text-sm font-semibold sm:text-base">
                                 {user.name || user.email}
                               </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-3">
-                                <div className="flex items-center gap-2">
-                                  <Badge
-                                    variant={
-                                      index < 3 ? "default" : "secondary"
-                                    }
-                                    className={`px-2 py-1 text-sm font-bold ${
-                                      index === 0
-                                        ? "bg-yellow-500 text-yellow-900 hover:bg-yellow-600"
-                                        : index === 1
-                                          ? "bg-gray-400 text-gray-900 hover:bg-gray-500"
-                                          : index === 2
-                                            ? "bg-amber-600 text-amber-100 hover:bg-amber-700"
-                                            : ""
-                                    }`}
-                                  >
-                                    #{index + 1}
-                                  </Badge>
-                                </div>
-                                <div className="rounded-lg border border-primary/20 bg-primary/15 px-1.5 py-1">
-                                  <span className="text-base font-bold text-primary">
-                                    {stats.totalPoints}
-                                  </span>
-                                  <span className="ml-1 text-sm text-muted-foreground">
-                                    pts
-                                  </span>
-                                </div>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span
+                                  className={`text-lg font-bold tabular-nums ${isTopThree ? "text-primary" : "text-foreground"}`}
+                                >
+                                  {stats.totalPoints}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  pts
+                                </span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Stats Summary */}
-                          <div className="flex items-center gap-3">
-                            <div className="hidden items-center gap-3 text-sm sm:flex">
-                              {stats.exact > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Trophy className="h-3 w-3 text-green-600" />
-                                  <span className="font-medium">
-                                    {stats.exact}
-                                  </span>
-                                </div>
-                              )}
-                              {stats.correctResult > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Check className="h-3 w-3 text-green-800" />
-                                  <span className="font-medium">
-                                    {stats.correctResult}
-                                  </span>
-                                </div>
-                              )}
-                              {stats.miss > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <X className="h-3 w-3 text-red-800" />
-                                  <span className="font-medium">
-                                    {stats.miss}
-                                  </span>
-                                </div>
-                              )}
-
-                              {stats.noPrediction > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Minus className="h-3 w-3 text-gray-500" />
-                                  <span className="font-medium">
-                                    {stats.noPrediction}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            {isOpen ? (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                            ) : (
-                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Mobile Stats Summary */}
-                        <div className="mt-4 border-t border-border pt-3 sm:hidden">
-                          <div className="flex items-center justify-center gap-4 text-sm">
+                          {/* Stats Summary - Desktop */}
+                          <div className="hidden items-center gap-2 sm:flex">
                             {stats.exact > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                <Trophy className="h-4 w-4 text-green-600" />
-                                <span className="font-medium">
+                              <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
+                                <Trophy className="h-3.5 w-3.5 text-green-600" />
+                                <span className="text-xs font-semibold text-green-600">
                                   {stats.exact}
                                 </span>
                               </div>
                             )}
                             {stats.correctResult > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                <Check className="h-4 w-4 text-green-800" />
-                                <span className="font-medium">
+                              <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
+                                <Check className="h-3.5 w-3.5 text-green-700" />
+                                <span className="text-xs font-semibold text-green-700">
                                   {stats.correctResult}
                                 </span>
                               </div>
                             )}
                             {stats.miss > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                <X className="h-4 w-4 text-red-800" />
-                                <span className="font-medium">
+                              <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
+                                <X className="h-3.5 w-3.5 text-red-600" />
+                                <span className="text-xs font-semibold text-red-600">
                                   {stats.miss}
                                 </span>
                               </div>
                             )}
-
                             {stats.noPrediction > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                <Minus className="h-4 w-4 text-gray-500" />
-                                <span className="font-medium">
+                              <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
+                                <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-xs font-semibold text-muted-foreground">
                                   {stats.noPrediction}
                                 </span>
                               </div>
                             )}
                           </div>
+
+                          {/* Matches count and chevron */}
+                          <div className="flex items-center gap-2">
+                            <span className="hidden text-xs text-muted-foreground sm:inline">
+                              {roundFixtures.length}
+                            </span>
+                            <div
+                              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${isOpen ? "bg-primary/10" : "bg-muted/50"}`}
+                            >
+                              {isOpen ? (
+                                <ChevronDown className="h-4 w-4 text-primary" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Mobile Stats Summary */}
+                        <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3 sm:hidden">
+                          {stats.exact > 0 && (
+                            <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
+                              <Trophy className="h-3.5 w-3.5 text-green-600" />
+                              <span className="text-xs font-semibold text-green-600">
+                                {stats.exact}
+                              </span>
+                            </div>
+                          )}
+                          {stats.correctResult > 0 && (
+                            <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
+                              <Check className="h-3.5 w-3.5 text-green-700" />
+                              <span className="text-xs font-semibold text-green-700">
+                                {stats.correctResult}
+                              </span>
+                            </div>
+                          )}
+                          {stats.miss > 0 && (
+                            <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
+                              <X className="h-3.5 w-3.5 text-red-600" />
+                              <span className="text-xs font-semibold text-red-600">
+                                {stats.miss}
+                              </span>
+                            </div>
+                          )}
+                          {stats.noPrediction > 0 && (
+                            <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
+                              <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                {stats.noPrediction}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </CardHeader>
                     </Button>
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    <CardContent className="mt-3 px-5 pb-5 pt-0 sm:px-6 sm:pb-6">
+                    <CardContent className="border-t border-border/50 px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {(() => {
                           // Sort fixtures by prediction evaluation type
@@ -722,73 +759,93 @@ export default function VerPronosticos({
                           return (
                             <div
                               key={fixture.fixture.id}
-                              className={`rounded-lg border pb-2 pt-3 ${evaluation.bgColor} ${evaluation.textColor}`}
+                              className={`overflow-hidden rounded-xl border ${
+                                evaluation.type === "exact"
+                                  ? "border-green-500/30 bg-gradient-to-b from-green-500/20 to-green-500/10"
+                                  : evaluation.type === "correct-result"
+                                    ? "border-green-400/30 bg-gradient-to-b from-green-300/20 to-green-300/10"
+                                    : evaluation.type === "miss"
+                                      ? "border-red-400/30 bg-gradient-to-b from-red-300/20 to-red-300/10"
+                                      : "border-border/50 bg-muted/30"
+                              }`}
                             >
-                              {/* Teams and Result */}
-                              <div className="flex flex-col items-center gap-2">
-                                {/* Team Logos */}
-                                <div className="flex items-center gap-4">
+                              {/* Teams Row */}
+                              <div className="flex items-center justify-center gap-3 px-3 py-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
                                   <Image
                                     src={fixture.teams.home.logo}
                                     alt={fixture.teams.home.name}
-                                    width={32}
-                                    height={32}
-                                    className="h-8 w-8 object-contain"
+                                    width={28}
+                                    height={28}
+                                    className="h-7 w-7 object-contain"
                                   />
-                                  <span className="text-sm font-medium">
-                                    vs
-                                  </span>
+                                </div>
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  vs
+                                </span>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
                                   <Image
                                     src={fixture.teams.away.logo}
                                     alt={fixture.teams.away.name}
-                                    width={32}
-                                    height={32}
-                                    className="h-8 w-8 object-contain"
+                                    width={28}
+                                    height={28}
+                                    className="h-7 w-7 object-contain"
                                   />
                                 </div>
+                              </div>
 
-                                {/* Actual Result */}
-                                <div className="text-center">
-                                  <div className="font-mono text-lg font-bold">
-                                    {getMatchResult(fixture)}
-                                  </div>
-                                </div>
+                              {/* Prediction Info */}
+                              <div
+                                className={`px-3 py-2 text-center ${
+                                  evaluation.type === "exact"
+                                    ? "bg-green-500/10"
+                                    : evaluation.type === "correct-result"
+                                      ? "bg-green-300/10"
+                                      : evaluation.type === "miss"
+                                        ? "bg-red-300/10"
+                                        : "bg-muted/30"
+                                }`}
+                              >
+                                <p className="mb-1 text-[10px] text-muted-foreground">
+                                  {user.id === userId ? "Tu" : "Su"} pronóstico:
+                                </p>
+                                <p
+                                  className={`text-base font-bold tabular-nums ${
+                                    evaluation.type === "exact"
+                                      ? "text-green-600"
+                                      : evaluation.type === "correct-result"
+                                        ? "text-green-700"
+                                        : evaluation.type === "miss"
+                                          ? "text-red-600"
+                                          : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {(() => {
+                                    const matchNotStarted =
+                                      fixture.fixture.status.short === "NS";
+                                    const isOtherUser = user.id !== userId;
 
-                                {/* User Prediction */}
-                                <div className="text-center">
-                                  <div className="mb-1 text-xs">
-                                    {user.id === userId ? "Tu" : "Su"}{" "}
-                                    pronóstico:
-                                  </div>
-                                  <div className="font-mono text-sm font-medium">
-                                    {(() => {
-                                      const matchNotStarted =
-                                        fixture.fixture.status.short === "NS";
-                                      const isOtherUser = user.id !== userId;
+                                    // Hide other users' predictions if match hasn't started
+                                    if (matchNotStarted && isOtherUser) {
+                                      return (
+                                        <span className="text-xs font-normal italic text-muted-foreground">
+                                          Oculto
+                                        </span>
+                                      );
+                                    }
 
-                                      // Hide other users' predictions if match hasn't started
-                                      if (matchNotStarted && isOtherUser) {
-                                        return (
-                                          <span className="text-xs font-normal italic opacity-75">
-                                            Oculto hasta inicio
-                                          </span>
-                                        );
-                                      }
+                                    // Show prediction normally
+                                    if (
+                                      prediction &&
+                                      prediction.predictedHomeScore !== null &&
+                                      prediction.predictedAwayScore !== null
+                                    ) {
+                                      return `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`;
+                                    }
 
-                                      // Show prediction normally
-                                      if (
-                                        prediction &&
-                                        prediction.predictedHomeScore !==
-                                          null &&
-                                        prediction.predictedAwayScore !== null
-                                      ) {
-                                        return `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`;
-                                      }
-
-                                      return "−";
-                                    })()}
-                                  </div>
-                                </div>
+                                    return "−";
+                                  })()}
+                                </p>
                               </div>
                             </div>
                           );
