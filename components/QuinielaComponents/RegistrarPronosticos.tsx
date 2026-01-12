@@ -321,9 +321,21 @@ export default function RegistrarPronosticos({
             p.externalRound === selectedRound,
         );
 
+        // Handle null/undefined scores - default to "0"
+        const homeScore =
+          existingPrediction?.predictedHomeScore !== null &&
+          existingPrediction?.predictedHomeScore !== undefined
+            ? String(existingPrediction.predictedHomeScore)
+            : "0";
+        const awayScore =
+          existingPrediction?.predictedAwayScore !== null &&
+          existingPrediction?.predictedAwayScore !== undefined
+            ? String(existingPrediction.predictedAwayScore)
+            : "0";
+
         initialPredictions[fixtureId] = {
-          home: existingPrediction?.predictedHomeScore?.toString() || "0",
-          away: existingPrediction?.predictedAwayScore?.toString() || "0",
+          home: homeScore,
+          away: awayScore,
         };
       });
 
@@ -415,40 +427,44 @@ export default function RegistrarPronosticos({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Cargando partidos...</div>
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Cargando partidos...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error al cargar los partidos</div>
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10">
+          <Ban className="h-8 w-8 text-destructive" />
+        </div>
+        <p className="text-destructive">Error al cargar los partidos</p>
       </div>
     );
   }
 
   return (
     <div
-      className="space-y-6 pb-24"
+      className="space-y-6 pb-28"
       style={{ scrollbarGutter: "stable", overflowX: "hidden" }}
     >
       {/* Round Selector Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-border/50 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Pronóstico por partido</h2>
+          <h2 className="font-semibold">Pronóstico por partido</h2>
           {roundFixtures.length > 0 && (
             <p className="text-sm text-muted-foreground">
-              Se encontraron {roundFixtures.length} partidos
+              {roundFixtures.length} partidos en esta jornada
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Jornada:</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Jornada:</span>
           <Select value={selectedRound} onValueChange={setSelectedRound}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-44 border-border/50 bg-background">
               <SelectValue placeholder="Seleccionar jornada" />
             </SelectTrigger>
             <SelectContent>
@@ -467,8 +483,11 @@ export default function RegistrarPronosticos({
       {/* Fixtures List */}
       <div className="space-y-4">
         {roundFixtures.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
+          <Card className="border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50">
+                <CalendarDays className="h-8 w-8 text-muted-foreground" />
+              </div>
               <p className="text-muted-foreground">
                 No hay partidos disponibles para esta jornada
               </p>
@@ -510,363 +529,389 @@ export default function RegistrarPronosticos({
             }
 
             return (
-              <Card key={fixture.fixture.id} className="overflow-hidden">
+              <Card
+                key={fixture.fixture.id}
+                className={`overflow-hidden border-border/50 transition-all ${
+                  hasPrediction
+                    ? "ring-1 ring-primary/20"
+                    : "hover:border-border"
+                }`}
+              >
                 <CardContent className="p-0">
                   {/* Match Header */}
-                  <div className="border-b bg-muted/30 px-4 py-3">
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      {/* Left Side - Date & Status */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4" />
-                          <span className="text-sm">
-                            {date} {time}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {statusInfo.icon}
-                          <span className="text-xs text-muted-foreground sm:text-sm">
-                            {statusInfo.statusText}
-                          </span>
-                        </div>
+                  <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3">
+                    {/* Left Side - Date & Status */}
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {date} {time}
+                        </span>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        {statusInfo.icon}
+                        <span className="text-xs text-muted-foreground">
+                          {statusInfo.statusText}
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* Right Side - Odds Button */}
-                      {isLoadingOdds ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          disabled
-                        >
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="hidden sm:inline">Cargando...</span>
-                        </Button>
-                      ) : oddsNotAvailable ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="cursor-not-allowed gap-2 opacity-50"
-                          disabled
-                        >
-                          <Ban className="h-4 w-4" />
-                          <span className="hidden sm:inline">
-                            No disponible
-                          </span>
-                        </Button>
-                      ) : hasAnyOdds ? (
-                        <Drawer>
-                          <DrawerTrigger asChild>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="gap-2"
-                            >
-                              <BarChart3 className="h-4 w-4" />
-                              <span>Probabilidades</span>
-                            </Button>
-                          </DrawerTrigger>
-                          <DrawerContent>
-                            <div className="mx-auto w-full max-w-md">
-                              <DrawerHeader>
-                                <DrawerTitle className="flex items-center justify-center gap-2">
-                                  <BarChart3 className="h-5 w-5 text-primary" />
-                                  Probabilidades
-                                </DrawerTitle>
-                              </DrawerHeader>
-                              <div className="px-4 pb-8">
-                                {/* Match Info */}
-                                <div className="mb-6 flex items-center justify-center gap-4">
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Image
-                                      src={fixture.teams.home.logo}
-                                      alt={fixture.teams.home.name}
-                                      width={40}
-                                      height={40}
-                                      className="h-10 w-10 object-contain"
-                                    />
-                                    <span className="text-xs font-medium">
-                                      {fixture.teams.home.name}
-                                    </span>
-                                  </div>
-                                  <span className="text-lg font-bold text-muted-foreground">
-                                    vs
+                    {/* Right Side - Odds Button */}
+                    {isLoadingOdds ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2 border-border/50"
+                        disabled
+                      >
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span className="hidden text-xs sm:inline">
+                          Cargando...
+                        </span>
+                      </Button>
+                    ) : oddsNotAvailable ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 cursor-not-allowed gap-2 opacity-50"
+                        disabled
+                      >
+                        <Ban className="h-3.5 w-3.5" />
+                        <span className="hidden text-xs sm:inline">
+                          No disponible
+                        </span>
+                      </Button>
+                    ) : hasAnyOdds ? (
+                      <Drawer>
+                        <DrawerTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2 border-primary/30 bg-primary/5 text-xs hover:bg-primary/10"
+                          >
+                            <BarChart3 className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">
+                              Probabilidades
+                            </span>
+                          </Button>
+                        </DrawerTrigger>
+                        <DrawerContent>
+                          <div className="mx-auto w-full max-w-md">
+                            <DrawerHeader>
+                              <DrawerTitle className="flex items-center justify-center gap-2">
+                                <BarChart3 className="h-5 w-5 text-primary" />
+                                Probabilidades
+                              </DrawerTitle>
+                            </DrawerHeader>
+                            <div className="px-4 pb-8">
+                              {/* Match Info */}
+                              <div className="mb-6 flex items-center justify-center gap-4">
+                                <div className="flex flex-col items-center gap-1">
+                                  <Image
+                                    src={fixture.teams.home.logo}
+                                    alt={fixture.teams.home.name}
+                                    width={40}
+                                    height={40}
+                                    className="h-10 w-10 object-contain"
+                                  />
+                                  <span className="text-xs font-medium">
+                                    {fixture.teams.home.name}
                                   </span>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Image
-                                      src={fixture.teams.away.logo}
-                                      alt={fixture.teams.away.name}
-                                      width={40}
-                                      height={40}
-                                      className="h-10 w-10 object-contain"
-                                    />
-                                    <span className="text-xs font-medium">
-                                      {fixture.teams.away.name}
-                                    </span>
-                                  </div>
                                 </div>
-
-                                {/* All Odds Sections */}
-                                <div className="space-y-4">
-                                  {/* Match Winner */}
-                                  {allOdds.matchWinner && (
-                                    <div className="space-y-2">
-                                      <p className="text-center text-sm font-medium">
-                                        Ganador del partido
-                                      </p>
-                                      <div className="grid grid-cols-3 gap-2">
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Local
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.matchWinner.home)}
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Empate
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.matchWinner.draw)}
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Visitante
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.matchWinner.away)}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Both Teams Score */}
-                                  {allOdds.bothTeamsScore && (
-                                    <div className="space-y-2">
-                                      <p className="text-center text-sm font-medium">
-                                        Ambos equipos anotan
-                                      </p>
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Sí
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.bothTeamsScore.yes)}
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            No
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.bothTeamsScore.no)}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Clean Sheet */}
-                                  {allOdds.cleanSheet && (
-                                    <div className="space-y-2">
-                                      <p className="text-center text-sm font-medium">
-                                        Portería a cero
-                                      </p>
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Local
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.cleanSheet.home)}
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                          <p className="text-xs text-muted-foreground">
-                                            Visitante
-                                          </p>
-                                          <p className="text-lg font-bold text-primary">
-                                            {oddsToPercentage(allOdds.cleanSheet.away)}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
+                                <span className="text-lg font-bold text-muted-foreground">
+                                  vs
+                                </span>
+                                <div className="flex flex-col items-center gap-1">
+                                  <Image
+                                    src={fixture.teams.away.logo}
+                                    alt={fixture.teams.away.name}
+                                    width={40}
+                                    height={40}
+                                    className="h-10 w-10 object-contain"
+                                  />
+                                  <span className="text-xs font-medium">
+                                    {fixture.teams.away.name}
+                                  </span>
                                 </div>
                               </div>
+
+                              {/* All Odds Sections */}
+                              <div className="space-y-4">
+                                {/* Match Winner */}
+                                {allOdds.matchWinner && (
+                                  <div className="space-y-2">
+                                    <p className="text-center text-sm font-medium">
+                                      Ganador del partido
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Local
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.matchWinner.home,
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Empate
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.matchWinner.draw,
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Visitante
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.matchWinner.away,
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Both Teams Score */}
+                                {allOdds.bothTeamsScore && (
+                                  <div className="space-y-2">
+                                    <p className="text-center text-sm font-medium">
+                                      Ambos equipos anotan
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Sí
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.bothTeamsScore.yes,
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          No
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.bothTeamsScore.no,
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Clean Sheet */}
+                                {allOdds.cleanSheet && (
+                                  <div className="space-y-2">
+                                    <p className="text-center text-sm font-medium">
+                                      Portería a cero
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Local
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.cleanSheet.home,
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          Visitante
+                                        </p>
+                                        <p className="text-lg font-bold text-primary">
+                                          {oddsToPercentage(
+                                            allOdds.cleanSheet.away,
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </DrawerContent>
-                        </Drawer>
-                      ) : null}
-                    </div>
+                          </div>
+                        </DrawerContent>
+                      </Drawer>
+                    ) : null}
                   </div>
 
                   {/* Match Content */}
-                  <div className="p-4 sm:p-6">
+                  <div className="p-4 sm:p-5">
                     {/* Mobile Layout */}
                     <div className="space-y-4 sm:hidden">
                       {/* Teams Row */}
                       <div className="flex items-center justify-between">
                         {/* Home Team */}
                         <div className="flex flex-1 flex-col items-center gap-2">
-                          <Image
-                            src={fixture.teams.home.logo}
-                            alt={fixture.teams.home.name}
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 object-contain"
-                          />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+                            <Image
+                              src={fixture.teams.home.logo}
+                              alt={fixture.teams.home.name}
+                              width={36}
+                              height={36}
+                              className="h-9 w-9 object-contain"
+                            />
+                          </div>
                           <div className="text-center">
                             <h3 className="text-xs font-medium leading-tight">
                               {fixture.teams.home.name}
                             </h3>
-                            <Badge variant="outline" className="mt-1 text-xs">
+                            <span className="text-[10px] text-muted-foreground">
                               Local
-                            </Badge>
+                            </span>
                           </div>
                         </div>
 
                         {/* Score */}
-                        <div className="mx-4 flex-shrink-0 text-center">
-                          <div className="rounded-lg bg-muted/50 px-3 py-1 text-lg font-bold">
+                        <div className="mx-2 flex-shrink-0 text-center">
+                          <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums">
                             {matchStatus}
                           </div>
-                          {/* Subtle Prediction Status */}
-                          <div className="mt-1">
-                            {hasPrediction ? (
-                              <span className="text-xs text-primary/70">
-                                ✓ Pronosticado
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground/60">
-                                Sin pronóstico
-                              </span>
-                            )}
-                          </div>
+                          {hasPrediction && (
+                            <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Pronosticado
+                            </span>
+                          )}
                         </div>
 
                         {/* Away Team */}
                         <div className="flex flex-1 flex-col items-center gap-2">
-                          <Image
-                            src={fixture.teams.away.logo}
-                            alt={fixture.teams.away.name}
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 object-contain"
-                          />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+                            <Image
+                              src={fixture.teams.away.logo}
+                              alt={fixture.teams.away.name}
+                              width={36}
+                              height={36}
+                              className="h-9 w-9 object-contain"
+                            />
+                          </div>
                           <div className="text-center">
                             <h3 className="text-xs font-medium leading-tight">
                               {fixture.teams.away.name}
                             </h3>
-                            <Badge variant="outline" className="mt-1 text-xs">
+                            <span className="text-[10px] text-muted-foreground">
                               Visitante
-                            </Badge>
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Predictions Row */}
-                      <div className="flex items-center justify-center gap-8">
-                        <Select
-                          value={
-                            predictions[fixture.fixture.id.toString()]?.home ||
-                            "0"
-                          }
-                          onValueChange={(value) =>
-                            updatePrediction(
-                              fixture.fixture.id.toString(),
-                              "home",
-                              value,
-                            )
-                          }
-                          disabled={matchStarted}
-                        >
-                          <SelectTrigger className="mx-auto w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="0">0</SelectItem>
-                              <SelectItem value="1">1</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
-                              <SelectItem value="6">6</SelectItem>
-                              <SelectItem value="7">7</SelectItem>
-                              <SelectItem value="8">8</SelectItem>
-                              <SelectItem value="9">9</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex items-center justify-center gap-4 rounded-lg bg-muted/30 p-3">
+                        <div className="text-center">
+                          <span className="mb-1 block text-[10px] text-muted-foreground">
+                            Tu pronóstico
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <Select
+                              value={
+                                predictions[fixture.fixture.id.toString()]
+                                  ?.home ?? "0"
+                              }
+                              onValueChange={(value) =>
+                                updatePrediction(
+                                  fixture.fixture.id.toString(),
+                                  "home",
+                                  value,
+                                )
+                              }
+                              disabled={matchStarted}
+                            >
+                              <SelectTrigger className="h-10 w-14 border-border/50 bg-background text-center text-lg font-bold">
+                                <SelectValue>
+                                  {predictions[fixture.fixture.id.toString()]
+                                    ?.home ?? "0"}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                                    <SelectItem key={n} value={n.toString()}>
+                                      {n}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
 
-                        <span className="text-muted-foreground">-</span>
+                            <span className="text-lg font-bold text-muted-foreground">
+                              -
+                            </span>
 
-                        <Select
-                          value={
-                            predictions[fixture.fixture.id.toString()]?.away ||
-                            "0"
-                          }
-                          onValueChange={(value) =>
-                            updatePrediction(
-                              fixture.fixture.id.toString(),
-                              "away",
-                              value,
-                            )
-                          }
-                          disabled={matchStarted}
-                        >
-                          <SelectTrigger className="mx-auto w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="0">0</SelectItem>
-                              <SelectItem value="1">1</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
-                              <SelectItem value="6">6</SelectItem>
-                              <SelectItem value="7">7</SelectItem>
-                              <SelectItem value="8">8</SelectItem>
-                              <SelectItem value="9">9</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                            <Select
+                              value={
+                                predictions[fixture.fixture.id.toString()]
+                                  ?.away ?? "0"
+                              }
+                              onValueChange={(value) =>
+                                updatePrediction(
+                                  fixture.fixture.id.toString(),
+                                  "away",
+                                  value,
+                                )
+                              }
+                              disabled={matchStarted}
+                            >
+                              <SelectTrigger className="h-10 w-14 border-border/50 bg-background text-center text-lg font-bold">
+                                <SelectValue>
+                                  {predictions[fixture.fixture.id.toString()]
+                                    ?.away ?? "0"}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                                    <SelectItem key={n} value={n.toString()}>
+                                      {n}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Desktop Layout */}
-                    <div className="hidden sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
+                    <div className="hidden sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6">
                       {/* Home Team */}
-                      <div className="space-y-3 text-center">
-                        <div className="flex flex-col items-center gap-2">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
                           <Image
                             src={fixture.teams.home.logo}
                             alt={fixture.teams.home.name}
-                            width={48}
-                            height={48}
-                            className="h-12 w-12 object-contain"
+                            width={44}
+                            height={44}
+                            className="h-11 w-11 object-contain"
                           />
-                          <div>
-                            <h3 className="text-sm font-medium sm:text-base">
-                              {fixture.teams.home.name}
-                            </h3>
-                            <Badge variant="outline" className="text-xs">
-                              Local
-                            </Badge>
-                          </div>
+                        </div>
+                        <div className="text-center">
+                          <h3 className="font-medium">
+                            {fixture.teams.home.name}
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            Local
+                          </span>
                         </div>
 
                         {/* Home Team Prediction */}
                         <Select
                           value={
-                            predictions[fixture.fixture.id.toString()]?.home ||
+                            predictions[fixture.fixture.id.toString()]?.home ??
                             "0"
                           }
                           onValueChange={(value) =>
@@ -878,21 +923,19 @@ export default function RegistrarPronosticos({
                           }
                           disabled={matchStarted}
                         >
-                          <SelectTrigger className="mx-auto w-16">
-                            <SelectValue />
+                          <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
+                            <SelectValue>
+                              {predictions[fixture.fixture.id.toString()]
+                                ?.home ?? "0"}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectItem value="0">0</SelectItem>
-                              <SelectItem value="1">1</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
-                              <SelectItem value="6">6</SelectItem>
-                              <SelectItem value="7">7</SelectItem>
-                              <SelectItem value="8">8</SelectItem>
-                              <SelectItem value="9">9</SelectItem>
+                              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                                <SelectItem key={n} value={n.toString()}>
+                                  {n}
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -900,47 +943,41 @@ export default function RegistrarPronosticos({
 
                       {/* Score */}
                       <div className="text-center">
-                        <div className="min-w-20 rounded-lg bg-muted/50 px-4 py-2 text-2xl font-bold sm:text-3xl">
+                        <div className="min-w-24 rounded-xl bg-muted/50 px-5 py-3 text-3xl font-bold tabular-nums">
                           {matchStatus}
                         </div>
-                        {/* Subtle Prediction Status */}
-                        <div className="mt-2">
-                          {hasPrediction ? (
-                            <span className="text-sm text-primary/70">
-                              ✓ Pronosticado
-                            </span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground/60">
-                              Sin pronóstico
-                            </span>
-                          )}
-                        </div>
+                        {hasPrediction && (
+                          <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-primary">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Pronosticado
+                          </span>
+                        )}
                       </div>
 
                       {/* Away Team */}
-                      <div className="space-y-3 text-center">
-                        <div className="flex flex-col items-center gap-2">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
                           <Image
                             src={fixture.teams.away.logo}
                             alt={fixture.teams.away.name}
-                            width={48}
-                            height={48}
-                            className="h-12 w-12 object-contain"
+                            width={44}
+                            height={44}
+                            className="h-11 w-11 object-contain"
                           />
-                          <div>
-                            <h3 className="text-sm font-medium sm:text-base">
-                              {fixture.teams.away.name}
-                            </h3>
-                            <Badge variant="outline" className="text-xs">
-                              Visitante
-                            </Badge>
-                          </div>
+                        </div>
+                        <div className="text-center">
+                          <h3 className="font-medium">
+                            {fixture.teams.away.name}
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            Visitante
+                          </span>
                         </div>
 
                         {/* Away Team Prediction */}
                         <Select
                           value={
-                            predictions[fixture.fixture.id.toString()]?.away ||
+                            predictions[fixture.fixture.id.toString()]?.away ??
                             "0"
                           }
                           onValueChange={(value) =>
@@ -952,21 +989,19 @@ export default function RegistrarPronosticos({
                           }
                           disabled={matchStarted}
                         >
-                          <SelectTrigger className="mx-auto w-16">
-                            <SelectValue />
+                          <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
+                            <SelectValue>
+                              {predictions[fixture.fixture.id.toString()]
+                                ?.away ?? "0"}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectItem value="0">0</SelectItem>
-                              <SelectItem value="1">1</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
-                              <SelectItem value="6">6</SelectItem>
-                              <SelectItem value="7">7</SelectItem>
-                              <SelectItem value="8">8</SelectItem>
-                              <SelectItem value="9">9</SelectItem>
+                              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                                <SelectItem key={n} value={n.toString()}>
+                                  {n}
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -982,30 +1017,26 @@ export default function RegistrarPronosticos({
 
       {/* Sticky Submit Button */}
       {hasValidPredictions && (
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 p-4 pb-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:left-64 md:pb-4">
-          <div className="mx-auto max-w-4xl px-4">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:left-[72px] lg:left-72">
+          <div className="max-w-5xl">
             <Button
               onClick={handleSubmitPredictions}
               disabled={isSubmitting}
-              className="h-14 w-full text-sm font-semibold md:h-12 md:text-base"
+              className="h-12 w-full gap-2 text-sm font-semibold shadow-lg shadow-primary/20 md:h-11"
               size="lg"
             >
               {isSubmitting ? (
                 <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Guardando...
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Guardando pronósticos...
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <div className="flex flex-col items-center md:flex-row md:items-center">
-                    <span className="text-sm leading-tight md:text-base">
-                      Pronosticar para {selectedRound}
-                    </span>
-                    <span className="text-xs opacity-75 md:ml-2">
-                      ({Object.keys(predictions).length} partidos)
-                    </span>
-                  </div>
+                  <Upload className="h-4 w-4" />
+                  <span>Guardar {selectedRound}</span>
+                  <span className="rounded-full bg-white/20 py-0.5 text-xs">
+                    {Object.keys(predictions).length} partidos
+                  </span>
                 </>
               )}
             </Button>
