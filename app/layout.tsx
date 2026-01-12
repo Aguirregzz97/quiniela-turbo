@@ -38,7 +38,7 @@ export default async function RootLayout({
               <TooltipProvider>
                 <Toaster />
                 <Sidebar />
-                <main className="ml-0 p-6 pb-20 md:ml-64 md:pb-6">
+                <main className="ml-0 mt-14 p-6 md:ml-64 md:mt-0">
                   {children}
                 </main>
               </TooltipProvider>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import {
-  Navigation,
   Settings,
   LogOut,
   Moon,
@@ -14,13 +13,22 @@ import {
   Trophy,
   TrendingUp,
   Award,
+  Menu,
+  User,
 } from "lucide-react";
-import ProfileButton from "./ProfileButton";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "../ui/drawer";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -195,43 +203,66 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card text-card-foreground md:hidden">
-        <div className="flex items-center justify-around p-2">
-          {/* Home */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center text-foreground hover:text-foreground/80"
-            asChild
+      {/* Mobile Top Navigation */}
+      <div className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-card text-card-foreground md:hidden">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Logo/Title */}
+          <Link
+            href="/quinielas"
+            className="flex items-center gap-2 text-foreground hover:text-foreground/80"
           >
-            <Link href="/">
-              <Trophy className="text-primary" />
-            </Link>
-          </Button>
+            <Trophy className="h-6 w-6 text-primary" />
+            <span className="text-lg font-bold">Quiniela Turbo</span>
+          </Link>
 
-          {/* Navigation Routes */}
-          {routes.map((route, i) => {
-            const IconComponent = route.icon;
-            return (
-              <Button
-                key={i}
-                variant={pathname.includes(route.href) ? "secondary" : "ghost"}
-                size="sm"
-                className="flex flex-col items-center space-y-1 text-foreground hover:text-foreground/80"
-                asChild
-              >
-                <Link href={route.href}>
-                  <IconComponent className="h-6 w-6" />
-                </Link>
+          {/* Hamburger Menu */}
+          <Drawer direction="right">
+            <DrawerTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
               </Button>
-            );
-          })}
-
-          {/* Profile */}
-          <div>
-            <ProfileButton />
-          </div>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Menú</DrawerTitle>
+              </DrawerHeader>
+              <nav className="flex flex-col gap-2 p-4">
+                {routes.map((route, i) => {
+                  const IconComponent = route.icon;
+                  return (
+                    <DrawerClose key={i} asChild>
+                      <Button
+                        variant={
+                          pathname.includes(route.href) ? "secondary" : "ghost"
+                        }
+                        className="w-full justify-start"
+                        asChild
+                      >
+                        <Link href={route.href}>
+                          <IconComponent className="mr-2 h-5 w-5" />
+                          {route.label}
+                        </Link>
+                      </Button>
+                    </DrawerClose>
+                  );
+                })}
+                <DrawerClose asChild>
+                  <Button
+                    variant={
+                      pathname.includes("/ajustes") ? "secondary" : "ghost"
+                    }
+                    className="w-full justify-start"
+                    asChild
+                  >
+                    <Link href="/ajustes">
+                      <User className="mr-2 h-5 w-5" />
+                      Perfil
+                    </Link>
+                  </Button>
+                </DrawerClose>
+              </nav>
+            </DrawerContent>
+          </Drawer>
         </div>
       </div>
     </>
