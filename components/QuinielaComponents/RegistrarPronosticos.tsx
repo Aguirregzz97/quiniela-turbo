@@ -49,6 +49,8 @@ interface RegistrarPronosticosProps {
   userId: string;
 }
 
+const COLLAPSE_BREAKPOINT = 1200;
+
 // Helper function to determine the default active round
 export function getDefaultActiveRound(
   rounds: { roundName: string; dates: string[] }[],
@@ -292,6 +294,37 @@ export default function RegistrarPronosticos({
     Record<string, { home: string; away: string }>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Track sidebar collapsed state for sticky footer positioning
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Listen for sidebar toggle events
+  useEffect(() => {
+    const checkWidth = () => {
+      if (window.innerWidth < COLLAPSE_BREAKPOINT) {
+        setSidebarCollapsed(true);
+      }
+    };
+
+    const handleSidebarToggle = (e: CustomEvent<{ collapsed: boolean }>) => {
+      setSidebarCollapsed(e.detail.collapsed);
+    };
+
+    checkWidth();
+    window.addEventListener("resize", checkWidth);
+    window.addEventListener(
+      "sidebarToggle",
+      handleSidebarToggle as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener("resize", checkWidth);
+      window.removeEventListener(
+        "sidebarToggle",
+        handleSidebarToggle as EventListener,
+      );
+    };
+  }, []);
 
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
@@ -1017,12 +1050,16 @@ export default function RegistrarPronosticos({
 
       {/* Sticky Submit Button */}
       {hasValidPredictions && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 px-4 py-4 backdrop-blur-xl md:left-[72px] lg:left-72">
-          <div className="max-w-5xl">
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 px-4 py-3  backdrop-blur-xl transition-[left] duration-300 sm:px-6 ${
+            sidebarCollapsed ? "md:left-[72px]" : "md:left-72"
+          }`}
+        >
+          <div className="max-w-[964px]">
             <Button
               onClick={handleSubmitPredictions}
               disabled={isSubmitting}
-              className="h-12 w-full gap-2 text-sm font-semibold shadow-lg shadow-primary/20 md:h-11"
+              className="h-11 w-full gap-2 text-sm font-semibold shadow-lg shadow-primary/20"
               size="lg"
             >
               {isSubmitting ? (
@@ -1034,7 +1071,7 @@ export default function RegistrarPronosticos({
                 <>
                   <Upload className="h-4 w-4" />
                   <span>Guardar {selectedRound}</span>
-                  <span className="rounded-full bg-white/20 py-0.5 text-xs">
+                  <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">
                     {Object.keys(predictions).length} partidos
                   </span>
                 </>
