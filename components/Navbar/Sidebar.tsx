@@ -199,63 +199,119 @@ const Sidebar = () => {
       </div>
 
       {/* Mobile Top Navigation */}
-      <div className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-card text-card-foreground md:hidden">
-        <div className="flex items-center justify-between px-4 py-1">
+      <div className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl md:hidden">
+        <div className="flex items-center justify-between px-4 py-2">
           {/* Logo/Title */}
           <Link
             href="/quinielas"
-            className="flex items-center gap-2 text-foreground hover:text-foreground/80"
+            className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-80"
           >
             <Image
               src="/img/logo.png"
               alt="Logo"
               width={240}
               height={240}
-              className="ml-1 h-16 w-16"
+              className="h-10 w-10"
             />
-            <span className="text-lg font-bold">Quiniela Turbo</span>
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-lg font-bold tracking-tight text-transparent">
+              Quiniela Turbo
+            </span>
           </Link>
 
           {/* Hamburger Menu */}
           <Drawer direction="right">
             <DrawerTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 rounded-full transition-colors hover:bg-primary/10"
+              >
+                <Menu className="h-5 w-5" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Menú</DrawerTitle>
+            <DrawerContent className="flex h-full flex-col">
+              {/* Drawer Header with Profile */}
+              <DrawerHeader className="border-b border-border/50 bg-gradient-to-b from-primary/5 to-transparent p-0">
+                <DrawerTitle className="sr-only">
+                  Menú de navegación
+                </DrawerTitle>
+                <DrawerClose asChild>
+                  <Link href="/perfil" className="group block px-6 pb-6 pt-8">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="relative h-14 w-14 overflow-hidden rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background transition-all group-hover:ring-primary/40">
+                          <Image
+                            src={
+                              session.data?.user?.image ?? "/img/profile.png"
+                            }
+                            alt="Profile"
+                            fill
+                            className="object-cover"
+                            sizes="56px"
+                          />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background bg-green-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground transition-colors group-hover:text-primary">
+                          {session.data?.user?.name ?? "Usuario"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Ver perfil
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </DrawerClose>
               </DrawerHeader>
-              <nav className="flex flex-col gap-2 p-4">
+
+              {/* Navigation Links */}
+              <nav className="flex-1 space-y-1 p-4">
+                <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Navegación
+                </p>
                 {routes.map((route, i) => {
                   const IconComponent = route.icon;
+                  const isActive = pathname.includes(route.href);
                   return (
                     <DrawerClose key={i} asChild>
-                      <Button
-                        variant={
-                          pathname.includes(route.href) ? "secondary" : "ghost"
-                        }
-                        className="w-full justify-start"
-                        asChild
+                      <Link
+                        href={route.href}
+                        className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground hover:bg-muted"
+                        }`}
                       >
-                        <Link href={route.href}>
-                          <IconComponent className="mr-2 h-5 w-5" />
-                          {route.label}
-                        </Link>
-                      </Button>
+                        <div
+                          className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                            isActive
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <IconComponent className="h-4 w-4" />
+                        </div>
+                        {route.label}
+                      </Link>
                     </DrawerClose>
                   );
                 })}
+              </nav>
+
+              {/* Bottom Section */}
+              <div className="border-t border-border/50 p-4">
                 {/* Theme Toggle */}
                 {mounted && (
-                  <div className="flex items-center justify-between rounded-md px-4 py-2">
-                    <div className="flex items-center">
-                      <div className="relative mr-2 h-5 w-5">
-                        <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                        <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+                        <div className="relative h-4 w-4">
+                          <Sun className="absolute inset-0 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                          <Moon className="absolute inset-0 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        </div>
                       </div>
-                      <span className="text-sm font-medium">Tema</span>
+                      <span className="text-sm font-medium">Modo oscuro</span>
                     </div>
                     <Switch
                       checked={theme === "dark"}
@@ -265,29 +321,7 @@ const Sidebar = () => {
                     />
                   </div>
                 )}
-                <DrawerClose asChild>
-                  <Button
-                    variant={
-                      pathname.includes("/perfil") ? "secondary" : "ghost"
-                    }
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <Link href="/perfil">
-                      <div className="relative mr-2 h-5 w-5 overflow-hidden rounded-full bg-muted">
-                        <Image
-                          src={session.data?.user?.image ?? "/img/profile.png"}
-                          alt="Profile"
-                          fill
-                          className="object-cover"
-                          sizes="20px"
-                        />
-                      </div>
-                      Perfil
-                    </Link>
-                  </Button>
-                </DrawerClose>
-              </nav>
+              </div>
             </DrawerContent>
           </Drawer>
         </div>
