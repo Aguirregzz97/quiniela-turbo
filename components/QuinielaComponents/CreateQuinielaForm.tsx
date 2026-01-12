@@ -253,21 +253,18 @@ export default function CreateQuinielaForm() {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mx-auto max-w-2xl space-y-6"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* League Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Selecciona Liga</CardTitle>
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Selecciona Liga</CardTitle>
           </CardHeader>
           <CardContent>
             <div
-              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all ${
+              className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
                 watch("league") === "Liga MX"
                   ? "border-primary bg-primary/5"
-                  : "border-muted hover:border-primary/50"
+                  : "border-border/50 hover:border-primary/50 hover:bg-muted/30"
               }`}
               onClick={() => {
                 setValue("league", "Liga MX");
@@ -275,23 +272,23 @@ export default function CreateQuinielaForm() {
               }}
             >
               <div className="flex items-center gap-4">
-                <Image
-                  src="https://media.api-sports.io/football/leagues/262.png"
-                  alt="Liga MX"
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 object-contain"
-                />
-                <div>
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
+                  <Image
+                    src="https://media.api-sports.io/football/leagues/262.png"
+                    alt="Liga MX"
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 object-contain"
+                  />
+                </div>
+                <div className="flex-1">
                   <h3 className="font-semibold">Liga MX</h3>
                   <p className="text-sm text-muted-foreground">
-                    Temporada 2025
+                    Temporada {CURRENT_SEASON}
                   </p>
                 </div>
                 {watch("league") === "Liga MX" && (
-                  <div className="ml-auto">
-                    <CheckCircle className="h-5 w-5 text-primary" />
-                  </div>
+                  <CheckCircle className="h-5 w-5 text-primary" />
                 )}
               </div>
             </div>
@@ -304,10 +301,10 @@ export default function CreateQuinielaForm() {
         </Card>
 
         {/* Quiniela Details Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-muted-foreground" />
               Detalles de la Quiniela
             </CardTitle>
           </CardHeader>
@@ -318,7 +315,7 @@ export default function CreateQuinielaForm() {
                 id="name"
                 {...register("name")}
                 placeholder="Ej: Quiniela del Torneo de Padel"
-                className="w-full"
+                className="border-border/50"
               />
               {errors.name && (
                 <p className="text-sm text-destructive">
@@ -334,7 +331,7 @@ export default function CreateQuinielaForm() {
                 {...register("description")}
                 placeholder="Describe los detalles de tu quiniela..."
                 rows={3}
-                className="w-full resize-none"
+                className="resize-none border-border/50"
               />
               {errors.description && (
                 <p className="text-sm text-destructive">
@@ -344,20 +341,23 @@ export default function CreateQuinielaForm() {
             </div>
 
             {/* Rounds Selection */}
-            <div className="space-y-4 border-t pt-4">
-              <h3 className="text-lg font-semibold">Selección de Jornadas</h3>
-              <p className="text-sm text-muted-foreground">
-                Solo se muestran jornadas futuras disponibles para predicciones.
-              </p>
+            <div className="space-y-4 border-t border-border/50 pt-4">
+              <div>
+                <h3 className="font-medium">Selección de Jornadas</h3>
+                <p className="text-xs text-muted-foreground">
+                  Solo se muestran jornadas futuras disponibles para
+                  predicciones.
+                </p>
+              </div>
               {roundsLoading ? (
-                <div className="flex items-center justify-center rounded-md border p-3">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="flex items-center justify-center rounded-lg border border-border/50 p-4">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">
                     Cargando jornadas...
                   </span>
                 </div>
               ) : roundsError ? (
-                <div className="rounded-md border border-destructive p-3">
+                <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
                   <p className="text-sm text-destructive">
                     {roundsError?.message || "Error cargando jornadas"}
                   </p>
@@ -365,10 +365,12 @@ export default function CreateQuinielaForm() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="desde">Desde *</Label>
+                    <Label htmlFor="desde" className="text-sm">
+                      Desde *
+                    </Label>
                     <Select onValueChange={(value) => setValue("desde", value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecciona jornada inicial" />
+                      <SelectTrigger className="border-border/50">
+                        <SelectValue placeholder="Jornada inicial" />
                       </SelectTrigger>
                       <SelectContent>
                         {futureRounds.map((round) => (
@@ -386,10 +388,12 @@ export default function CreateQuinielaForm() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="hasta">Hasta *</Label>
+                    <Label htmlFor="hasta" className="text-sm">
+                      Hasta *
+                    </Label>
                     <Select onValueChange={(value) => setValue("hasta", value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecciona jornada final" />
+                      <SelectTrigger className="border-border/50">
+                        <SelectValue placeholder="Jornada final" />
                       </SelectTrigger>
                       <SelectContent>
                         {futureRounds.map((round) => (
@@ -408,8 +412,8 @@ export default function CreateQuinielaForm() {
                 </div>
               )}
               {watch("desde") && watch("hasta") && (
-                <p className="text-xs text-muted-foreground">
-                  {watch("roundsSelected")?.length || 0} jornada(s)
+                <p className="text-xs text-primary">
+                  ✓ {watch("roundsSelected")?.length || 0} jornada(s)
                   seleccionada(s)
                 </p>
               )}
@@ -418,43 +422,41 @@ export default function CreateQuinielaForm() {
         </Card>
 
         {/* Quiniela Settings Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Settings className="h-4 w-4 text-muted-foreground" />
               Ajustes de la Quiniela
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {/* Prize Configuration */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
-                  <div className="relative">
-                    <Input
-                      id="moneyToEnter"
-                      type="number"
-                      {...register("moneyToEnter", { valueAsNumber: true })}
-                      placeholder="Ej: 1000"
-                      className="w-full pl-8"
-                      min={1}
-                    />
-                    <Trophy className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                  {errors.moneyToEnter && (
-                    <p className="text-sm text-destructive">
-                      {errors.moneyToEnter.message}
-                    </p>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
+                <div className="relative">
+                  <Input
+                    id="moneyToEnter"
+                    type="number"
+                    {...register("moneyToEnter", { valueAsNumber: true })}
+                    placeholder="Ej: 100"
+                    className="border-border/50 pl-7"
+                    min={1}
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
                 </div>
+                {errors.moneyToEnter && (
+                  <p className="text-sm text-destructive">
+                    {errors.moneyToEnter.message}
+                  </p>
+                )}
               </div>
 
               {/* Points Configuration */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">
-                  Configuración de Puntos
-                </h3>
+              <div className="space-y-4 border-t border-border/50 pt-4">
+                <h3 className="font-medium">Configuración de Puntos</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pointsForExactResultPrediction">
@@ -468,7 +470,7 @@ export default function CreateQuinielaForm() {
                       })}
                       min={1}
                       max={10}
-                      className="w-full"
+                      className="border-border/50"
                     />
                     {errors.pointsForExactResultPrediction && (
                       <p className="text-sm text-destructive">
@@ -489,7 +491,7 @@ export default function CreateQuinielaForm() {
                       })}
                       min={1}
                       max={10}
-                      className="w-full"
+                      className="border-border/50"
                     />
                     {errors.pointsForCorrectResultPrediction && (
                       <p className="text-sm text-destructive">
@@ -501,12 +503,12 @@ export default function CreateQuinielaForm() {
               </div>
 
               {/* Edit Predictions Toggle */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4 border-t border-border/50 pt-4">
                 <div className="flex-1 space-y-1">
                   <Label htmlFor="allowEditPredictions">
                     Permitir Editar Predicciones
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Los participantes podrán modificar sus predicciones hasta el
                     inicio del partido
                   </p>
@@ -521,7 +523,7 @@ export default function CreateQuinielaForm() {
               </div>
 
               {/* Prize Distribution Section */}
-              <div className="border-t pt-6">
+              <div className="border-t border-border/50 pt-4">
                 <PrizeDistributionForm name="prizeDistribution" />
               </div>
             </div>
@@ -529,11 +531,16 @@ export default function CreateQuinielaForm() {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 gap-2"
+            size="lg"
+          >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Creando Quiniela...
               </>
             ) : (
@@ -545,7 +552,7 @@ export default function CreateQuinielaForm() {
             variant="outline"
             onClick={() => reset()}
             disabled={isSubmitting}
-            className="sm:w-auto"
+            className="border-border/50 sm:w-auto"
           >
             Limpiar
           </Button>
