@@ -2,14 +2,14 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import SignoutButton from "@/components/SessionComponents/SignoutButton";
-import { Settings } from "lucide-react";
+import { User } from "lucide-react";
 import { redirect } from "next/navigation";
 
-export default async function SettingsPage() {
+export default async function ProfilePage() {
   const session = await auth();
 
   if (!session) {
-    redirect("/api/auth/signin?callbackUrl=/ajustes");
+    redirect("/api/auth/signin?callbackUrl=/perfil");
   }
 
   const user = session.user;
@@ -18,8 +18,8 @@ export default async function SettingsPage() {
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-3xl font-bold">
-          <Settings className="h-8 w-8 text-primary" />
-          Ajustes
+          <User className="h-8 w-8 text-primary" />
+          Perfil
         </h1>
         <p className="mt-2 text-muted-foreground">
           Gestiona tu perfil y configuración de cuenta
@@ -56,3 +56,5 @@ export default async function SettingsPage() {
     </div>
   );
 }
+
+

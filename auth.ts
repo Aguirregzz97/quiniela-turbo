@@ -12,6 +12,9 @@ export const authConfig = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  pages: {
+    signIn: "/sign-in",
+  },
   callbacks: {
     async session({ session, user }) {
       session.user.id = user.id;

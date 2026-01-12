@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import TanstackProvider from "@/Providers/TanstackProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SessionProvider from "@/Providers/SessionProvider";
+import MainContent from "@/components/MainContent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,9 +39,7 @@ export default async function RootLayout({
               <TooltipProvider>
                 <Toaster />
                 <Sidebar />
-                <main className="ml-0 mt-14 p-6 md:ml-64 md:mt-0">
-                  {children}
-                </main>
+                <MainContent>{children}</MainContent>
               </TooltipProvider>
             </ThemeProvider>
           </TanstackProvider>

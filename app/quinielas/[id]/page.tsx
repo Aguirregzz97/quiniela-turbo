@@ -71,7 +71,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
           <div className="flex items-center gap-2">
             <QuinielaDetailsDrawer quinielaData={quinielaData} />
-            {session.user.id === quinielaData.ownerId && (
+            {session?.user?.id === quinielaData.ownerId && (
               <Button asChild size="sm" className="sm:size-default">
                 <Link href={`/quinielas/${quinielaData.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
@@ -133,8 +133,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           <Card className="cursor-pointer transition-colors hover:bg-muted/50">
             <Link href={`/quinielas/${quinielaData.id}/ver-pronosticos`}>
               <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
-                  <Eye className="h-6 w-6 text-blue-600" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg">
+                  <Eye className="text-red h-6 w-6" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Ver Pronósticos</h3>

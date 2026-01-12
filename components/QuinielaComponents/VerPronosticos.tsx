@@ -81,8 +81,8 @@ function evaluatePrediction(
   ) {
     return {
       type: "no-prediction",
-      bgColor: "bg-gray-100",
-      textColor: "text-gray-500",
+      bgColor: "bg-secondary",
+      textColor: "text-foreground",
       points: 0,
     };
   }
@@ -95,8 +95,8 @@ function evaluatePrediction(
   ) {
     return {
       type: "no-prediction",
-      bgColor: "bg-gray-100",
-      textColor: "text-gray-500",
+      bgColor: "bg-secondary",
+      textColor: "text-foreground",
       points: 0,
     };
   }
@@ -422,7 +422,7 @@ export default function VerPronosticos({
               <div className="col-span-2 flex items-center gap-2 sm:col-span-1">
                 <div className="flex items-center gap-1">
                   <Minus className="h-4 w-4 text-gray-500" />
-                  <div className="h-4 w-6 rounded bg-gray-100"></div>
+                  <div className="h-4 w-6 rounded bg-secondary"></div>
                 </div>
                 <span className="text-xs sm:text-sm">Sin pronóstico</span>
               </div>

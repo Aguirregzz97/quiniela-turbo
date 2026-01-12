@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import {
-  Settings,
   LogOut,
   Moon,
   Sun,
@@ -14,7 +13,6 @@ import {
   TrendingUp,
   Award,
   Menu,
-  User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
@@ -53,6 +51,11 @@ const Sidebar = () => {
       icon: TrendingUp,
     },
   ];
+
+  // Don't render sidebar on sign-in or sign-up pages
+  if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
+    return null;
+  }
 
   return (
     <>
@@ -124,19 +127,6 @@ const Sidebar = () => {
           {/* Settings Menu Items */}
           <div className="space-y-2">
             <Button
-              variant={pathname.includes("/ajustes") ? "secondary" : "ghost"}
-              className={`justify-start text-foreground hover:text-foreground/80 ${
-                collapsed ? "w-full px-2" : "w-full"
-              }`}
-              asChild
-            >
-              <Link href="/ajustes">
-                <Settings className="h-4 w-4" />
-                {!collapsed && <span className="ml-2">Ajustes</span>}
-              </Link>
-            </Button>
-
-            <Button
               variant="ghost"
               className={`justify-start text-foreground hover:text-foreground/80 ${
                 collapsed ? "w-full px-2" : "w-full"
@@ -173,7 +163,7 @@ const Sidebar = () => {
           {/* Profile Button - Simple Link */}
           <div className="pt-2">
             <Button
-              variant="ghost"
+              variant={pathname.includes("/perfil") ? "secondary" : "ghost"}
               className={`justify-start text-foreground hover:text-foreground/80 ${
                 collapsed ? "w-full px-2" : "w-full"
               }`}
@@ -181,7 +171,7 @@ const Sidebar = () => {
             >
               <Link
                 className={`${collapsed ? "px-[3px]" : "px-[8px]"}`}
-                href="/ajustes"
+                href="/perfil"
               >
                 <div className="flex items-center gap-2">
                   <div className="relative h-6 w-6 rounded-full bg-muted">
@@ -249,17 +239,44 @@ const Sidebar = () => {
                 <DrawerClose asChild>
                   <Button
                     variant={
-                      pathname.includes("/ajustes") ? "secondary" : "ghost"
+                      pathname.includes("/perfil") ? "secondary" : "ghost"
                     }
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href="/ajustes">
-                      <User className="mr-2 h-5 w-5" />
+                    <Link href="/perfil">
+                      <div className="relative mr-2 h-5 w-5 overflow-hidden rounded-full bg-muted">
+                        <Image
+                          src={session.data?.user?.image ?? "/img/profile.png"}
+                          alt="Profile"
+                          fill
+                          className="object-cover"
+                          sizes="20px"
+                        />
+                      </div>
                       Perfil
                     </Link>
                   </Button>
                 </DrawerClose>
+
+                {/* Theme Toggle */}
+                {mounted && (
+                  <div className="flex items-center justify-between rounded-md px-4 py-2">
+                    <div className="flex items-center">
+                      <div className="relative mr-2 h-5 w-5">
+                        <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                      </div>
+                      <span className="text-sm font-medium">Tema</span>
+                    </div>
+                    <Switch
+                      checked={theme === "dark"}
+                      onCheckedChange={(checked) =>
+                        setTheme(checked ? "dark" : "light")
+                      }
+                    />
+                  </div>
+                )}
               </nav>
             </DrawerContent>
           </Drawer>

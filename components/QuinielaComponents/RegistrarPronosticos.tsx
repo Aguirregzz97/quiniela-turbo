@@ -599,35 +599,35 @@ export default function RegistrarPronosticos({
                                 </div>
 
                                 {/* All Odds Sections */}
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                   {/* Match Winner */}
                                   {allOdds.matchWinner && (
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                       <p className="text-center text-sm font-medium">
                                         Ganador del partido
                                       </p>
-                                      <div className="grid grid-cols-3 gap-3">
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Local
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.matchWinner.home}
                                           </p>
                                         </div>
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Empate
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.matchWinner.draw}
                                           </p>
                                         </div>
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Visitante
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.matchWinner.away}
                                           </p>
                                         </div>
@@ -637,24 +637,24 @@ export default function RegistrarPronosticos({
 
                                   {/* Both Teams Score */}
                                   {allOdds.bothTeamsScore && (
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                       <p className="text-center text-sm font-medium">
                                         Ambos equipos anotan
                                       </p>
-                                      <div className="grid grid-cols-2 gap-3">
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Sí
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.bothTeamsScore.yes}
                                           </p>
                                         </div>
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             No
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.bothTeamsScore.no}
                                           </p>
                                         </div>
@@ -664,24 +664,24 @@ export default function RegistrarPronosticos({
 
                                   {/* Clean Sheet */}
                                   {allOdds.cleanSheet && (
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                       <p className="text-center text-sm font-medium">
                                         Portería a cero
                                       </p>
-                                      <div className="grid grid-cols-2 gap-3">
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Local
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.cleanSheet.home}
                                           </p>
                                         </div>
-                                        <div className="rounded-lg bg-muted p-4 text-center">
-                                          <p className="text-sm text-muted-foreground">
+                                        <div className="rounded-lg bg-muted px-2 py-3 text-center">
+                                          <p className="text-xs text-muted-foreground">
                                             Visitante
                                           </p>
-                                          <p className="text-2xl font-bold text-primary">
+                                          <p className="text-lg font-bold text-primary">
                                             {allOdds.cleanSheet.away}
                                           </p>
                                         </div>

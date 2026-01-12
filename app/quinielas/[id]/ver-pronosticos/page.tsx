@@ -57,7 +57,7 @@ export default async function VerPronosticosPage({
 
         <div className="flex items-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-xl">
-            <Eye className="h-8 w-8 text-blue-600" />
+            <Eye className="h-8 w-8 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-bold sm:text-3xl">Ver Pronósticos</h1>
