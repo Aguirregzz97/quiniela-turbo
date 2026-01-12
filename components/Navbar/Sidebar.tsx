@@ -200,7 +200,7 @@ const Sidebar = () => {
 
       {/* Mobile Top Navigation */}
       <div className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-card text-card-foreground md:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-1">
           {/* Logo/Title */}
           <Link
             href="/quinielas"
@@ -247,6 +247,24 @@ const Sidebar = () => {
                     </DrawerClose>
                   );
                 })}
+                {/* Theme Toggle */}
+                {mounted && (
+                  <div className="flex items-center justify-between rounded-md px-4 py-2">
+                    <div className="flex items-center">
+                      <div className="relative mr-2 h-5 w-5">
+                        <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                      </div>
+                      <span className="text-sm font-medium">Tema</span>
+                    </div>
+                    <Switch
+                      checked={theme === "dark"}
+                      onCheckedChange={(checked) =>
+                        setTheme(checked ? "dark" : "light")
+                      }
+                    />
+                  </div>
+                )}
                 <DrawerClose asChild>
                   <Button
                     variant={
@@ -269,25 +287,6 @@ const Sidebar = () => {
                     </Link>
                   </Button>
                 </DrawerClose>
-
-                {/* Theme Toggle */}
-                {mounted && (
-                  <div className="flex items-center justify-between rounded-md px-4 py-2">
-                    <div className="flex items-center">
-                      <div className="relative mr-2 h-5 w-5">
-                        <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                        <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                      </div>
-                      <span className="text-sm font-medium">Tema</span>
-                    </div>
-                    <Switch
-                      checked={theme === "dark"}
-                      onCheckedChange={(checked) =>
-                        setTheme(checked ? "dark" : "light")
-                      }
-                    />
-                  </div>
-                )}
               </nav>
             </DrawerContent>
           </Drawer>
