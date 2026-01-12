@@ -4,11 +4,10 @@ import { useMemo } from "react";
 import { useFixtures } from "@/hooks/api-football/useFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
-import { Trophy, Target, CheckCircle, XCircle, Users } from "lucide-react";
+import { Trophy, Users, Crown, Medal, Award } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
@@ -238,20 +237,68 @@ export default function QuinielaLeaderboard({
     correctResultPoints,
   ]);
 
+  // Get position icon
+  const getPositionIcon = (position: number) => {
+    switch (position) {
+      case 1:
+        return <Crown className="h-4 w-4" />;
+      case 2:
+        return <Medal className="h-4 w-4" />;
+      case 3:
+        return <Award className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  // Get position styles
+  const getPositionStyles = (position: number) => {
+    switch (position) {
+      case 1:
+        return {
+          badge:
+            "bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-900 shadow-lg shadow-yellow-500/25",
+          ring: "ring-yellow-400/50",
+          glow: "shadow-yellow-500/20",
+        };
+      case 2:
+        return {
+          badge:
+            "bg-gradient-to-br from-slate-300 to-slate-400 text-slate-800 shadow-lg shadow-slate-400/25",
+          ring: "ring-slate-300/50",
+          glow: "shadow-slate-400/20",
+        };
+      case 3:
+        return {
+          badge:
+            "bg-gradient-to-br from-amber-500 to-amber-700 text-amber-100 shadow-lg shadow-amber-600/25",
+          ring: "ring-amber-500/50",
+          glow: "shadow-amber-500/20",
+        };
+      default:
+        return {
+          badge: "bg-muted text-muted-foreground",
+          ring: "ring-border/50",
+          glow: "",
+        };
+    }
+  };
+
   if (fixturesLoading || predictionsLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
-            Tabla de Posiciones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">
-              Cargando estadísticas...
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
+              <Trophy className="h-5 w-5 text-primary-foreground" />
             </div>
+            <div>
+              <h3 className="font-semibold">Tabla de Posiciones</h3>
+              <p className="text-sm text-muted-foreground">Cargando...</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         </CardContent>
       </Card>
@@ -260,142 +307,122 @@ export default function QuinielaLeaderboard({
 
   if (fixturesError || predictionsError || !userStats.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
-            Tabla de Posiciones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">
-              {!userStats.length
-                ? "No hay datos suficientes para mostrar la tabla de posiciones"
-                : "Error al cargar los datos"}
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
+              <Trophy className="h-5 w-5 text-primary-foreground" />
             </div>
+            <div>
+              <h3 className="font-semibold">Tabla de Posiciones</h3>
+              <p className="text-sm text-muted-foreground">Sin datos</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50">
+              <Users className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">
+              {!userStats.length
+                ? "No hay datos suficientes para mostrar la tabla"
+                : "Error al cargar los datos"}
+            </p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  // Prepare chart data
-  const chartData = userStats.map((user) => ({
-    name: user.name.split(" ")[0] || user.name, // Use first name for chart
-    fullName: user.name,
-    totalPoints: user.totalPoints,
-    pp: user.pp,
-    rea: user.rea,
-    ra: user.ra,
-    ri: user.ri,
-    position: user.position,
-    avatar: user.image,
-  }));
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5" />
-          Tabla de Posiciones
-        </CardTitle>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          {userStats.length} participantes
+    <Card className="overflow-hidden border-border/50">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="border-b border-border/50 bg-gradient-to-b from-muted/30 to-transparent p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
+                <Trophy className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Tabla de Posiciones</h3>
+                <p className="text-sm text-muted-foreground">
+                  {userStats.length} participantes
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Chart */}
-        <div className="space-y-4">
-          {chartData.map((user, index) => {
-            const maxPoints = Math.max(...chartData.map((u) => u.totalPoints));
-            const percentage =
-              maxPoints > 0 ? (user.totalPoints / maxPoints) * 100 : 0;
+
+        {/* Leaderboard List */}
+        <div className="divide-y divide-border/50">
+          {userStats.map((user, index) => {
+            const styles = getPositionStyles(index + 1);
+            const isTopThree = index < 3;
 
             return (
-              <div key={user.name} className="group">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      variant={index < 3 ? "default" : "secondary"}
-                      className={`px-2 py-1 font-bold ${
-                        index === 0
-                          ? "bg-yellow-500 text-yellow-900 hover:bg-yellow-600"
-                          : index === 1
-                            ? "bg-gray-400 text-gray-900 hover:bg-gray-500"
-                            : index === 2
-                              ? "bg-amber-600 text-amber-100 hover:bg-amber-700"
-                              : ""
+              <div
+                key={user.id}
+                className={`group relative p-4 transition-colors hover:bg-muted/30 sm:p-5 ${
+                  isTopThree ? "bg-muted/10" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3 sm:gap-4">
+                  {/* Position Badge */}
+                  <div
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold sm:h-9 sm:w-9 sm:text-sm ${styles.badge}`}
+                  >
+                    {getPositionIcon(index + 1) || `#${index + 1}`}
+                  </div>
+
+                  {/* Avatar */}
+                  <Avatar
+                    className={`h-10 w-10 ring-2 ring-offset-2 ring-offset-background sm:h-12 sm:w-12 ${styles.ring}`}
+                  >
+                    <AvatarImage src={user.image || undefined} />
+                    <AvatarFallback className="bg-muted text-sm font-medium">
+                      {user.name[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* User Info */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{user.name}</p>
+                    {/* Stats Pills - Mobile: 2 cols, Desktop: inline */}
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-600 dark:text-blue-400">
+                        {user.pp} jugados
+                      </span>
+                      <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                        {user.rea} exactos
+                      </span>
+                      <span className="inline-flex items-center rounded-md bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                        {user.ra} acertados
+                      </span>
+                      {user.ri > 0 && (
+                        <span className="inline-flex items-center rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">
+                          {user.ri} fallados
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Points */}
+                  <div className="flex flex-col items-end">
+                    <span
+                      className={`text-xl font-bold tabular-nums sm:text-2xl ${
+                        isTopThree ? "text-primary" : "text-foreground"
                       }`}
                     >
-                      #{index + 1}
-                    </Badge>
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar || undefined} />
-                      <AvatarFallback className="text-sm">
-                        {user.fullName[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{user.fullName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        PP: {user.pp} • REA: {user.rea} • RA: {user.ra} • RI:{" "}
-                        {user.ri}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary">
                       {user.totalPoints}
-                    </div>
-                    <div className="text-xs text-muted-foreground">puntos</div>
+                    </span>
+                    <span className="text-[10px] text-muted-foreground sm:text-xs">
+                      puntos
+                    </span>
                   </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="relative h-3 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${
-                      index === 0
-                        ? "bg-yellow-500"
-                        : index === 1
-                          ? "bg-gray-400"
-                          : index === 2
-                            ? "bg-amber-600"
-                            : "bg-primary"
-                    }`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                  {/* Shine effect */}
-                  <div
-                    className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-                    style={{ width: `${percentage}%` }}
-                  />
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Legend */}
-        <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-blue-500" />
-            <span className="text-xs">PP - Partidos Pronosticados</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span className="text-xs">REA - Resultado Exacto</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-400" />
-            <span className="text-xs">RA - Resultado Acertado</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <XCircle className="h-4 w-4 text-red-500" />
-            <span className="text-xs">RI - Resultado Incorrecto</span>
-          </div>
         </div>
       </CardContent>
     </Card>
