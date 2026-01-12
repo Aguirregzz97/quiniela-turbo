@@ -630,78 +630,88 @@ export default function RegistrarPronosticos({
                         </DrawerTrigger>
                         <DrawerContent>
                           <div className="mx-auto w-full max-w-md">
-                            <DrawerHeader>
-                              <DrawerTitle className="flex items-center justify-center gap-2">
-                                <BarChart3 className="h-5 w-5 text-primary" />
-                                Probabilidades
+                            <DrawerHeader className="pb-2">
+                              <DrawerTitle className="flex items-center justify-center gap-2.5">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-md shadow-primary/25">
+                                  <BarChart3 className="h-4 w-4 text-primary-foreground" />
+                                </div>
+                                <span className="text-lg">Probabilidades</span>
                               </DrawerTitle>
                             </DrawerHeader>
-                            <div className="px-4 pb-8">
+                            <div className="mt-4 px-4 pb-8">
                               {/* Match Info */}
-                              <div className="mb-6 flex items-center justify-center gap-4">
-                                <div className="flex flex-col items-center gap-1">
-                                  <Image
-                                    src={fixture.teams.home.logo}
-                                    alt={fixture.teams.home.name}
-                                    width={40}
-                                    height={40}
-                                    className="h-10 w-10 object-contain"
-                                  />
-                                  <span className="text-xs font-medium">
-                                    {fixture.teams.home.name}
-                                  </span>
-                                </div>
-                                <span className="text-lg font-bold text-muted-foreground">
-                                  vs
-                                </span>
-                                <div className="flex flex-col items-center gap-1">
-                                  <Image
-                                    src={fixture.teams.away.logo}
-                                    alt={fixture.teams.away.name}
-                                    width={40}
-                                    height={40}
-                                    className="h-10 w-10 object-contain"
-                                  />
-                                  <span className="text-xs font-medium">
-                                    {fixture.teams.away.name}
-                                  </span>
+                              <div className="mb-6 rounded-xl border border-border/50 bg-muted/30 p-4">
+                                <div className="flex items-center justify-center gap-6">
+                                  <div className="flex flex-col items-center gap-2">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
+                                      <Image
+                                        src={fixture.teams.home.logo}
+                                        alt={fixture.teams.home.name}
+                                        width={40}
+                                        height={40}
+                                        className="h-10 w-10 object-contain"
+                                      />
+                                    </div>
+                                    <span className="max-w-[100px] truncate text-center text-xs font-medium">
+                                      {fixture.teams.home.name}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col items-center">
+                                    <span className="rounded-lg bg-muted px-3 py-1.5 text-sm font-bold text-muted-foreground">
+                                      VS
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-2">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
+                                      <Image
+                                        src={fixture.teams.away.logo}
+                                        alt={fixture.teams.away.name}
+                                        width={40}
+                                        height={40}
+                                        className="h-10 w-10 object-contain"
+                                      />
+                                    </div>
+                                    <span className="max-w-[100px] truncate text-center text-xs font-medium">
+                                      {fixture.teams.away.name}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
                               {/* All Odds Sections */}
-                              <div className="space-y-4">
+                              <div className="space-y-5">
                                 {/* Match Winner */}
                                 {allOdds.matchWinner && (
-                                  <div className="space-y-2">
-                                    <p className="text-center text-sm font-medium">
+                                  <div className="space-y-3">
+                                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                       Ganador del partido
                                     </p>
                                     <div className="grid grid-cols-3 gap-2">
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Local
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.matchWinner.home,
                                           )}
                                         </p>
                                       </div>
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Empate
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.matchWinner.draw,
                                           )}
                                         </p>
                                       </div>
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Visitante
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.matchWinner.away,
                                           )}
@@ -713,26 +723,26 @@ export default function RegistrarPronosticos({
 
                                 {/* Both Teams Score */}
                                 {allOdds.bothTeamsScore && (
-                                  <div className="space-y-2">
-                                    <p className="text-center text-sm font-medium">
+                                  <div className="space-y-3">
+                                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                       Ambos equipos anotan
                                     </p>
                                     <div className="grid grid-cols-2 gap-2">
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Sí
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.bothTeamsScore.yes,
                                           )}
                                         </p>
                                       </div>
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           No
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.bothTeamsScore.no,
                                           )}
@@ -744,26 +754,26 @@ export default function RegistrarPronosticos({
 
                                 {/* Clean Sheet */}
                                 {allOdds.cleanSheet && (
-                                  <div className="space-y-2">
-                                    <p className="text-center text-sm font-medium">
+                                  <div className="space-y-3">
+                                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                       Portería a cero
                                     </p>
                                     <div className="grid grid-cols-2 gap-2">
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Local
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.cleanSheet.home,
                                           )}
                                         </p>
                                       </div>
-                                      <div className="rounded-lg bg-muted px-2 py-3 text-center">
-                                        <p className="text-xs text-muted-foreground">
+                                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                           Visitante
                                         </p>
-                                        <p className="text-lg font-bold text-primary">
+                                        <p className="text-xl font-bold tabular-nums text-primary">
                                           {oddsToPercentage(
                                             allOdds.cleanSheet.away,
                                           )}
