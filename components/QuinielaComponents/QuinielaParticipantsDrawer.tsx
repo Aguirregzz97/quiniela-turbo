@@ -51,7 +51,7 @@ export default function QuinielaParticipantsDrawer({
   const [isPending, startTransition] = useTransition();
   const [kickingUserId, setKickingUserId] = useState<string | null>(null);
   const [confirmKickUser, setConfirmKickUser] = useState<Participant | null>(
-    null
+    null,
   );
 
   const isOwner = currentUserId === ownerId;
@@ -119,10 +119,10 @@ export default function QuinielaParticipantsDrawer({
                 return (
                   <div
                     key={participant.id}
-                    className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+                    className="relative rounded-lg bg-muted/50 p-3 pr-10"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted">
+                      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-muted">
                         <Image
                           src={participant.userImage || "/img/profile.png"}
                           alt={participant.userName || "Participante"}
@@ -131,26 +131,25 @@ export default function QuinielaParticipantsDrawer({
                           sizes="40px"
                         />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">
-                            {participant.userName || "Sin nombre"}
-                          </p>
-                          {isParticipantOwner && (
-                            <Crown className="h-4 w-4 text-yellow-500" />
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">
+                          {participant.userName || "Sin nombre"}
+                        </p>
+                        <p className="truncate text-sm text-muted-foreground">
                           {participant.userEmail}
                         </p>
                       </div>
                     </div>
 
+                    {isParticipantOwner && (
+                      <Crown className="absolute right-3 top-3 h-4 w-4 text-yellow-500" />
+                    )}
+
                     {isOwner && !isParticipantOwner && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => handleKick(participant)}
                         disabled={isPending}
                       >

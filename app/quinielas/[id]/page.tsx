@@ -78,8 +78,10 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     .where(eq(quiniela_participants.quinielaId, id))
     .orderBy(quiniela_participants.createdAt);
 
+  console.log(quinielaData);
+
   return (
-    <div className="container mx-auto p-4 sm:p-6">
+    <div className="container mx-auto p-4 px-2 sm:p-6">
       {/* Header with back button */}
       <div className="mb-6">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -126,7 +128,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           </div>
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <h1 className="text-2xl font-bold sm:text-3xl">
+              <h1 className="text-xl font-bold sm:text-3xl">
                 {quinielaData.name}
               </h1>
             </div>
