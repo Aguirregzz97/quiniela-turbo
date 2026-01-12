@@ -168,7 +168,7 @@ function groupPredictionsByUser(
 // Helper function to format match result
 function getMatchResult(fixture: FixtureData): string {
   if (fixture.fixture.status.short === "NS") {
-    return "vs";
+    return "";
   }
   const homeGoals = fixture.goals.home ?? 0;
   const awayGoals = fixture.goals.away ?? 0;
@@ -757,14 +757,36 @@ export default function VerPronosticos({
                                 {/* User Prediction */}
                                 <div className="text-center">
                                   <div className="mb-1 text-xs">
-                                    Tu pronóstico:
+                                    {user.id === userId ? "Tu" : "Su"}{" "}
+                                    pronóstico:
                                   </div>
                                   <div className="font-mono text-sm font-medium">
-                                    {prediction &&
-                                    prediction.predictedHomeScore !== null &&
-                                    prediction.predictedAwayScore !== null
-                                      ? `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
-                                      : "−"}
+                                    {(() => {
+                                      const matchNotStarted =
+                                        fixture.fixture.status.short === "NS";
+                                      const isOtherUser = user.id !== userId;
+
+                                      // Hide other users' predictions if match hasn't started
+                                      if (matchNotStarted && isOtherUser) {
+                                        return (
+                                          <span className="text-xs font-normal italic opacity-75">
+                                            Oculto hasta inicio
+                                          </span>
+                                        );
+                                      }
+
+                                      // Show prediction normally
+                                      if (
+                                        prediction &&
+                                        prediction.predictedHomeScore !==
+                                          null &&
+                                        prediction.predictedAwayScore !== null
+                                      ) {
+                                        return `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`;
+                                      }
+
+                                      return "−";
+                                    })()}
                                   </div>
                                 </div>
                               </div>
