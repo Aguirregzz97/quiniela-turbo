@@ -58,3 +58,4 @@ export function useMultipleOdds(fixtureIds: number[]) {
     enabled: fixtureIds.length > 0,
   });
 }
+
