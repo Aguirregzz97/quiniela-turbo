@@ -5,11 +5,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { quinielas, users, quiniela_settings } from "@/db/schema";
+import {
+  quinielas,
+  users,
+  quiniela_settings,
+  quiniela_participants,
+} from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
 import QuinielaDetailsDrawer from "@/components/QuinielaComponents/QuinielaDetailsDrawer";
 import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderboard";
+import QuinielaParticipantsDrawer from "@/components/QuinielaComponents/QuinielaParticipantsDrawer";
 
 interface QuinielaPageProps {
   params: Promise<{
@@ -57,6 +63,21 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
   const quinielaData = quinielaWithOwnerAndSettings[0];
 
+  // Fetch participants
+  const participants = await db
+    .select({
+      id: quiniela_participants.id,
+      userId: quiniela_participants.userId,
+      userName: users.name,
+      userEmail: users.email,
+      userImage: users.image,
+      joinedAt: quiniela_participants.createdAt,
+    })
+    .from(quiniela_participants)
+    .innerJoin(users, eq(quiniela_participants.userId, users.id))
+    .where(eq(quiniela_participants.quinielaId, id))
+    .orderBy(quiniela_participants.createdAt);
+
   return (
     <div className="container mx-auto p-4 sm:p-6">
       {/* Header with back button */}
@@ -70,6 +91,12 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           </Button>
 
           <div className="flex items-center gap-2">
+            <QuinielaParticipantsDrawer
+              quinielaId={quinielaData.id}
+              ownerId={quinielaData.ownerId}
+              currentUserId={session.user.id}
+              participants={participants}
+            />
             <QuinielaDetailsDrawer quinielaData={quinielaData} />
             {session?.user?.id === quinielaData.ownerId && (
               <Button asChild size="sm" className="sm:size-default">
