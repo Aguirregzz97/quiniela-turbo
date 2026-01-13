@@ -535,8 +535,7 @@ export default function CreateQuinielaForm() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 gap-2"
-            size="lg"
+            className="h-11 flex-1 gap-2"
           >
             {isSubmitting ? (
               <>
@@ -552,7 +551,7 @@ export default function CreateQuinielaForm() {
             variant="outline"
             onClick={() => reset()}
             disabled={isSubmitting}
-            className="border-border/50 sm:w-auto"
+            className="h-11 border-border/50 sm:w-auto"
           >
             Limpiar
           </Button>

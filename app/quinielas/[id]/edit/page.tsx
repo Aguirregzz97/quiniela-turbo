@@ -3,8 +3,9 @@ import EditQuinielaForm from "@/components/QuinielaComponents/EditQuinielaForm";
 import { db } from "@/db";
 import { quinielas, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { Trophy } from "lucide-react";
+import { Pencil, ArrowLeft } from "lucide-react";
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 
 interface EditQuinielaPageProps {
   params: Promise<{
@@ -64,15 +65,29 @@ export default async function EditQuinielaPage({
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-3xl font-bold">
-          <Trophy className="h-8 w-8 text-primary" />
-          Editar Quiniela
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Modifica los detalles y configuraciones de tu quiniela
-        </p>
+    <div className="max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+      {/* Back Button */}
+      <Link
+        href={`/quinielas/${id}`}
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver a Quiniela
+      </Link>
+
+      {/* Header */}
+      <div className="mb-8 flex items-center gap-4">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
+          <Pencil className="h-6 w-6 text-primary-foreground" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Editar Quiniela
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Modifica los detalles y configuraciones de tu quiniela
+          </p>
+        </div>
       </div>
 
       <EditQuinielaForm quiniela={quinielaData} />

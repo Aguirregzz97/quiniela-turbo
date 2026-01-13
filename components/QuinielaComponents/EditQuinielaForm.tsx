@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Settings, FileText, Trophy } from "lucide-react";
+import { Loader2, Settings, FileText } from "lucide-react";
 import { updateQuiniela } from "@/app/quinielas/update-action";
 import { Switch } from "@/components/ui/switch";
 
@@ -135,12 +135,12 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Quiniela Details Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-muted-foreground" />
               Detalles de la Quiniela
             </CardTitle>
           </CardHeader>
@@ -151,7 +151,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
                 id="name"
                 {...register("name")}
                 placeholder="Ej: Quiniela del Torneo de Padel"
-                className="w-full"
+                className="border-border/50"
               />
               {errors.name && (
                 <p className="text-sm text-destructive">
@@ -167,7 +167,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
                 {...register("description")}
                 placeholder="Describe los detalles de tu quiniela..."
                 rows={3}
-                className="w-full resize-none"
+                className="resize-none border-border/50"
               />
               {errors.description && (
                 <p className="text-sm text-destructive">
@@ -179,43 +179,41 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
         </Card>
 
         {/* Quiniela Settings Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Settings className="h-4 w-4 text-muted-foreground" />
               Ajustes de la Quiniela
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {/* Prize Configuration */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
-                  <div className="relative">
-                    <Input
-                      id="moneyToEnter"
-                      type="number"
-                      {...register("moneyToEnter", { valueAsNumber: true })}
-                      placeholder="Ej: 1000"
-                      className="w-full pl-8"
-                      min={1}
-                    />
-                    <Trophy className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                  {errors.moneyToEnter && (
-                    <p className="text-sm text-destructive">
-                      {errors.moneyToEnter.message}
-                    </p>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
+                <div className="relative">
+                  <Input
+                    id="moneyToEnter"
+                    type="number"
+                    {...register("moneyToEnter", { valueAsNumber: true })}
+                    placeholder="Ej: 100"
+                    className="border-border/50 pl-7"
+                    min={1}
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
                 </div>
+                {errors.moneyToEnter && (
+                  <p className="text-sm text-destructive">
+                    {errors.moneyToEnter.message}
+                  </p>
+                )}
               </div>
 
               {/* Points Configuration */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">
-                  Configuración de Puntos
-                </h3>
+              <div className="space-y-4 border-t border-border/50 pt-4">
+                <h3 className="font-medium">Configuración de Puntos</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pointsForExactResultPrediction">
@@ -229,7 +227,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
                       })}
                       min={1}
                       max={10}
-                      className="w-full"
+                      className="border-border/50"
                     />
                     {errors.pointsForExactResultPrediction && (
                       <p className="text-sm text-destructive">
@@ -250,7 +248,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
                       })}
                       min={1}
                       max={10}
-                      className="w-full"
+                      className="border-border/50"
                     />
                     {errors.pointsForCorrectResultPrediction && (
                       <p className="text-sm text-destructive">
@@ -262,12 +260,12 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
               </div>
 
               {/* Edit Predictions Toggle */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4 border-t border-border/50 pt-4">
                 <div className="flex-1 space-y-1">
                   <Label htmlFor="allowEditPredictions">
                     Permitir Editar Predicciones
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Los participantes podrán modificar sus predicciones hasta el
                     inicio del partido
                   </p>
@@ -282,7 +280,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
               </div>
 
               {/* Prize Distribution Section */}
-              <div className="border-t pt-6">
+              <div className="border-t border-border/50 pt-4">
                 <PrizeDistributionForm name="prizeDistribution" />
               </div>
             </div>
@@ -290,11 +288,15 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-11 flex-1 gap-2"
+          >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Actualizando Quiniela...
               </>
             ) : (
@@ -306,7 +308,7 @@ export default function EditQuinielaForm({ quiniela }: EditQuinielaFormProps) {
             variant="outline"
             onClick={() => router.push(`/quinielas/${quiniela.id}`)}
             disabled={isSubmitting}
-            className="sm:w-auto"
+            className="h-11 border-border/50 sm:w-auto"
           >
             Cancelar
           </Button>
