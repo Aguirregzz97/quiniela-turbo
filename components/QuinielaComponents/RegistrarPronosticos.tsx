@@ -488,9 +488,39 @@ export default function RegistrarPronosticos({
         <div>
           <h2 className="font-semibold">Pronóstico por partido</h2>
           {roundFixtures.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {roundFixtures.length} partidos en esta jornada
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {roundFixtures.length} partidos
+              </span>
+              {(() => {
+                const predictedCount = roundFixtures.filter((f) =>
+                  hasExistingPrediction(f.fixture.id.toString()),
+                ).length;
+                const pendingCount = roundFixtures.length - predictedCount;
+                return (
+                  <>
+                    {predictedCount > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="gap-1 bg-primary/10 text-primary hover:bg-primary/10"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        {predictedCount} guardados
+                      </Badge>
+                    )}
+                    {pendingCount > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="gap-1 bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 dark:text-amber-500"
+                      >
+                        <Clock className="h-3 w-3" />
+                        {pendingCount} pendientes
+                      </Badge>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           )}
         </div>
 
@@ -561,18 +591,31 @@ export default function RegistrarPronosticos({
               console.log(allOdds);
             }
 
-            return (
-              <Card
-                key={fixture.fixture.id}
-                className={`overflow-hidden border-border/50 transition-all ${
-                  hasPrediction
-                    ? "ring-1 ring-primary/20"
-                    : "hover:border-border"
-                }`}
-              >
-                <CardContent className="p-0">
-                  {/* Match Header */}
-                  <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3">
+                            return (
+                              <Card
+                                key={fixture.fixture.id}
+                                className={`relative overflow-hidden transition-all ${
+                                  hasPrediction
+                                    ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
+                                    : "border-amber-500/50 ring-1 ring-amber-500/30"
+                                }`}
+                              >
+                                <CardContent className="p-0">
+                                  {/* Prediction Status Indicator */}
+                                  {hasPrediction ? (
+                                    <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                      <span>Pronóstico guardado</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
+                                      <Clock className="h-3.5 w-3.5" />
+                                      <span>Pendiente de pronóstico</span>
+                                    </div>
+                                  )}
+
+                                  {/* Match Header */}
+                                  <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3">
                     {/* Left Side - Date & Status */}
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 text-sm">
@@ -817,18 +860,12 @@ export default function RegistrarPronosticos({
                           </div>
                         </div>
 
-                        {/* Score */}
-                        <div className="mx-2 flex-shrink-0 text-center">
-                          <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums">
-                            {matchStatus}
-                          </div>
-                          {hasPrediction && (
-                            <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Pronosticado
-                            </span>
-                          )}
-                        </div>
+                                        {/* Score */}
+                                        <div className="mx-2 flex-shrink-0 text-center">
+                                          <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums">
+                                            {matchStatus}
+                                          </div>
+                                        </div>
 
                         {/* Away Team */}
                         <div className="flex flex-1 flex-col items-center gap-2">
@@ -984,18 +1021,12 @@ export default function RegistrarPronosticos({
                         </Select>
                       </div>
 
-                      {/* Score */}
-                      <div className="text-center">
-                        <div className="min-w-24 rounded-xl bg-muted/50 px-5 py-3 text-3xl font-bold tabular-nums">
-                          {matchStatus}
-                        </div>
-                        {hasPrediction && (
-                          <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-primary">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Pronosticado
-                          </span>
-                        )}
-                      </div>
+                                      {/* Score */}
+                                      <div className="text-center">
+                                        <div className="min-w-24 rounded-xl bg-muted/50 px-5 py-3 text-3xl font-bold tabular-nums">
+                                          {matchStatus}
+                                        </div>
+                                      </div>
 
                       {/* Away Team */}
                       <div className="flex flex-col items-center gap-3">
