@@ -591,31 +591,31 @@ export default function RegistrarPronosticos({
               console.log(allOdds);
             }
 
-                            return (
-                              <Card
-                                key={fixture.fixture.id}
-                                className={`relative overflow-hidden transition-all ${
-                                  hasPrediction
-                                    ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
-                                    : "border-amber-500/50 ring-1 ring-amber-500/30"
-                                }`}
-                              >
-                                <CardContent className="p-0">
-                                  {/* Prediction Status Indicator */}
-                                  {hasPrediction ? (
-                                    <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
-                                      <CheckCircle2 className="h-3.5 w-3.5" />
-                                      <span>Pronóstico guardado</span>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
-                                      <Clock className="h-3.5 w-3.5" />
-                                      <span>Pendiente de pronóstico</span>
-                                    </div>
-                                  )}
+            return (
+              <Card
+                key={fixture.fixture.id}
+                className={`relative overflow-hidden transition-all ${
+                  hasPrediction
+                    ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
+                    : "border-amber-500/50 ring-1 ring-amber-500/30"
+                }`}
+              >
+                <CardContent className="p-0">
+                  {/* Prediction Status Indicator */}
+                  {hasPrediction ? (
+                    <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>Pronóstico guardado</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Pendiente de pronóstico</span>
+                    </div>
+                  )}
 
-                                  {/* Match Header */}
-                                  <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3">
+                  {/* Match Header */}
+                  <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3">
                     {/* Left Side - Date & Status */}
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 text-sm">
@@ -860,12 +860,12 @@ export default function RegistrarPronosticos({
                           </div>
                         </div>
 
-                                        {/* Score */}
-                                        <div className="mx-2 flex-shrink-0 text-center">
-                                          <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums">
-                                            {matchStatus}
-                                          </div>
-                                        </div>
+                        {/* Score */}
+                        <div className="mx-2 flex-shrink-0 text-center">
+                          <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums">
+                            {matchStatus}
+                          </div>
+                        </div>
 
                         {/* Away Team */}
                         <div className="flex flex-1 flex-col items-center gap-2">
@@ -1021,12 +1021,12 @@ export default function RegistrarPronosticos({
                         </Select>
                       </div>
 
-                                      {/* Score */}
-                                      <div className="text-center">
-                                        <div className="min-w-24 rounded-xl bg-muted/50 px-5 py-3 text-3xl font-bold tabular-nums">
-                                          {matchStatus}
-                                        </div>
-                                      </div>
+                      {/* Score */}
+                      <div className="text-center">
+                        <div className="min-w-24 rounded-xl bg-muted/50 px-5 py-3 text-3xl font-bold tabular-nums">
+                          {matchStatus}
+                        </div>
+                      </div>
 
                       {/* Away Team */}
                       <div className="flex flex-col items-center gap-3">
