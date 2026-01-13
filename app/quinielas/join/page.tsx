@@ -24,7 +24,7 @@ export default async function JoinQuinielaPage({
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-6 sm:px-6 sm:py-8">
+    <div className="max-w-lg px-4 py-6 sm:px-6 sm:py-8">
       {/* Header */}
       <div className="mb-8 flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-sm sm:h-14 sm:w-14">
