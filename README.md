@@ -1,6 +1,6 @@
 # Quiniela Turbo ⚽
 
-A modern football prediction pool (quiniela) application built with Next.js 15. Compete with friends by predicting match scores and track your standings on the leaderboard.
+A modern football prediction pool (quiniela) application built with Next js 15. Compete with friends by predicting match scores and track your standings on the leaderboard.
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
