@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+// Use Node.js runtime for database operations
+export const runtime = "nodejs";
+
 import { db } from "@/db";
 import {
   users,

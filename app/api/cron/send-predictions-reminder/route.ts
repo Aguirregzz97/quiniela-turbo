@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+
+// Use Node.js runtime for Resend and database operations
+export const runtime = "nodejs";
 import { db } from "@/db";
 import {
   users,
