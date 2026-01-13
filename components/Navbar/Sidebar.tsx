@@ -285,12 +285,12 @@ const Sidebar = () => {
       </div>
 
       {/* Mobile Top Navigation */}
-      <div className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl md:hidden">
-        <div className="flex items-center justify-between px-4 py-2">
+      <div className="fixed left-0 right-0 top-0 z-50 md:hidden">
+        <div className="flex items-center justify-between border-b border-border/50 bg-background/95 px-4 py-3 shadow-sm backdrop-blur-xl">
           {/* Logo/Title */}
           <Link
             href="/quinielas"
-            className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-80"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <Image
               src="/img/logo.png"
@@ -299,7 +299,7 @@ const Sidebar = () => {
               height={240}
               className="h-10 w-10"
             />
-            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-lg font-bold tracking-tight text-transparent">
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text font-semibold tracking-tight text-transparent">
               Quiniela Turbo
             </span>
           </Link>
@@ -310,9 +310,9 @@ const Sidebar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-10 w-10 rounded-full transition-colors hover:bg-primary/10"
+                className="h-9 w-9 rounded-xl border border-border/50 bg-muted/50 transition-colors hover:bg-muted"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               </Button>
             </DrawerTrigger>
             <DrawerContent className="flex h-full flex-col">
