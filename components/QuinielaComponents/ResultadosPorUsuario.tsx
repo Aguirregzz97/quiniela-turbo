@@ -36,7 +36,7 @@ import { FixtureData } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
 import { getDefaultActiveRound } from "./RegistrarPronosticos";
 
-interface VerPronosticosProps {
+interface ResultadosPorUsuarioProps {
   quiniela: Quiniela;
   userId: string;
   exactPoints?: number;
@@ -177,12 +177,12 @@ function getMatchResult(fixture: FixtureData): string {
   return `${homeGoals}-${awayGoals}`;
 }
 
-export default function VerPronosticos({
+export default function ResultadosPorUsuario({
   quiniela,
   userId,
   exactPoints = 2,
   correctResultPoints = 1,
-}: VerPronosticosProps) {
+}: ResultadosPorUsuarioProps) {
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
 
   const {

@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Award, ArrowLeft, Edit, Dices, Eye, ChevronRight } from "lucide-react";
+import { Award, ArrowLeft, Edit, Dices, Users, Trophy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -159,7 +159,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       </div>
 
       {/* Quick Actions */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <div className="mb-8">
         <Link
           href={`/quinielas/${quinielaData.id}/registrar-pronosticos`}
           className="group"
@@ -181,28 +181,56 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             </CardContent>
           </Card>
         </Link>
+      </div>
 
-        <Link
-          href={`/quinielas/${quinielaData.id}/ver-pronosticos`}
-          className="group"
-        >
-          <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
-            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                <Eye className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold transition-colors group-hover:text-primary">
-                  Ver Pronósticos
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Ve los pronósticos de los participantes
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
+      {/* Resultados Section */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-lg font-semibold">Resultados</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href={`/quinielas/${quinielaData.id}/resultados-por-usuario`}
+            className="group"
+          >
+            <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+              <CardContent className="flex items-center gap-4 p-5 sm:p-6">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                  <Users className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold transition-colors group-hover:text-primary">
+                    Resultados Por Usuario
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Ve los resultados de cada participante
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link
+            href={`/quinielas/${quinielaData.id}/resultados-por-partido`}
+            className="group"
+          >
+            <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+              <CardContent className="flex items-center gap-4 p-5 sm:p-6">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                  <Trophy className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold transition-colors group-hover:text-primary">
+                    Resultados Por Partido
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Ve los resultados de cada partido
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       </div>
 
       {/* Leaderboard */}

@@ -1,27 +1,29 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { ArrowLeft, Eye } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
 import { quinielas, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import VerPronosticos from "@/components/QuinielaComponents/VerPronosticos";
+import ResultadosPorUsuario from "@/components/QuinielaComponents/ResultadosPorUsuario";
 
-interface VerPronosticosPageProps {
+interface ResultadosPorUsuarioPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export default async function VerPronosticosPage({
+export default async function ResultadosPorUsuarioPage({
   params,
-}: VerPronosticosPageProps) {
+}: ResultadosPorUsuarioPageProps) {
   const { id } = await params;
 
   const session = await auth();
 
   if (!session) {
-    redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/ver-pronosticos`);
+    redirect(
+      `/api/auth/signin?callbackUrl=/quinielas/${id}/resultados-por-usuario`,
+    );
   }
 
   // Fetch quiniela data with settings
@@ -55,18 +57,18 @@ export default async function VerPronosticosPage({
       {/* Header */}
       <div className="mb-8 flex items-center gap-4">
         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
-          <Eye className="h-6 w-6 text-primary-foreground" />
+          <Users className="h-6 w-6 text-primary-foreground" />
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            Ver Pronósticos
+            Resultados Por Usuario
           </h1>
           <p className="text-sm text-muted-foreground">{quiniela.name}</p>
         </div>
       </div>
 
-      {/* All Predictions content */}
-      <VerPronosticos
+      {/* Results by User content */}
+      <ResultadosPorUsuario
         quiniela={quiniela}
         userId={session.user.id}
         exactPoints={settings?.pointsForExactResultPrediction ?? 2}
