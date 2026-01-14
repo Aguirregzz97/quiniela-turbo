@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { predictions } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export interface PredictionInput {
@@ -31,19 +31,20 @@ export async function savePredictions(
       };
     }
 
-    // Delete existing predictions for this round and user
-    const firstPrediction = predictionsData[0];
-    if (firstPrediction) {
-      await db
-        .delete(predictions)
-        .where(
-          and(
-            eq(predictions.quinielaId, quinielaId),
-            eq(predictions.userId, session.user.id),
-            eq(predictions.externalRound, firstPrediction.externalRound),
-          ),
-        );
-    }
+    // Get the fixture IDs being saved (only games that haven't started yet)
+    const fixtureIds = predictionsData.map((p) => p.externalFixtureId);
+
+    // Delete existing predictions ONLY for the specific fixtures being updated
+    // This preserves predictions for games that have already started
+    await db
+      .delete(predictions)
+      .where(
+        and(
+          eq(predictions.quinielaId, quinielaId),
+          eq(predictions.userId, session.user.id),
+          inArray(predictions.externalFixtureId, fixtureIds),
+        ),
+      );
 
     // Insert new predictions
     const predictionRecords = predictionsData.map((prediction) => ({
