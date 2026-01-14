@@ -23,6 +23,7 @@ import {
   BarChart3,
   Loader2,
   Ban,
+  Lock,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -567,9 +568,15 @@ export default function RegistrarPronosticos({
             const allowPredictionsIndefinitely =
               process.env.NEXT_PUBLIC_ALLOW_PREDICTIONS_IDEFINITELY === "true";
 
+            // Check if match starts within 5 minutes (300000ms)
+            const matchDate = new Date(fixture.fixture.date);
+            const now = new Date();
+            const timeUntilMatch = matchDate.getTime() - now.getTime();
+            const startsWithin5Minutes = timeUntilMatch <= 5 * 60 * 1000;
+
             const matchStarted = allowPredictionsIndefinitely
               ? false
-              : statusInfo.status !== "not-started";
+              : statusInfo.status !== "not-started" || startsWithin5Minutes;
 
             // Get odds for this fixture
             const fixtureOdds = oddsData?.[fixture.fixture.id];
@@ -595,14 +602,21 @@ export default function RegistrarPronosticos({
               <Card
                 key={fixture.fixture.id}
                 className={`relative overflow-hidden transition-all ${
-                  hasPrediction
-                    ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
-                    : "border-amber-500/50 ring-1 ring-amber-500/30"
+                  matchStarted && !hasPrediction
+                    ? "border-destructive/30 bg-destructive/[0.02] ring-1 ring-destructive/20"
+                    : hasPrediction
+                      ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
+                      : "border-amber-500/50 ring-1 ring-amber-500/30"
                 }`}
               >
                 <CardContent className="p-0">
                   {/* Prediction Status Indicator */}
-                  {hasPrediction ? (
+                  {matchStarted && !hasPrediction ? (
+                    <div className="flex items-center gap-1.5 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                      <Lock className="h-3.5 w-3.5" />
+                      <span>Pronósticos bloqueados</span>
+                    </div>
+                  ) : hasPrediction ? (
                     <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       <span>Pronóstico guardado</span>
