@@ -780,9 +780,15 @@ export default function VerPronosticos({
                                     className="h-7 w-7 object-contain"
                                   />
                                 </div>
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  vs
-                                </span>
+                                {matchFinished ? (
+                                  <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-sm font-bold tabular-nums text-foreground">
+                                    {fixture.goals.home}-{fixture.goals.away}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    vs
+                                  </span>
+                                )}
                                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
                                   <Image
                                     src={fixture.teams.away.logo}
