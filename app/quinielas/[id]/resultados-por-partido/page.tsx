@@ -1,11 +1,11 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { ArrowLeft, Trophy, Clock } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
-import { quinielas } from "@/db/schema";
+import { quinielas, quiniela_settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { Card, CardContent } from "@/components/ui/card";
+import ResultadosPorPartido from "@/components/QuinielaComponents/ResultadosPorPartido";
 
 interface ResultadosPorPartidoPageProps {
   params: Promise<{
@@ -21,13 +21,19 @@ export default async function ResultadosPorPartidoPage({
   const session = await auth();
 
   if (!session) {
-    redirect(`/api/auth/signin?callbackUrl=/quinielas/${id}/resultados-por-partido`);
+    redirect(
+      `/api/auth/signin?callbackUrl=/quinielas/${id}/resultados-por-partido`,
+    );
   }
 
-  // Fetch quiniela data
+  // Fetch quiniela data with settings
   const quinielaData = await db
-    .select()
+    .select({
+      quiniela: quinielas,
+      settings: quiniela_settings,
+    })
     .from(quinielas)
+    .leftJoin(quiniela_settings, eq(quinielas.id, quiniela_settings.quinielaId))
     .where(eq(quinielas.id, id))
     .limit(1);
 
@@ -35,7 +41,7 @@ export default async function ResultadosPorPartidoPage({
     notFound();
   }
 
-  const quiniela = quinielaData[0];
+  const { quiniela, settings } = quinielaData[0];
 
   return (
     <div className="max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
@@ -61,21 +67,13 @@ export default async function ResultadosPorPartidoPage({
         </div>
       </div>
 
-      {/* Coming Soon Card */}
-      <Card className="border-border/50">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-            <Clock className="h-8 w-8 text-primary" />
-          </div>
-          <h2 className="mb-2 text-xl font-semibold">Próximamente</h2>
-          <p className="max-w-md text-muted-foreground">
-            Estamos trabajando en esta funcionalidad. Pronto podrás ver los
-            resultados organizados por partido, incluyendo todos los pronósticos
-            de los participantes para cada encuentro.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Results by Match content */}
+      <ResultadosPorPartido
+        quiniela={quiniela}
+        userId={session.user.id}
+        exactPoints={settings?.pointsForExactResultPrediction ?? 2}
+        correctResultPoints={settings?.pointsForCorrectResultPrediction ?? 1}
+      />
     </div>
   );
 }
-

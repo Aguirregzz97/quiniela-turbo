@@ -1,5 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Award, ArrowLeft, Edit, Dices, Users, Trophy, ChevronRight } from "lucide-react";
+import {
+  Award,
+  ArrowLeft,
+  Edit,
+  Dices,
+  Users,
+  Trophy,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -185,7 +193,9 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
       {/* Resultados Section */}
       <div className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold">Resultados</h2>
+        <h2 className="mb-4 text-lg font-semibold">
+          Resultados de Pronósticos
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
             href={`/quinielas/${quinielaData.id}/resultados-por-usuario`}
@@ -201,7 +211,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
                     Resultados Por Usuario
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Ve los resultados de cada participante
+                    Ve los resultados de las predicciones de cada usuario
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
@@ -223,7 +233,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
                     Resultados Por Partido
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Ve los resultados de cada partido
+                    Ve los resultados de las predicciones de cada partido
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
