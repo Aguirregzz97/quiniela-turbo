@@ -390,8 +390,8 @@ export default function ResultadosPorPartido({
               <h2 className="font-semibold">Resultados Por Partido</h2>
               {roundFixtures.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {roundFixtures.length} partidos • {usersWithPredictions.length}{" "}
-                  participantes
+                  {roundFixtures.length} partidos •{" "}
+                  {usersWithPredictions.length} participantes
                 </p>
               )}
             </div>
@@ -469,7 +469,7 @@ export default function ResultadosPorPartido({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {sortedFixtures.map((fixture) => {
             const fixtureId = fixture.fixture.id.toString();
             const predictions = fixturePredictions.get(fixtureId) || [];
@@ -492,142 +492,168 @@ export default function ResultadosPorPartido({
                 }
               >
                 <Card
-                  className={`overflow-hidden border-border/50 transition-all duration-200 ${isOpen ? "ring-1 ring-primary/20" : "hover:border-border"}`}
+                  className={`border-border/50 transition-all duration-200 ${
+                    isOpen ? "ring-1 ring-primary/20" : "hover:border-border"
+                  }`}
                 >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
                       className="h-auto w-full p-0 hover:bg-transparent"
                     >
-                      <CardContent className="w-full p-0">
-                        {/* Header Bar */}
-                        <div className="flex items-center justify-between bg-muted/20 px-4 py-2">
-                          {/* Left side - Date or Stats */}
-                          {matchFinished ? (
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1.5">
-                                <div className="flex h-5 w-5 items-center justify-center rounded bg-green-500">
-                                  <Trophy className="h-3 w-3 text-white" />
-                                </div>
-                                <span className="text-xs font-semibold tabular-nums">
-                                  {stats.exact}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <div className="flex h-5 w-5 items-center justify-center rounded bg-green-300">
-                                  <Check className="h-3 w-3 text-green-900" />
-                                </div>
-                                <span className="text-xs font-semibold tabular-nums">
-                                  {stats.correctResult}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <div className="flex h-5 w-5 items-center justify-center rounded bg-red-300">
-                                  <X className="h-3 w-3 text-red-900" />
-                                </div>
-                                <span className="text-xs font-semibold tabular-nums">
-                                  {stats.miss}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <div className="flex h-5 w-5 items-center justify-center rounded bg-secondary">
-                                  <Minus className="h-3 w-3 text-muted-foreground" />
-                                </div>
-                                <span className="text-xs font-semibold tabular-nums">
-                                  {stats.noPrediction}
-                                </span>
-                              </div>
-                            </div>
+                      <CardHeader className="relative w-full p-4">
+                        {/* Mobile Chevron - Absolute positioned */}
+                        <div
+                          className={`absolute right-3 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md transition-colors sm:hidden ${matchFinished ? "top-1/4" : "top-1/2"} ${isOpen ? "bg-primary/10" : "bg-muted/50"}`}
+                        >
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4 text-primary transition-transform duration-200" />
                           ) : (
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(fixture.fixture.date)}
-                            </span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200" />
                           )}
+                        </div>
 
-                          {/* Right side - Chevron with clear "Ver pronósticos" label */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-muted-foreground">
-                              Ver pronósticos
-                            </span>
-                            <div
-                              className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${isOpen ? "border-primary/30 bg-primary/10" : "border-border bg-background"}`}
-                            >
-                              <ChevronDown
-                                className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : "text-muted-foreground"}`}
+                        <div className="flex items-center justify-between gap-4">
+                          {/* Match Info */}
+                          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start">
+                            {/* Home Team Logo */}
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
+                              <Image
+                                src={fixture.teams.home.logo}
+                                alt={fixture.teams.home.name}
+                                width={40}
+                                height={40}
+                                className="h-9 w-9 object-contain"
+                              />
+                            </div>
+
+                            {/* Score / VS */}
+                            {matchFinished ? (
+                              <span className="rounded-md bg-gradient-to-br from-primary/20 to-primary/10 px-3 py-1.5 text-lg font-bold tabular-nums text-primary ring-1 ring-primary/20">
+                                {fixture.goals.home} - {fixture.goals.away}
+                              </span>
+                            ) : (
+                              <div className="flex flex-col items-center">
+                                <span className="rounded-md bg-muted/50 px-3 py-1 text-sm font-medium text-muted-foreground">
+                                  vs
+                                </span>
+                                <span className="mt-1 text-[10px] text-muted-foreground">
+                                  {formatDate(fixture.fixture.date)}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Away Team Logo */}
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
+                              <Image
+                                src={fixture.teams.away.logo}
+                                alt={fixture.teams.away.name}
+                                width={40}
+                                height={40}
+                                className="h-9 w-9 object-contain"
                               />
                             </div>
                           </div>
-                        </div>
 
-                        {/* Match Content - Similar to RegistrarPronosticos */}
-                        <div className="p-4 sm:p-5">
-                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-6">
-                            {/* Home Team */}
-                            <div className="flex flex-col items-center gap-2 sm:gap-3">
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5 sm:h-14 sm:w-14">
-                                <Image
-                                  src={fixture.teams.home.logo}
-                                  alt={fixture.teams.home.name}
-                                  width={44}
-                                  height={44}
-                                  className="h-9 w-9 object-contain sm:h-11 sm:w-11"
-                                />
-                              </div>
-                              <div className="text-center">
-                                <h3 className="text-xs font-medium leading-tight sm:text-sm">
-                                  {fixture.teams.home.name}
-                                </h3>
-                                <span className="text-[10px] text-muted-foreground sm:text-xs">
-                                  Local
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Center - Score */}
-                            <div className="flex flex-col items-center gap-1">
-                              {matchFinished ? (
-                                <div className="rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 px-4 py-2 text-xl font-bold tabular-nums text-primary ring-1 ring-primary/20 sm:px-6 sm:py-3 sm:text-3xl">
-                                  {fixture.goals.home} - {fixture.goals.away}
-                                </div>
-                              ) : (
-                                <div className="rounded-lg bg-muted/50 px-4 py-2 text-xl font-bold tabular-nums sm:px-5 sm:py-3 sm:text-3xl">
-                                  vs
+                          {/* Stats Summary - Desktop */}
+                          {matchFinished && (
+                            <div className="hidden items-center gap-2 sm:flex">
+                              {stats.exact > 0 && (
+                                <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
+                                  <Trophy className="h-3.5 w-3.5 text-green-600" />
+                                  <span className="text-xs font-semibold text-green-600">
+                                    {stats.exact}
+                                  </span>
                                 </div>
                               )}
-                              <span className="text-[10px] text-muted-foreground">
-                                {matchFinished ? "Final" : "Por comenzar"}
-                              </span>
+                              {stats.correctResult > 0 && (
+                                <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
+                                  <Check className="h-3.5 w-3.5 text-green-700" />
+                                  <span className="text-xs font-semibold text-green-700">
+                                    {stats.correctResult}
+                                  </span>
+                                </div>
+                              )}
+                              {stats.miss > 0 && (
+                                <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
+                                  <X className="h-3.5 w-3.5 text-red-600" />
+                                  <span className="text-xs font-semibold text-red-600">
+                                    {stats.miss}
+                                  </span>
+                                </div>
+                              )}
+                              {stats.noPrediction > 0 && (
+                                <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
+                                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <span className="text-xs font-semibold text-muted-foreground">
+                                    {stats.noPrediction}
+                                  </span>
+                                </div>
+                              )}
                             </div>
+                          )}
 
-                            {/* Away Team */}
-                            <div className="flex flex-col items-center gap-2 sm:gap-3">
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5 sm:h-14 sm:w-14">
-                                <Image
-                                  src={fixture.teams.away.logo}
-                                  alt={fixture.teams.away.name}
-                                  width={44}
-                                  height={44}
-                                  className="h-9 w-9 object-contain sm:h-11 sm:w-11"
-                                />
-                              </div>
-                              <div className="text-center">
-                                <h3 className="text-xs font-medium leading-tight sm:text-sm">
-                                  {fixture.teams.away.name}
-                                </h3>
-                                <span className="text-[10px] text-muted-foreground sm:text-xs">
-                                  Visitante
-                                </span>
-                              </div>
+                          {/* Participants count and chevron - Desktop only */}
+                          <div className="hidden items-center gap-2 sm:flex">
+                            <span className="text-xs text-muted-foreground">
+                              {usersWithPredictions.length}
+                            </span>
+                            <div
+                              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${isOpen ? "bg-primary/10" : "bg-muted/50"}`}
+                            >
+                              {isOpen ? (
+                                <ChevronDown className="h-4 w-4 text-primary transition-transform duration-200" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200" />
+                              )}
                             </div>
                           </div>
                         </div>
-                      </CardContent>
+
+                        {/* Mobile Stats Summary */}
+                        {matchFinished && (
+                          <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3 sm:hidden">
+                            {stats.exact > 0 && (
+                              <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
+                                <Trophy className="h-3.5 w-3.5 text-green-600" />
+                                <span className="text-xs font-semibold text-green-600">
+                                  {stats.exact}
+                                </span>
+                              </div>
+                            )}
+                            {stats.correctResult > 0 && (
+                              <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
+                                <Check className="h-3.5 w-3.5 text-green-700" />
+                                <span className="text-xs font-semibold text-green-700">
+                                  {stats.correctResult}
+                                </span>
+                              </div>
+                            )}
+                            {stats.miss > 0 && (
+                              <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
+                                <X className="h-3.5 w-3.5 text-red-600" />
+                                <span className="text-xs font-semibold text-red-600">
+                                  {stats.miss}
+                                </span>
+                              </div>
+                            )}
+                            {stats.noPrediction > 0 && (
+                              <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
+                                <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-xs font-semibold text-muted-foreground">
+                                  {stats.noPrediction}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardHeader>
                     </Button>
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    <CardContent className="px-4 pb-4 pt-0 sm:px-5 sm:pb-5">
-                      <div className="space-y-2">
+                    <CardContent className="border-t border-border/50 px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {(() => {
                           // Sort users by prediction evaluation type (exact first, then correct, then miss, then no prediction)
                           const sortedUsers = [...usersWithPredictions].sort(
@@ -732,19 +758,19 @@ export default function ResultadosPorPartido({
                           return (
                             <div
                               key={user.id}
-                              className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                              className={`overflow-hidden rounded-xl border ${
                                 evaluation.type === "exact"
-                                  ? "border-green-500/30 bg-gradient-to-r from-green-500/10 to-transparent"
+                                  ? "border-green-500/30 bg-gradient-to-b from-green-500/20 to-green-500/10"
                                   : evaluation.type === "correct-result"
-                                    ? "border-green-400/30 bg-gradient-to-r from-green-300/10 to-transparent"
+                                    ? "border-green-400/30 bg-gradient-to-b from-green-300/20 to-green-300/10"
                                     : evaluation.type === "miss"
-                                      ? "border-red-400/30 bg-gradient-to-r from-red-300/10 to-transparent"
-                                      : "border-border/50 bg-muted/20"
+                                      ? "border-red-400/30 bg-gradient-to-b from-red-300/20 to-red-300/10"
+                                      : "border-border/50 bg-muted/30"
                               }`}
                             >
-                              {/* User Info */}
-                              <div className="flex min-w-0 flex-1 items-center gap-3">
-                                <Avatar className="h-8 w-8 flex-shrink-0">
+                              {/* User Row */}
+                              <div className="flex items-center justify-center gap-2 px-3 py-3">
+                                <Avatar className="h-7 w-7 flex-shrink-0">
                                   <AvatarImage
                                     src={user.image || undefined}
                                     alt={user.name || user.email || "User"}
@@ -755,53 +781,64 @@ export default function ResultadosPorPartido({
                                       "?")[0].toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate text-sm font-medium">
+                                <span className="truncate text-xs font-medium">
                                   {user.name || user.email}
                                   {user.id === userId && (
-                                    <span className="ml-1 text-xs text-muted-foreground">
+                                    <span className="ml-1 text-[10px] text-muted-foreground">
                                       (tú)
                                     </span>
                                   )}
                                 </span>
                               </div>
 
-                              {/* Prediction */}
-                              <div className="flex items-center gap-2">
-                                {shouldHidePrediction ? (
-                                  <span className="text-xs italic text-muted-foreground">
-                                    Oculto
-                                  </span>
-                                ) : prediction &&
-                                  prediction.predictedHomeScore !== null &&
-                                  prediction.predictedAwayScore !== null ? (
-                                  <span
-                                    className={`rounded-md px-2.5 py-1 text-sm font-bold tabular-nums ${
-                                      evaluation.type === "exact"
-                                        ? "bg-green-500 text-white"
-                                        : evaluation.type === "correct-result"
-                                          ? "bg-green-300 text-green-900"
-                                          : evaluation.type === "miss"
-                                            ? "bg-red-300 text-red-900"
-                                            : "bg-secondary text-foreground"
-                                    }`}
-                                  >
-                                    {prediction.predictedHomeScore} -{" "}
-                                    {prediction.predictedAwayScore}
-                                  </span>
-                                ) : (
-                                  <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
-                                    −
-                                  </span>
-                                )}
+                              {/* Prediction Info */}
+                              <div
+                                className={`px-3 py-2 text-center ${
+                                  evaluation.type === "exact"
+                                    ? "bg-green-500/10"
+                                    : evaluation.type === "correct-result"
+                                      ? "bg-green-300/10"
+                                      : evaluation.type === "miss"
+                                        ? "bg-red-300/10"
+                                        : "bg-muted/30"
+                                }`}
+                              >
+                                <p className="mb-1 text-[10px] text-muted-foreground">
+                                  Pronóstico:
+                                </p>
+                                <p
+                                  className={`text-base font-bold tabular-nums ${
+                                    evaluation.type === "exact"
+                                      ? "text-green-600"
+                                      : evaluation.type === "correct-result"
+                                        ? "text-green-700"
+                                        : evaluation.type === "miss"
+                                          ? "text-red-600"
+                                          : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {(() => {
+                                    // Hide other users' predictions if match hasn't started
+                                    if (shouldHidePrediction) {
+                                      return (
+                                        <span className="text-xs font-normal italic text-muted-foreground">
+                                          Oculto
+                                        </span>
+                                      );
+                                    }
 
-                                {/* Points indicator */}
-                                {matchFinished &&
-                                  !shouldHidePrediction &&
-                                  evaluation.points > 0 && (
-                                    <span className="text-xs font-semibold text-green-600">
-                                      +{evaluation.points}
-                                    </span>
-                                  )}
+                                    // Show prediction normally
+                                    if (
+                                      prediction &&
+                                      prediction.predictedHomeScore !== null &&
+                                      prediction.predictedAwayScore !== null
+                                    ) {
+                                      return `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`;
+                                    }
+
+                                    return "−";
+                                  })()}
+                                </p>
                               </div>
                             </div>
                           );
@@ -818,4 +855,3 @@ export default function ResultadosPorPartido({
     </div>
   );
 }
-
