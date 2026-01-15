@@ -348,12 +348,14 @@ export async function GET(request: Request) {
         );
 
         // Find fixtures without predictions (only those that haven't started yet)
+        // TODO: Remove SKIP_MATCH_DATE_CHECK after testing emails
+        const skipDateCheck = process.env.SKIP_MATCH_DATE_CHECK === "true";
         for (const fixture of roundFixtures) {
           const fixtureId = fixture.fixture.id.toString();
           if (!predictedFixtureIds.has(fixtureId)) {
-            // Only add if match hasn't started yet
+            // Only add if match hasn't started yet (unless skipDateCheck is enabled for testing)
             const matchDate = new Date(fixture.fixture.date);
-            if (matchDate > new Date()) {
+            if (skipDateCheck || matchDate > new Date()) {
               missingPredictions.push({
                 quinielaName: participation.quinielaName,
                 quinielaId: participation.quinielaId,
