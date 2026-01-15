@@ -29,6 +29,7 @@ import {
   Users,
   Loader2,
   AlertCircle,
+  Play,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -175,6 +176,14 @@ function getMatchResult(fixture: FixtureData): string {
   const homeGoals = fixture.goals.home ?? 0;
   const awayGoals = fixture.goals.away ?? 0;
   return `${homeGoals}-${awayGoals}`;
+}
+
+// Helper function to check if match is live
+function isMatchLive(fixture: FixtureData): boolean {
+  const statusShort = fixture.fixture.status.short;
+  // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
+  const liveStatuses = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+  return liveStatuses.includes(statusShort);
 }
 
 export default function ResultadosPorUsuario({
@@ -784,6 +793,16 @@ export default function ResultadosPorUsuario({
                                   <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-sm font-bold tabular-nums text-foreground">
                                     {fixture.goals.home}-{fixture.goals.away}
                                   </span>
+                                ) : isMatchLive(fixture) ? (
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <div className="flex items-center gap-1">
+                                      <Play className="h-2.5 w-2.5 animate-pulse text-red-600" />
+                                      <span className="text-[9px] font-medium text-red-600">EN VIVO</span>
+                                    </div>
+                                    <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-sm font-bold tabular-nums text-foreground">
+                                      {fixture.goals.home ?? 0}-{fixture.goals.away ?? 0}
+                                    </span>
+                                  </div>
                                 ) : (
                                   <span className="text-xs font-medium text-muted-foreground">
                                     vs

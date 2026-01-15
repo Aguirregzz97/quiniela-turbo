@@ -29,6 +29,7 @@ import {
   Calendar,
   Loader2,
   AlertCircle,
+  Play,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
@@ -177,6 +178,14 @@ function formatDate(dateString: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+// Helper function to check if match is live
+function isMatchLive(fixture: FixtureData): boolean {
+  const statusShort = fixture.fixture.status.short;
+  // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
+  const liveStatuses = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+  return liveStatuses.includes(statusShort);
 }
 
 export default function ResultadosPorPartido({
@@ -532,6 +541,16 @@ export default function ResultadosPorPartido({
                               <span className="rounded-md bg-gradient-to-br from-primary/20 to-primary/10 px-3 py-1.5 text-lg font-bold tabular-nums text-primary ring-1 ring-primary/20">
                                 {fixture.goals.home} - {fixture.goals.away}
                               </span>
+                            ) : isMatchLive(fixture) ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="flex items-center gap-1">
+                                  <Play className="h-3 w-3 animate-pulse text-red-600" />
+                                  <span className="text-[10px] font-medium text-red-600">EN VIVO</span>
+                                </div>
+                                <span className="rounded-md bg-gradient-to-br from-primary/20 to-primary/10 px-3 py-1.5 text-lg font-bold tabular-nums text-primary ring-1 ring-primary/20">
+                                  {fixture.goals.home ?? 0} - {fixture.goals.away ?? 0}
+                                </span>
+                              </div>
                             ) : (
                               <div className="flex flex-col items-center">
                                 <span className="rounded-md bg-muted/50 px-3 py-1 text-sm font-medium text-muted-foreground">
