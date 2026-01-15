@@ -251,9 +251,25 @@ export async function GET(request: Request) {
     let emailsSent = 0;
     let usersProcessed = 0;
 
+    // Optional: Only send emails to a specific address for testing
+    const onlySendEmailsTo = process.env.ONLY_SEND_EMAILS_TO;
+    if (onlySendEmailsTo) {
+      console.log(
+        `ONLY_SEND_EMAILS_TO is set, will only send emails to: ${onlySendEmailsTo}`,
+      );
+    }
+
     for (const user of allUsers) {
       if (!user.email) {
         console.log(`Skipping user ${user.id} - no email`);
+        continue;
+      }
+
+      // Skip users that don't match the test email filter
+      if (onlySendEmailsTo && user.email !== onlySendEmailsTo) {
+        console.log(
+          `Skipping user ${user.email} - not matching ONLY_SEND_EMAILS_TO filter`,
+        );
         continue;
       }
 
