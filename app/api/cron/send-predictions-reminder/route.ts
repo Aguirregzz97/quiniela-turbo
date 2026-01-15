@@ -236,6 +236,15 @@ export async function GET(request: Request) {
   try {
     // Verify cron secret for security (optional but recommended)
     const authHeader = request.headers.get("authorization");
+    console.log("Auth debug:", {
+      authHeaderReceived: authHeader,
+      cronSecretExists: !!process.env.CRON_SECRET,
+      cronSecretLength: process.env.CRON_SECRET?.length,
+      expectedHeader: process.env.CRON_SECRET
+        ? `Bearer ${process.env.CRON_SECRET}`
+        : "N/A",
+      headersMatch: authHeader === `Bearer ${process.env.CRON_SECRET}`,
+    });
     if (
       process.env.CRON_SECRET &&
       authHeader !== `Bearer ${process.env.CRON_SECRET}`
