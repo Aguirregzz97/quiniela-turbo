@@ -1,7 +1,7 @@
-import { TrendingUp, Clock } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import UserStatistics from "@/components/StatisticsComponents/UserStatistics";
 
 export default async function EstadisticasPage() {
   const session = await auth();
@@ -27,20 +27,8 @@ export default async function EstadisticasPage() {
         </div>
       </div>
 
-      {/* Coming Soon Card */}
-      <Card className="border-border/50">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-            <Clock className="h-8 w-8 text-primary" />
-          </div>
-          <h2 className="mb-2 text-xl font-semibold">Próximamente</h2>
-          <p className="max-w-md text-muted-foreground">
-            Estamos trabajando en esta funcionalidad. Pronto podrás ver
-            estadísticas detalladas de tu rendimiento, incluyendo porcentaje de
-            aciertos, rachas y comparativas con otros participantes.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Statistics Content */}
+      <UserStatistics />
     </div>
   );
 }
