@@ -8,6 +8,8 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import axios from "axios";
+import redis from "@/redisClient";
 
 export interface UserStatisticsResponse {
   // Overall accuracy metrics
@@ -51,38 +53,61 @@ interface FixturesApiResponse {
   response: FixtureData[];
 }
 
+/**
+ * Fetches fixtures directly from the Football API (with Redis caching)
+ * This avoids internal HTTP requests that may be blocked by Vercel deployment protection
+ */
 async function fetchFixturesForQuiniela(
   leagueId: string,
   season: string,
   fromDate?: string,
   toDate?: string,
 ): Promise<FixtureData[]> {
+  // Create cache key
+  const cacheKey = `fixtures:${leagueId}:${season}:${fromDate || ""}:${toDate || ""}`;
+
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXTAUTH_URL || "http://localhost:3000";
+    // Try to get from Redis cache first
+    const cachedData = await redis.get(cacheKey);
 
-    const params = new URLSearchParams({
-      league: leagueId,
-      season: season,
-    });
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData) as FixturesApiResponse;
+      return parsed.response || [];
+    }
 
-    if (fromDate) params.append("from", fromDate);
-    if (toDate) params.append("to", toDate);
+    // If not in cache, make API call directly
+    const apiUrl = process.env.FOOTBALL_API_URL;
+    const apiKey = process.env.FOOTBALL_API_KEY;
 
-    const response = await fetch(`${baseUrl}/api/football/fixtures?${params}`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      console.error("Failed to fetch fixtures:", response.statusText);
+    if (!apiUrl || !apiKey) {
+      console.error("[fetchFixturesForQuiniela] Football API not configured");
       return [];
     }
 
-    const data: FixturesApiResponse = await response.json();
+    const params: Record<string, string> = {
+      league: leagueId,
+      season: season,
+    };
+
+    if (fromDate) params.from = fromDate;
+    if (toDate) params.to = toDate;
+
+    const response = await axios.get(`${apiUrl}/fixtures`, {
+      params,
+      headers: {
+        "X-RapidAPI-Key": apiKey,
+        "X-RapidAPI-Host": new URL(apiUrl).hostname,
+      },
+    });
+
+    const data = response.data as FixturesApiResponse;
+
+    // Cache the result for 5 minutes (300 seconds)
+    await redis.setex(cacheKey, 300, JSON.stringify(data));
+
     return data.response || [];
   } catch (error) {
-    console.error("Error fetching fixtures:", error);
+    console.error("[fetchFixturesForQuiniela] Error fetching fixtures:", error);
     return [];
   }
 }
