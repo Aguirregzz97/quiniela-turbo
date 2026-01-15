@@ -352,11 +352,17 @@ export async function GET(request: Request) {
             ),
           );
 
+        // Only count predictions that have actual values (not null scores)
         const predictedFixtureIds = new Set(
-          existingPredictions.map((p) => p.externalFixtureId),
+          existingPredictions
+            .filter(
+              (p) =>
+                p.predictedHomeScore !== null && p.predictedAwayScore !== null,
+            )
+            .map((p) => p.externalFixtureId),
         );
 
-        // Find fixtures without predictions (only those that haven't started yet)
+        // Find fixtures without predictions or with null scores (only those that haven't started yet)
         // TODO: Remove SKIP_MATCH_DATE_CHECK after testing emails
         const skipDateCheck = process.env.SKIP_MATCH_DATE_CHECK === "true";
         for (const fixture of roundFixtures) {
