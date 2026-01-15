@@ -4,7 +4,8 @@ import { FixturesApiResponse, FixtureData } from "@/types/fixtures";
 
 /**
  * Determines the current/next active round from a list of rounds
- * Returns the first round whose end date is >= today
+ * Returns the first round whose start date is today or in the future.
+ * This ensures we move to the next round once a round's first match day has passed.
  */
 export function getActiveRound(
   rounds: { roundName: string; dates: string[] }[],
@@ -17,16 +18,17 @@ export function getActiveRound(
   for (const round of rounds) {
     if (round.dates.length === 0) continue;
 
-    const roundEnd = new Date(round.dates[round.dates.length - 1]);
-    roundEnd.setHours(23, 59, 59, 999);
+    const roundStart = new Date(round.dates[0]);
+    roundStart.setHours(0, 0, 0, 0);
 
-    if (roundEnd >= today) {
+    // Return the first round whose start date is today or in the future
+    if (roundStart >= today) {
       return round;
     }
   }
 
-  // If no future round found, return the first round
-  return rounds[0];
+  // If no future round found, return the last round (all rounds have started)
+  return rounds[rounds.length - 1];
 }
 
 /**
@@ -60,7 +62,9 @@ export async function fetchRoundFixtures(
         `[fetchRoundFixtures] Returning cached fixtures for round "${roundName}"`,
       );
       const parsed = JSON.parse(cachedData) as FixtureData[];
-      console.log(`[fetchRoundFixtures] Cached fixtures count: ${parsed.length}`);
+      console.log(
+        `[fetchRoundFixtures] Cached fixtures count: ${parsed.length}`,
+      );
       return parsed;
     }
   }
