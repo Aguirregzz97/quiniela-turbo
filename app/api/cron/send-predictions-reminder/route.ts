@@ -360,10 +360,11 @@ export async function GET(request: Request) {
         );
 
         await resend.emails.send({
-          from: "Onboarding <onboarding@resend.dev>",
+          from: "Quiniela Turbo <noreply@quinielaturbo.com>",
           to: user.email,
           subject: `⚽ Tienes ${missingPredictions.length} pronóstico${missingPredictions.length > 1 ? "s" : ""} pendiente${missingPredictions.length > 1 ? "s" : ""}`,
           html: emailHtml,
+          replyTo: "quinielaturbo1@gmail.com",
         });
 
         emailsSent++;
