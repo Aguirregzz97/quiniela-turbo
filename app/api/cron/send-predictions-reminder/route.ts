@@ -58,14 +58,20 @@ function generateEmailHtml(
     .map(([quinielaId, { name, fixtures }]) => {
       const fixtureRows = fixtures
         .map((fixture) => {
-          const matchTime = new Date(fixture.fixture.date).toLocaleTimeString(
-            "es-MX",
-            {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            },
-          );
+          // Format date and time in Mexico City timezone
+          const matchDate = new Date(fixture.fixture.date);
+          const formattedDate = matchDate.toLocaleDateString("es-MX", {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            timeZone: "America/Mexico_City",
+          });
+          const formattedTime = matchDate.toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "America/Mexico_City",
+          });
 
           return `
           <tr>
@@ -85,7 +91,10 @@ function generateEmailHtml(
                     </table>
                   </td>
                   <td width="20%" style="text-align: center;">
-                    <span style="display: inline-block; background-color: #f3f4f6; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #6b7280;">${matchTime}</span>
+                    <div style="display: inline-block; background-color: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
+                      <span style="display: block; font-size: 11px; color: #9ca3af; margin-bottom: 2px;">${formattedDate}</span>
+                      <span style="display: block; font-size: 14px; font-weight: 600; color: #6b7280;">${formattedTime}</span>
+                    </div>
                   </td>
                   <td width="40%" style="text-align: left; padding-left: 12px;">
                     <table cellpadding="0" cellspacing="0" border="0" align="left">
