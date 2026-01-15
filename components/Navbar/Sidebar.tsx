@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Award,
   Menu,
+  BarChart3,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
@@ -82,6 +83,11 @@ const Sidebar = () => {
       href: "/quinielas",
       label: "Quinielas",
       icon: Award,
+    },
+    {
+      href: "/puntuaciones",
+      label: "Puntuaciones",
+      icon: BarChart3,
     },
     {
       href: "/estadisticas",
