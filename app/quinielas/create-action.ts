@@ -12,6 +12,7 @@ import {
   NewQuinielaParticipant,
 } from "@/db/schema";
 import { revalidatePath } from "next/cache";
+import { initializePredictionsForUser } from "./initialize-predictions-action";
 
 export async function createQuiniela(data: CreateQuinielaFormData) {
   try {
@@ -81,6 +82,14 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
     };
 
     await db.insert(quiniela_participants).values(participantData);
+
+    // Initialize empty predictions for the creator
+    try {
+      await initializePredictionsForUser(newQuiniela[0].id, session.user.id);
+    } catch (err) {
+      console.error("Error initializing predictions after create:", err);
+      // Don't fail the creation if predictions initialization fails
+    }
 
     // Revalidate the quinielas pages
     revalidatePath("/quinielas");

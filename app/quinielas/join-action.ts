@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { quiniela_participants, NewQuinielaParticipant } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
+import { initializePredictionsForUser } from "./initialize-predictions-action";
 
 export async function joinQuiniela(quinielaId: string, userId: string) {
   try {
@@ -39,6 +40,14 @@ export async function joinQuiniela(quinielaId: string, userId: string) {
     };
 
     await db.insert(quiniela_participants).values(participantData);
+
+    // Initialize empty predictions for the new participant
+    try {
+      await initializePredictionsForUser(quinielaId, userId);
+    } catch (err) {
+      console.error("Error initializing predictions after join:", err);
+      // Don't fail the join if predictions initialization fails
+    }
 
     // Revalidate the quinielas pages
     revalidatePath("/quinielas");

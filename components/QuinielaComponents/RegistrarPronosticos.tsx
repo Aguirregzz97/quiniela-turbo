@@ -1100,11 +1100,14 @@ export default function RegistrarPronosticos({
     }));
   };
 
-  // Check if fixture has existing prediction
+  // Check if fixture has existing prediction with actual values (not null)
   const hasExistingPrediction = (fixtureId: string) => {
     return existingPredictions.some(
       (p) =>
-        p.externalFixtureId === fixtureId && p.externalRound === selectedRound,
+        p.externalFixtureId === fixtureId &&
+        p.externalRound === selectedRound &&
+        p.predictedHomeScore !== null &&
+        p.predictedAwayScore !== null,
     );
   };
 

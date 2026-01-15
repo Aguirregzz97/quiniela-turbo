@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowRight, KeyRound, Ticket } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { joinQuinielaByCode } from "@/app/quinielas/join-by-code-action";
 
 // Zod schema for join quiniela
@@ -30,6 +31,7 @@ export default function JoinQuinielaForm({
   initialJoinCode,
 }: JoinQuinielaFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<JoinQuinielaFormData>({
@@ -49,6 +51,12 @@ export default function JoinQuinielaForm({
     setIsSubmitting(true);
     try {
       const result = await joinQuinielaByCode(data.joinCode.toUpperCase());
+
+      // Invalidate predictions cache so leaderboard shows the new user
+      await queryClient.invalidateQueries({
+        queryKey: ["all-predictions", result.quinielaId],
+      });
+
       toast({
         title: "¡Te has unido exitosamente!",
         description: `Te has unido a la quiniela "${result.quinielaName}"`,
