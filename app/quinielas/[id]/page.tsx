@@ -24,6 +24,7 @@ import { redirect, notFound } from "next/navigation";
 import QuinielaDetailsDrawer from "@/components/QuinielaComponents/QuinielaDetailsDrawer";
 import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderboard";
 import QuinielaParticipantsDrawer from "@/components/QuinielaComponents/QuinielaParticipantsDrawer";
+import DeleteQuinielaDialog from "@/components/QuinielaComponents/DeleteQuinielaDialog";
 
 interface QuinielaPageProps {
   params: Promise<{
@@ -154,13 +155,19 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             />
             <QuinielaDetailsDrawer quinielaData={quinielaData} />
             {session?.user?.id === quinielaData.ownerId && (
-              <Button asChild size="sm">
-                <Link href={`/quinielas/${quinielaData.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Editar Quiniela</span>
-                  <span className="sm:hidden">Editar</span>
-                </Link>
-              </Button>
+              <>
+                <Button asChild size="sm">
+                  <Link href={`/quinielas/${quinielaData.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Editar Quiniela</span>
+                    <span className="sm:hidden">Editar</span>
+                  </Link>
+                </Button>
+                <DeleteQuinielaDialog
+                  quinielaId={quinielaData.id}
+                  quinielaName={quinielaData.name}
+                />
+              </>
             )}
           </div>
         </div>
