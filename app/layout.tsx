@@ -10,6 +10,7 @@ import TanstackProvider from "@/Providers/TanstackProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SessionProvider from "@/Providers/SessionProvider";
 import MainContent from "@/components/MainContent";
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,12 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${inter.className} h-full bg-background`}
       >
+        <NextTopLoader
+          color="var(--primary)"
+          showSpinner={false}
+          height={3}
+          shadow={false}
+        />
         <SessionProvider>
           <TanstackProvider>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>

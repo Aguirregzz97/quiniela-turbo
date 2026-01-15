@@ -64,6 +64,7 @@
     "next": "15.5.7",
     "next-auth": "5.0.0-beta.29",
     "next-themes": "^0.2.1",
+    "nextjs-toploader": "^3.9.17",
     "pg-core@latest": "link:drizzle-orm/pg-core@latest",
     "postgres": "^3.4.7",
     "react": "^18",
