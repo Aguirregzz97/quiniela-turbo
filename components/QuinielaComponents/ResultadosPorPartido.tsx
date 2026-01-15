@@ -420,11 +420,11 @@ export default function ResultadosPorPartido({
       {/* Legend */}
       <Card className="border-border/50 bg-muted/30">
         <CardContent className="p-4">
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Leyenda
+              Leyenda:
             </span>
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500">
                   <Trophy className="h-3.5 w-3.5 text-white" />

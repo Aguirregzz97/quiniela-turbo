@@ -580,7 +580,7 @@ function FixtureCard({
             <>
               {/* Mobile Layout for Finished Matches */}
               <div className="space-y-4 sm:hidden">
-                {/* Teams and Final Result */}
+                {/* Teams Row */}
                 <div className="flex items-center justify-between">
                   {/* Home Team */}
                   <div className="flex flex-1 flex-col items-center gap-2">
@@ -604,10 +604,7 @@ function FixtureCard({
                   </div>
 
                   {/* Final Score */}
-                  <div className="mx-2 flex flex-shrink-0 flex-col items-center gap-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Resultado
-                    </span>
+                  <div className="mx-2 flex-shrink-0 text-center">
                     <div className="rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 px-4 py-2 text-xl font-bold tabular-nums text-primary ring-1 ring-primary/20">
                       {matchStatus}
                     </div>
@@ -635,19 +632,17 @@ function FixtureCard({
                   </div>
                 </div>
 
-                {/* Prediction Section */}
-                <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
+                {/* Prediction Row */}
+                <div className="flex items-center justify-center gap-4 rounded-lg bg-muted/30 p-3">
                   {hasPrediction ? (
-                    <div className="flex items-center justify-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          Tu pronóstico:
-                        </span>
-                        <div className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-1.5 font-mono text-base font-bold shadow-sm ring-1 ring-border/50">
-                          <span>{predictions[fixture.fixture.id.toString()]?.home ?? "0"}</span>
-                          <span className="text-muted-foreground">-</span>
-                          <span>{predictions[fixture.fixture.id.toString()]?.away ?? "0"}</span>
-                        </div>
+                    <div className="text-center">
+                      <span className="mb-1 block text-[10px] text-muted-foreground">
+                        Tu pronóstico
+                      </span>
+                      <div className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-1.5 font-mono text-base font-bold shadow-sm ring-1 ring-border/50">
+                        <span>{predictions[fixture.fixture.id.toString()]?.home ?? "0"}</span>
+                        <span className="text-muted-foreground">-</span>
+                        <span>{predictions[fixture.fixture.id.toString()]?.away ?? "0"}</span>
                       </div>
                     </div>
                   ) : (
