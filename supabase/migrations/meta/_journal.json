@@ -8,6 +8,13 @@
       "when": 1768095039814,
       "tag": "0001_aberrant_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768605545157,
+      "tag": "0001_left_the_executioner",
+      "breakpoints": true
     }
   ]
 }

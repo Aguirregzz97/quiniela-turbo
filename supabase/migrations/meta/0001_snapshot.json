@@ -1,6 +1,6 @@
 {
-  "id": "7ccc81f6-0f9a-4dd9-995c-a85e4091ad4f",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "8e4de663-407c-4702-8584-5229645c6256",
+  "prevId": "7ccc81f6-0f9a-4dd9-995c-a85e4091ad4f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -586,6 +586,316 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.survivor_game_participant": {
+      "name": "survivor_game_participant",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "survivorGameId": {
+          "name": "survivorGameId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "livesRemaining": {
+          "name": "livesRemaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isEliminated": {
+          "name": "isEliminated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "eliminatedAtRound": {
+          "name": "eliminatedAtRound",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "survivor_game_participant_survivorGameId_survivor_game_id_fk": {
+          "name": "survivor_game_participant_survivorGameId_survivor_game_id_fk",
+          "tableFrom": "survivor_game_participant",
+          "tableTo": "survivor_game",
+          "columnsFrom": [
+            "survivorGameId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "survivor_game_participant_userId_user_id_fk": {
+          "name": "survivor_game_participant_userId_user_id_fk",
+          "tableFrom": "survivor_game_participant",
+          "tableTo": "user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.survivor_game_pick": {
+      "name": "survivor_game_pick",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "survivorGameId": {
+          "name": "survivorGameId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalFixtureId": {
+          "name": "externalFixtureId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalRound": {
+          "name": "externalRound",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalPickedTeamId": {
+          "name": "externalPickedTeamId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalPickedTeamName": {
+          "name": "externalPickedTeamName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "survivor_game_pick_survivorGameId_survivor_game_id_fk": {
+          "name": "survivor_game_pick_survivorGameId_survivor_game_id_fk",
+          "tableFrom": "survivor_game_pick",
+          "tableTo": "survivor_game",
+          "columnsFrom": [
+            "survivorGameId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "survivor_game_pick_userId_user_id_fk": {
+          "name": "survivor_game_pick_userId_user_id_fk",
+          "tableFrom": "survivor_game_pick",
+          "tableTo": "user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.survivor_game": {
+      "name": "survivor_game",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ownerId": {
+          "name": "ownerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "joinCode": {
+          "name": "joinCode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "league": {
+          "name": "league",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalLeagueId": {
+          "name": "externalLeagueId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "externalSeason": {
+          "name": "externalSeason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roundsSelected": {
+          "name": "roundsSelected",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lives": {
+          "name": "lives",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "moneyToEnter": {
+          "name": "moneyToEnter",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "prizeDistribution": {
+          "name": "prizeDistribution",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "survivor_game_ownerId_user_id_fk": {
+          "name": "survivor_game_ownerId_user_id_fk",
+          "tableFrom": "survivor_game",
+          "tableTo": "user",
+          "columnsFrom": [
+            "ownerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "survivor_game_joinCode_unique": {
+          "name": "survivor_game_joinCode_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "joinCode"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

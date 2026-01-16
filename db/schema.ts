@@ -190,6 +190,9 @@ export const predictions = pgTable("predictions", {
 export const userRelations = relations(users, ({ many }) => ({
   quinielas: many(quinielas),
   predictions: many(predictions),
+  survivorGames: many(survivor_games),
+  survivorGameParticipations: many(survivor_game_participants),
+  survivorGamePicks: many(survivor_game_picks),
 }));
 
 export const quinielaRelations = relations(quinielas, ({ many, one }) => ({
@@ -246,3 +249,122 @@ export type NewQuinielaParticipant = typeof quiniela_participants.$inferInsert;
 
 export type Prediction = typeof predictions.$inferSelect;
 export type NewPrediction = typeof predictions.$inferInsert;
+
+// Survivor game tables
+
+export const survivor_games = pgTable("survivor_game", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  ownerId: text("ownerId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  joinCode: text("joinCode")
+    .notNull()
+    .unique()
+    .$defaultFn(() => generateJoinCode()),
+  league: text("league").notNull(),
+  externalLeagueId: text("externalLeagueId").notNull(),
+  externalSeason: text("externalSeason").notNull(),
+  roundsSelected: jsonb("roundsSelected")
+    .$type<{ roundName: string; dates: string[] }[]>()
+    .notNull(),
+  lives: integer("lives").notNull().default(1),
+  moneyToEnter: integer("moneyToEnter").notNull().default(0),
+  prizeDistribution: jsonb("prizeDistribution")
+    .$type<{ position: number; percentage: number }[]>()
+    .notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const survivor_game_participants = pgTable("survivor_game_participant", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  survivorGameId: text("survivorGameId")
+    .notNull()
+    .references(() => survivor_games.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  livesRemaining: integer("livesRemaining").notNull(),
+  isEliminated: boolean("isEliminated").notNull().default(false),
+  eliminatedAtRound: text("eliminatedAtRound"),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const survivor_game_picks = pgTable("survivor_game_pick", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  survivorGameId: text("survivorGameId")
+    .notNull()
+    .references(() => survivor_games.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  externalFixtureId: text("externalFixtureId").notNull(),
+  externalRound: text("externalRound").notNull(),
+  externalPickedTeamId: text("externalPickedTeamId").notNull(),
+  externalPickedTeamName: text("externalPickedTeamName").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+// Survivor game relations
+
+export const survivorGameRelations = relations(
+  survivor_games,
+  ({ many, one }) => ({
+    owner: one(users, {
+      fields: [survivor_games.ownerId],
+      references: [users.id],
+    }),
+    participants: many(survivor_game_participants),
+    picks: many(survivor_game_picks),
+  }),
+);
+
+export const survivorGameParticipantsRelations = relations(
+  survivor_game_participants,
+  ({ one }) => ({
+    survivorGame: one(survivor_games, {
+      fields: [survivor_game_participants.survivorGameId],
+      references: [survivor_games.id],
+    }),
+    user: one(users, {
+      fields: [survivor_game_participants.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const survivorGamePicksRelations = relations(
+  survivor_game_picks,
+  ({ one }) => ({
+    survivorGame: one(survivor_games, {
+      fields: [survivor_game_picks.survivorGameId],
+      references: [survivor_games.id],
+    }),
+    user: one(users, {
+      fields: [survivor_game_picks.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+// Survivor game types
+export type SurvivorGame = typeof survivor_games.$inferSelect;
+export type NewSurvivorGame = typeof survivor_games.$inferInsert;
+
+export type SurvivorGameParticipant =
+  typeof survivor_game_participants.$inferSelect;
+export type NewSurvivorGameParticipant =
+  typeof survivor_game_participants.$inferInsert;
+
+export type SurvivorGamePick = typeof survivor_game_picks.$inferSelect;
+export type NewSurvivorGamePick = typeof survivor_game_picks.$inferInsert;
