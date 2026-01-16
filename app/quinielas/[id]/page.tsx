@@ -59,6 +59,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         quiniela_settings.pointsForExactResultPrediction,
       pointsForCorrectResultPrediction:
         quiniela_settings.pointsForCorrectResultPrediction,
+      moneyToEnter: quiniela_settings.moneyToEnter,
+      prizeDistribution: quiniela_settings.prizeDistribution,
     })
     .from(quinielas)
     .innerJoin(users, eq(quinielas.ownerId, users.id))
@@ -267,6 +269,9 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         }}
         exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
         correctResultPoints={quinielaData.pointsForCorrectResultPrediction ?? 1}
+        moneyToEnter={quinielaData.moneyToEnter ?? undefined}
+        prizeDistribution={quinielaData.prizeDistribution ?? undefined}
+        participantCount={participants.length}
       />
     </div>
   );

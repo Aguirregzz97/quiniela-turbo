@@ -6,16 +6,24 @@ import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { Trophy, Users, Crown, Medal, Award } from "lucide-react";
+import { Trophy, Users, Crown, Medal, Award, DollarSign } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
 
+interface PrizeDistribution {
+  position: number;
+  percentage: number;
+}
+
 interface QuinielaLeaderboardProps {
   quiniela: Quiniela;
   exactPoints?: number;
   correctResultPoints?: number;
+  moneyToEnter?: number;
+  prizeDistribution?: PrizeDistribution[];
+  participantCount?: number;
 }
 
 interface UserStats {
@@ -113,7 +121,19 @@ export default function QuinielaLeaderboard({
   quiniela,
   exactPoints = 2,
   correctResultPoints = 1,
+  moneyToEnter,
+  prizeDistribution,
+  participantCount = 0,
 }: QuinielaLeaderboardProps) {
+  // Calculate total prize pool and prizes per position
+  const totalPrizePool = moneyToEnter ? moneyToEnter * participantCount : 0;
+  
+  const getPrizeForPosition = (position: number): number | null => {
+    if (!moneyToEnter || !prizeDistribution || totalPrizePool === 0) return null;
+    const prize = prizeDistribution.find((p) => p.position === position);
+    if (!prize) return null;
+    return (totalPrizePool * prize.percentage) / 100;
+  };
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
 
   const {
@@ -350,6 +370,15 @@ export default function QuinielaLeaderboard({
                 </p>
               </div>
             </div>
+            {totalPrizePool > 0 && (
+              <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
+                <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400 sm:h-4 sm:w-4" />
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:text-sm">
+                  ${totalPrizePool.toLocaleString("es-MX")}
+                  <span className="hidden sm:inline"> en premios</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -406,18 +435,36 @@ export default function QuinielaLeaderboard({
                     </div>
                   </div>
 
-                  {/* Points */}
-                  <div className="flex flex-col items-end">
-                    <span
-                      className={`text-xl font-bold tabular-nums sm:text-2xl ${
-                        isTopThree ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {user.totalPoints}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground sm:text-xs">
-                      puntos
-                    </span>
+                  {/* Points & Prize */}
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex flex-col items-end">
+                      <span
+                        className={`text-xl font-bold tabular-nums sm:text-2xl ${
+                          isTopThree ? "text-primary" : "text-foreground"
+                        }`}
+                      >
+                        {user.totalPoints}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground sm:text-xs">
+                        puntos
+                      </span>
+                    </div>
+                    {/* Prize Money */}
+                    {(() => {
+                      const prize = getPrizeForPosition(index + 1);
+                      if (prize === null) return null;
+                      return (
+                        <div className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
+                          <DollarSign className="h-3 w-3" />
+                          <span className="text-xs font-medium tabular-nums">
+                            {prize.toLocaleString("es-MX", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
