@@ -13,6 +13,7 @@ import {
   Award,
   Menu,
   BarChart3,
+  Swords,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
@@ -78,12 +79,20 @@ const Sidebar = () => {
   // Use collapsed state directly - it's managed by both auto and manual triggers
   const isCollapsed = collapsed;
 
-  const routes = [
+  const gameRoutes = [
     {
       href: "/quinielas",
       label: "Quinielas",
       icon: Award,
     },
+    {
+      href: "/survivor",
+      label: "Survivor",
+      icon: Swords,
+    },
+  ];
+
+  const globalRoutes = [
     {
       href: "/puntuaciones",
       label: "Puntuaciones",
@@ -156,40 +165,80 @@ const Sidebar = () => {
         </div>
 
         {/* Middle Section - Navigation Routes */}
-        <div className="flex-1 p-3">
-          {!isCollapsed && (
-            <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Navegación
-            </p>
-          )}
-          <nav className="space-y-1">
-            {routes.map((route, i) => {
-              const IconComponent = route.icon;
-              const isActive = pathname.includes(route.href);
-              return (
-                <Link
-                  key={i}
-                  href={route.href}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground hover:bg-muted"
-                  } ${isCollapsed ? "justify-center" : ""}`}
-                >
-                  <div
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
+        <div className="flex-1 space-y-4 overflow-y-auto p-3">
+          {/* Games Section */}
+          <div>
+            {!isCollapsed && (
+              <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Juegos
+              </p>
+            )}
+            <nav className="space-y-1">
+              {gameRoutes.map((route, i) => {
+                const IconComponent = route.icon;
+                const isActive = pathname.includes(route.href);
+                return (
+                  <Link
+                    key={i}
+                    href={route.href}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-muted"
+                    } ${isCollapsed ? "justify-center" : ""}`}
                   >
-                    <IconComponent className="h-4 w-4" />
-                  </div>
-                  {!isCollapsed && route.label}
-                </Link>
-              );
-            })}
-          </nav>
+                    <div
+                      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <IconComponent className="h-4 w-4" />
+                    </div>
+                    {!isCollapsed && route.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Global Section */}
+          <div>
+            {!isCollapsed && (
+              <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Global
+              </p>
+            )}
+            <nav className="space-y-1">
+              {globalRoutes.map((route, i) => {
+                const IconComponent = route.icon;
+                const isActive = pathname.includes(route.href);
+                return (
+                  <Link
+                    key={i}
+                    href={route.href}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-muted"
+                    } ${isCollapsed ? "justify-center" : ""}`}
+                  >
+                    <div
+                      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <IconComponent className="h-4 w-4" />
+                    </div>
+                    {!isCollapsed && route.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </div>
 
         {/* Bottom Section - User Controls */}
@@ -358,38 +407,79 @@ const Sidebar = () => {
               </DrawerHeader>
 
               {/* Navigation Links */}
-              <nav className="flex-1 space-y-1 p-4">
-                <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Navegación
-                </p>
-                {routes.map((route, i) => {
-                  const IconComponent = route.icon;
-                  const isActive = pathname.includes(route.href);
-                  return (
-                    <DrawerClose key={i} asChild>
-                      <Link
-                        href={route.href}
-                        className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <div
-                          className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
-                        >
-                          <IconComponent className="h-4 w-4" />
-                        </div>
-                        {route.label}
-                      </Link>
-                    </DrawerClose>
-                  );
-                })}
-              </nav>
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                {/* Games Section */}
+                <div>
+                  <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Juegos
+                  </p>
+                  <nav className="space-y-1">
+                    {gameRoutes.map((route, i) => {
+                      const IconComponent = route.icon;
+                      const isActive = pathname.includes(route.href);
+                      return (
+                        <DrawerClose key={i} asChild>
+                          <Link
+                            href={route.href}
+                            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                              isActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <div
+                              className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              <IconComponent className="h-4 w-4" />
+                            </div>
+                            {route.label}
+                          </Link>
+                        </DrawerClose>
+                      );
+                    })}
+                  </nav>
+                </div>
+
+                {/* Global Section */}
+                <div>
+                  <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Global
+                  </p>
+                  <nav className="space-y-1">
+                    {globalRoutes.map((route, i) => {
+                      const IconComponent = route.icon;
+                      const isActive = pathname.includes(route.href);
+                      return (
+                        <DrawerClose key={i} asChild>
+                          <Link
+                            href={route.href}
+                            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                              isActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <div
+                              className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              <IconComponent className="h-4 w-4" />
+                            </div>
+                            {route.label}
+                          </Link>
+                        </DrawerClose>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </div>
 
               {/* Bottom Section */}
               <div className="border-t border-border/50 p-4">
