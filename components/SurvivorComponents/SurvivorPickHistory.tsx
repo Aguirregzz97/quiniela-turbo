@@ -16,13 +16,19 @@ import {
   Crown,
   Heart,
   Skull,
-  Users,
+  Check,
+  X,
+  Minus,
+  Clock,
 } from "lucide-react";
 import Image from "next/image";
 import {
   useAllSurvivorPicks,
   SurvivorPickWithUser,
 } from "@/hooks/survivor/useAllSurvivorPicks";
+import { useQueries } from "@tanstack/react-query";
+import { FixtureData } from "@/types/fixtures";
+import axios from "axios";
 
 interface Participant {
   id: string;
@@ -42,6 +48,8 @@ interface SurvivorPickHistoryProps {
   roundsSelected: { roundName: string; dates: string[] }[];
   currentUserId: string;
   ownerId: string;
+  externalLeagueId: string;
+  externalSeason: string;
 }
 
 // Group picks by user
@@ -84,6 +92,8 @@ export default function SurvivorPickHistory({
   roundsSelected,
   currentUserId,
   ownerId,
+  externalLeagueId,
+  externalSeason,
 }: SurvivorPickHistoryProps) {
   const { data: picks, isLoading, error } = useAllSurvivorPicks(survivorGameId);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
@@ -92,6 +102,51 @@ export default function SurvivorPickHistory({
     if (!picks) return new Map<string, SurvivorPickWithUser[]>();
     return groupPicksByUser(picks);
   }, [picks]);
+
+  // Get unique rounds from picks to fetch fixtures
+  const roundsWithPicks = useMemo(() => {
+    if (!picks) return [];
+    const rounds = [...new Set(picks.map((p) => p.externalRound))];
+    return rounds.sort((a, b) => extractRoundNumber(a) - extractRoundNumber(b));
+  }, [picks]);
+
+  // Fetch fixtures for all rounds that have picks using useQueries
+  const fixtureQueries = useQueries({
+    queries: roundsWithPicks.map((roundName) => ({
+      queryKey: ["round-fixtures", externalLeagueId, externalSeason, roundName],
+      queryFn: async (): Promise<FixtureData[]> => {
+        try {
+          const response = await axios.get("/api/football/fixtures", {
+            params: {
+              league: externalLeagueId,
+              season: externalSeason,
+              round: roundName,
+            },
+          });
+          return response.data.response || [];
+        } catch {
+          return [];
+        }
+      },
+      staleTime: 5 * 60 * 1000,
+      enabled: !!externalLeagueId && !!externalSeason && !!roundName,
+    })),
+  });
+
+  // Create a map of fixtureId -> fixture data
+  const fixturesMap = useMemo(() => {
+    const map = new Map<string, FixtureData>();
+    fixtureQueries.forEach((query) => {
+      if (query.data) {
+        query.data.forEach((fixture) => {
+          map.set(fixture.fixture.id.toString(), fixture);
+        });
+      }
+    });
+    return map;
+  }, [fixtureQueries]);
+
+  const fixturesLoading = fixtureQueries.some((q) => q.isLoading);
 
   const toggleUser = (userId: string) => {
     setExpandedUsers((prev) => {
@@ -272,40 +327,188 @@ export default function SurvivorPickHistory({
                     <p className="text-center text-sm text-muted-foreground">
                       Aún no ha seleccionado ningún equipo
                     </p>
+                  ) : fixturesLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
                   ) : (
-                    <div className="space-y-2">
-                      {userPicks.map((pick) => (
-                        <div
-                          key={pick.id}
-                          className="flex items-center gap-3 rounded-lg bg-background/50 p-3"
-                        >
-                          {/* Team logo */}
-                          <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-black/5">
-                            <Image
-                              src={`https://media.api-sports.io/football/teams/${pick.externalPickedTeamId}.png`}
-                              alt={pick.externalPickedTeamName}
-                              fill
-                              className="object-contain p-0.5"
-                              sizes="32px"
-                            />
-                          </div>
+                    <div className="space-y-3">
+                      {userPicks.map((pick) => {
+                        const fixture = fixturesMap.get(pick.externalFixtureId);
+                        const isPickedTeamHome =
+                          fixture?.teams.home.id.toString() ===
+                          pick.externalPickedTeamId;
 
-                          {/* Pick info */}
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">
-                              {pick.externalPickedTeamName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatRoundName(pick.externalRound)}
-                            </p>
-                          </div>
+                        // Determine pick result
+                        let pickResult: "win" | "draw" | "loss" | "pending" =
+                          "pending";
+                        if (fixture) {
+                          const status = fixture.fixture.status.short;
+                          if (["FT", "AET", "PEN"].includes(status)) {
+                            const pickedTeam = isPickedTeamHome
+                              ? fixture.teams.home
+                              : fixture.teams.away;
+                            if (pickedTeam.winner === null) {
+                              pickResult = "draw";
+                            } else if (pickedTeam.winner === true) {
+                              pickResult = "win";
+                            } else {
+                              pickResult = "loss";
+                            }
+                          }
+                        }
 
-                          {/* Round badge */}
-                          <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                            J{extractRoundNumber(pick.externalRound)}
-                          </Badge>
-                        </div>
-                      ))}
+                        return (
+                          <div
+                            key={pick.id}
+                            className={`rounded-lg bg-background/50 p-3 ${
+                              pickResult === "loss"
+                                ? "ring-1 ring-red-500/30"
+                                : pickResult === "win"
+                                  ? "ring-1 ring-green-500/30"
+                                  : pickResult === "draw"
+                                    ? "ring-1 ring-amber-500/30"
+                                    : ""
+                            }`}
+                          >
+                            {/* Round header */}
+                            <div className="mb-2 flex items-center justify-between">
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-medium"
+                              >
+                                {formatRoundName(pick.externalRound)}
+                              </Badge>
+                              {pickResult !== "pending" && (
+                                <Badge
+                                  className={`gap-1 text-xs ${
+                                    pickResult === "win"
+                                      ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                      : pickResult === "draw"
+                                        ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                                        : "bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                  }`}
+                                  variant="secondary"
+                                >
+                                  {pickResult === "win" ? (
+                                    <>
+                                      <Check className="h-3 w-3" /> Ganó
+                                    </>
+                                  ) : pickResult === "draw" ? (
+                                    <>
+                                      <Minus className="h-3 w-3" /> Empate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <X className="h-3 w-3" /> Perdió
+                                    </>
+                                  )}
+                                </Badge>
+                              )}
+                              {pickResult === "pending" && (
+                                <Badge
+                                  variant="secondary"
+                                  className="gap-1 text-xs"
+                                >
+                                  <Clock className="h-3 w-3" /> Pendiente
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Fixture display */}
+                            {fixture ? (
+                              <div className="flex items-center justify-center gap-2">
+                                {/* Home team */}
+                                <div className="flex flex-1 justify-end">
+                                  <div
+                                    className={`flex items-center gap-2 ${
+                                      isPickedTeamHome
+                                        ? "rounded-lg bg-primary/10 px-2 py-1"
+                                        : ""
+                                    }`}
+                                  >
+                                    <span
+                                      className={`truncate text-xs sm:text-sm ${
+                                        isPickedTeamHome ? "font-semibold" : ""
+                                      }`}
+                                    >
+                                      {fixture.teams.home.name}
+                                    </span>
+                                    <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                      <Image
+                                        src={fixture.teams.home.logo}
+                                        alt={fixture.teams.home.name}
+                                        fill
+                                        className="object-contain"
+                                        sizes="32px"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Score */}
+                                <div className="flex-shrink-0 rounded-lg bg-muted px-2 py-1 text-center">
+                                  {["FT", "AET", "PEN"].includes(
+                                    fixture.fixture.status.short,
+                                  ) ? (
+                                    <span className="text-sm font-bold">
+                                      {fixture.goals.home} - {fixture.goals.away}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">
+                                      vs
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Away team */}
+                                <div className="flex flex-1 justify-start">
+                                  <div
+                                    className={`flex items-center gap-2 ${
+                                      !isPickedTeamHome
+                                        ? "rounded-lg bg-primary/10 px-2 py-1"
+                                        : ""
+                                    }`}
+                                  >
+                                    <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                      <Image
+                                        src={fixture.teams.away.logo}
+                                        alt={fixture.teams.away.name}
+                                        fill
+                                        className="object-contain"
+                                        sizes="32px"
+                                      />
+                                    </div>
+                                    <span
+                                      className={`truncate text-xs sm:text-sm ${
+                                        !isPickedTeamHome ? "font-semibold" : ""
+                                      }`}
+                                    >
+                                      {fixture.teams.away.name}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              /* Fallback if fixture not found */
+                              <div className="flex items-center gap-3">
+                                <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-black/5">
+                                  <Image
+                                    src={`https://media.api-sports.io/football/teams/${pick.externalPickedTeamId}.png`}
+                                    alt={pick.externalPickedTeamName}
+                                    fill
+                                    className="object-contain p-0.5"
+                                    sizes="32px"
+                                  />
+                                </div>
+                                <span className="text-sm font-medium">
+                                  {pick.externalPickedTeamName}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

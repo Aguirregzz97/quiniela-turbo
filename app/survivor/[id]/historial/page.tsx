@@ -163,6 +163,8 @@ export default async function HistorialPage({ params }: HistorialPageProps) {
         roundsSelected={survivorData.roundsSelected}
         currentUserId={session.user.id}
         ownerId={survivorData.ownerId}
+        externalLeagueId={survivorData.externalLeagueId}
+        externalSeason={survivorData.externalSeason}
       />
     </div>
   );
