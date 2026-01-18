@@ -14,6 +14,7 @@ import {
   fetchRoundFixtures,
   getActiveRound,
 } from "@/lib/api-football/fetchRoundFixtures";
+import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
 interface DebugSurvivorPick {
   survivorName: string;
@@ -30,8 +31,12 @@ interface DebugUserResult {
   name: string | null;
   activeSurvivorGames: number;
   missingSurvivorPicks: DebugSurvivorPick[];
-  gamesWithPicks: { survivorName: string; roundName: string; pickedTeam: string }[];
-  eliminatedGames: string[];
+  gamesWithPicks: {
+    survivorName: string;
+    roundName: string;
+    pickedTeam: string;
+  }[];
+  eliminatedGames: { name: string; livesRemaining: number; eliminatedAt: string | null }[];
 }
 
 // Debug endpoint - shows what emails would be sent without actually sending
@@ -79,11 +84,11 @@ export async function GET(request: Request) {
         .select({
           survivorId: survivor_game_participants.survivorGameId,
           participantId: survivor_game_participants.id,
-          isEliminated: survivor_game_participants.isEliminated,
           survivorName: survivor_games.name,
           externalLeagueId: survivor_games.externalLeagueId,
           externalSeason: survivor_games.externalSeason,
           roundsSelected: survivor_games.roundsSelected,
+          lives: survivor_games.lives,
         })
         .from(survivor_game_participants)
         .innerJoin(
@@ -93,9 +98,39 @@ export async function GET(request: Request) {
         .where(eq(survivor_game_participants.userId, user.id));
 
       for (const participation of userParticipations) {
+        // Get user's picks for this game
+        const userPicks = await db
+          .select({
+            id: survivor_game_picks.id,
+            externalFixtureId: survivor_game_picks.externalFixtureId,
+            externalRound: survivor_game_picks.externalRound,
+            externalPickedTeamId: survivor_game_picks.externalPickedTeamId,
+            externalPickedTeamName: survivor_game_picks.externalPickedTeamName,
+          })
+          .from(survivor_game_picks)
+          .where(
+            and(
+              eq(survivor_game_picks.survivorGameId, participation.survivorId),
+              eq(survivor_game_picks.userId, user.id),
+            ),
+          );
+
+        // Calculate status
+        const status = await calculateSurvivorStatus(
+          userPicks,
+          participation.roundsSelected || [],
+          participation.lives,
+          participation.externalLeagueId,
+          participation.externalSeason,
+        );
+
         // Track eliminated games
-        if (participation.isEliminated) {
-          userResult.eliminatedGames.push(participation.survivorName);
+        if (status.isEliminated) {
+          userResult.eliminatedGames.push({
+            name: participation.survivorName,
+            livesRemaining: status.livesRemaining,
+            eliminatedAt: status.eliminatedAtRound,
+          });
           continue;
         }
 
@@ -109,23 +144,15 @@ export async function GET(request: Request) {
         }
 
         // Check if user already has a pick for this round
-        const existingPick = await db
-          .select()
-          .from(survivor_game_picks)
-          .where(
-            and(
-              eq(survivor_game_picks.survivorGameId, participation.survivorId),
-              eq(survivor_game_picks.userId, user.id),
-              eq(survivor_game_picks.externalRound, activeRound.roundName),
-            ),
-          )
-          .limit(1);
+        const existingPick = userPicks.find(
+          (p) => p.externalRound === activeRound.roundName,
+        );
 
-        if (existingPick.length > 0) {
+        if (existingPick) {
           userResult.gamesWithPicks.push({
             survivorName: participation.survivorName,
             roundName: activeRound.roundName,
-            pickedTeam: existingPick[0].externalPickedTeamName,
+            pickedTeam: existingPick.externalPickedTeamName,
           });
           continue;
         }
@@ -140,13 +167,6 @@ export async function GET(request: Request) {
         if (roundFixtures.length === 0) {
           continue;
         }
-
-        // Check if any match has already started
-        const now = new Date();
-        const upcomingFixtures = roundFixtures.filter((f) => {
-          const matchDate = new Date(f.fixture.date);
-          return matchDate > now && f.fixture.status.short === "NS";
-        });
 
         // Get first match date
         const sortedFixtures = [...roundFixtures].sort(
@@ -211,5 +231,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
-

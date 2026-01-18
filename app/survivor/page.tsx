@@ -14,9 +14,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { survivor_games, survivor_game_participants } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  survivor_games,
+  survivor_game_participants,
+  survivor_game_picks,
+} from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
 export default async function SurvivorPage() {
   const session = await auth();
@@ -25,21 +30,22 @@ export default async function SurvivorPage() {
     redirect("/api/auth/signin?callbackUrl=/survivor");
   }
 
-  const userSurvivorGames = await db
+  // Fetch user's survivor games (without calculated fields)
+  const rawUserSurvivorGames = await db
     .select({
       id: survivor_games.id,
       name: survivor_games.name,
       description: survivor_games.description,
       league: survivor_games.league,
       externalLeagueId: survivor_games.externalLeagueId,
+      externalSeason: survivor_games.externalSeason,
       joinCode: survivor_games.joinCode,
       lives: survivor_games.lives,
+      roundsSelected: survivor_games.roundsSelected,
       createdAt: survivor_games.createdAt,
       updatedAt: survivor_games.updatedAt,
       ownerId: survivor_games.ownerId,
       participantId: survivor_game_participants.id,
-      livesRemaining: survivor_game_participants.livesRemaining,
-      isEliminated: survivor_game_participants.isEliminated,
       joinedAt: survivor_game_participants.createdAt,
     })
     .from(survivor_game_participants)
@@ -49,6 +55,43 @@ export default async function SurvivorPage() {
     )
     .where(eq(survivor_game_participants.userId, session.user.id))
     .orderBy(survivor_game_participants.createdAt);
+
+  // Calculate status for each game the user is in
+  const userSurvivorGames = await Promise.all(
+    rawUserSurvivorGames.map(async (game) => {
+      // Fetch user's picks for this game
+      const userPicks = await db
+        .select({
+          id: survivor_game_picks.id,
+          externalFixtureId: survivor_game_picks.externalFixtureId,
+          externalRound: survivor_game_picks.externalRound,
+          externalPickedTeamId: survivor_game_picks.externalPickedTeamId,
+          externalPickedTeamName: survivor_game_picks.externalPickedTeamName,
+        })
+        .from(survivor_game_picks)
+        .where(
+          and(
+            eq(survivor_game_picks.survivorGameId, game.id),
+            eq(survivor_game_picks.userId, session.user.id),
+          ),
+        );
+
+      // Calculate status
+      const status = await calculateSurvivorStatus(
+        userPicks,
+        game.roundsSelected || [],
+        game.lives,
+        game.externalLeagueId,
+        game.externalSeason,
+      );
+
+      return {
+        ...game,
+        livesRemaining: status.livesRemaining,
+        isEliminated: status.isEliminated,
+      };
+    }),
+  );
 
   return (
     <div className="max-w-6xl px-4 py-6 sm:ml-6 sm:mt-6">

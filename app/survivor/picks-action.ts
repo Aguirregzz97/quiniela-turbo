@@ -5,10 +5,12 @@ import { db } from "@/db";
 import {
   survivor_game_picks,
   survivor_game_participants,
+  survivor_games,
   NewSurvivorGamePick,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
 export interface SurvivorPickInput {
   externalFixtureId: string;
@@ -44,8 +46,50 @@ export async function saveSurvivorPick(
       return { success: false, message: "No eres participante de este Survivor" };
     }
 
+    // Get game data for status calculation
+    const game = await db
+      .select({
+        lives: survivor_games.lives,
+        roundsSelected: survivor_games.roundsSelected,
+        externalLeagueId: survivor_games.externalLeagueId,
+        externalSeason: survivor_games.externalSeason,
+      })
+      .from(survivor_games)
+      .where(eq(survivor_games.id, survivorGameId))
+      .limit(1);
+
+    if (!game.length) {
+      return { success: false, message: "Juego no encontrado" };
+    }
+
+    // Get user's existing picks
+    const existingPicks = await db
+      .select({
+        id: survivor_game_picks.id,
+        externalFixtureId: survivor_game_picks.externalFixtureId,
+        externalRound: survivor_game_picks.externalRound,
+        externalPickedTeamId: survivor_game_picks.externalPickedTeamId,
+        externalPickedTeamName: survivor_game_picks.externalPickedTeamName,
+      })
+      .from(survivor_game_picks)
+      .where(
+        and(
+          eq(survivor_game_picks.survivorGameId, survivorGameId),
+          eq(survivor_game_picks.userId, session.user.id),
+        ),
+      );
+
+    // Calculate current status
+    const status = await calculateSurvivorStatus(
+      existingPicks,
+      game[0].roundsSelected || [],
+      game[0].lives,
+      game[0].externalLeagueId,
+      game[0].externalSeason,
+    );
+
     // Check if user is eliminated
-    if (participant[0].isEliminated) {
+    if (status.isEliminated) {
       return { success: false, message: "Has sido eliminado de este Survivor" };
     }
 

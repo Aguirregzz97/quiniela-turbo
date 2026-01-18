@@ -990,8 +990,7 @@ export default function SeleccionarEquipo({
                 Jornada bloqueada
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Ya no puedes cambiar tu selección porque al menos un partido de
-                esta jornada ya ha comenzado o está por comenzar.
+                Ya no puedes cambiar tu selección porque la jornada ya ha comenzado.
                 {currentRoundPick && (
                   <span className="mt-1 block font-medium">
                     Tu pick: {currentRoundPick.externalPickedTeamName}

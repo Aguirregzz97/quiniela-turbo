@@ -16,6 +16,7 @@ import {
   getActiveRound,
 } from "@/lib/api-football/fetchRoundFixtures";
 import { FixtureData } from "@/types/fixtures";
+import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -277,32 +278,27 @@ export async function GET(request: Request) {
 
       usersProcessed++;
 
-      // Get all survivor games this user participates in (and is not eliminated)
+      // Get all survivor games this user participates in
       const userParticipations = await db
         .select({
           survivorId: survivor_game_participants.survivorGameId,
           participantId: survivor_game_participants.id,
-          isEliminated: survivor_game_participants.isEliminated,
           survivorName: survivor_games.name,
           externalLeagueId: survivor_games.externalLeagueId,
           externalSeason: survivor_games.externalSeason,
           roundsSelected: survivor_games.roundsSelected,
+          lives: survivor_games.lives,
         })
         .from(survivor_game_participants)
         .innerJoin(
           survivor_games,
           eq(survivor_game_participants.survivorGameId, survivor_games.id),
         )
-        .where(
-          and(
-            eq(survivor_game_participants.userId, user.id),
-            eq(survivor_game_participants.isEliminated, false),
-          ),
-        );
+        .where(eq(survivor_game_participants.userId, user.id));
 
       if (userParticipations.length === 0) {
         console.log(
-          `[Survivor Reminder] User ${user.email} has no active survivor games`,
+          `[Survivor Reminder] User ${user.email} has no survivor games`,
         );
         continue;
       }
@@ -311,6 +307,40 @@ export async function GET(request: Request) {
 
       // Process each survivor game
       for (const participation of userParticipations) {
+        // Get user's picks for this game to calculate status
+        const userPicks = await db
+          .select({
+            id: survivor_game_picks.id,
+            externalFixtureId: survivor_game_picks.externalFixtureId,
+            externalRound: survivor_game_picks.externalRound,
+            externalPickedTeamId: survivor_game_picks.externalPickedTeamId,
+            externalPickedTeamName: survivor_game_picks.externalPickedTeamName,
+          })
+          .from(survivor_game_picks)
+          .where(
+            and(
+              eq(survivor_game_picks.survivorGameId, participation.survivorId),
+              eq(survivor_game_picks.userId, user.id),
+            ),
+          );
+
+        // Calculate if user is eliminated
+        const status = await calculateSurvivorStatus(
+          userPicks,
+          participation.roundsSelected || [],
+          participation.lives,
+          participation.externalLeagueId,
+          participation.externalSeason,
+        );
+
+        // Skip if user is eliminated
+        if (status.isEliminated) {
+          console.log(
+            `[Survivor Reminder] User ${user.email} is eliminated from ${participation.survivorName}`,
+          );
+          continue;
+        }
+
         // Get the active/next round for this survivor
         const activeRound = getActiveRound(participation.roundsSelected || []);
 

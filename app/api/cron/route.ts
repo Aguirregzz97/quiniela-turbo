@@ -43,7 +43,6 @@ export async function GET(request: Request) {
   await Promise.all([
     callJob("predictions-reminder", "/api/cron/send-predictions-reminder"),
     callJob("survivor-reminder", "/api/cron/send-survivor-reminder"),
-    callJob("survivor-results", "/api/cron/process-survivor-results"),
   ]);
 
   console.log("[Cron] All jobs completed:", results);
