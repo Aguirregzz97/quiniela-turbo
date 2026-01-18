@@ -16,7 +16,32 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Quiniela Turbo",
-  description: "Created By Andres Aguirre",
+  description: "Compite con tus amigos prediciendo resultados de fútbol. Quinielas y Survivor.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://quiniela-turbo.vercel.app"),
+  openGraph: {
+    title: "Quiniela Turbo",
+    description: "Compite con tus amigos prediciendo resultados de fútbol. Quinielas y Survivor.",
+    images: [
+      {
+        url: "/img/logo.png",
+        width: 1200,
+        height: 1200,
+        alt: "Quiniela Turbo Logo",
+      },
+    ],
+    locale: "es_MX",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quiniela Turbo",
+    description: "Compite con tus amigos prediciendo resultados de fútbol. Quinielas y Survivor.",
+    images: ["/img/logo.png"],
+  },
+  icons: {
+    icon: "/img/logo.png",
+    apple: "/img/logo.png",
+  },
 };
 
 export default async function RootLayout({
