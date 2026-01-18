@@ -344,7 +344,7 @@ const Sidebar = () => {
         <div className="flex items-center justify-between border-b border-border/50 bg-background/95 px-4 py-3 shadow-sm backdrop-blur-xl">
           {/* Logo/Title */}
           <Link
-            href="/quinielas"
+            href="/"
             className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <Image
