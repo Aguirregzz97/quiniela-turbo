@@ -71,9 +71,6 @@ export async function createSurvivorGame(data: CreateSurvivorFormData) {
     > = {
       survivorGameId: newSurvivorGame[0].id,
       userId: session.user.id,
-      livesRemaining: data.lives,
-      isEliminated: false,
-      eliminatedAtRound: null,
     };
 
     await db.insert(survivor_game_participants).values(participantData);

@@ -59,9 +59,9 @@ function groupPicksByUser(
   const grouped = new Map<string, SurvivorPickWithUser[]>();
 
   for (const pick of picks) {
-    const existing = grouped.get(pick.userId) || [];
+    const existing = grouped.get(pick.oderId) || [];
     existing.push(pick);
-    grouped.set(pick.userId, existing);
+    grouped.set(pick.oderId, existing);
   }
 
   // Sort each user's picks by round
@@ -495,14 +495,14 @@ export default function SurvivorPickHistory({
                                 <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-black/5">
                                   <Image
                                     src={`https://media.api-sports.io/football/teams/${pick.externalPickedTeamId}.png`}
-                                    alt={pick.externalPickedTeamName}
+                                    alt={pick.externalPickedTeamName || "Team"}
                                     fill
                                     className="object-contain p-0.5"
                                     sizes="32px"
                                   />
                                 </div>
                                 <span className="text-sm font-medium">
-                                  {pick.externalPickedTeamName}
+                                  {pick.externalPickedTeamName || "Unknown Team"}
                                 </span>
                               </div>
                             )}

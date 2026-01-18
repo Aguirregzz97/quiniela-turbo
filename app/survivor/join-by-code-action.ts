@@ -53,9 +53,6 @@ export async function joinSurvivorByCode(joinCode: string) {
     > = {
       survivorGameId: survivorGameData.id,
       userId: session.user.id,
-      livesRemaining: survivorGameData.lives,
-      isEliminated: false,
-      eliminatedAtRound: null,
     };
 
     await db.insert(survivor_game_participants).values(participantData);

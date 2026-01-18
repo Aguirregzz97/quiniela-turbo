@@ -6,7 +6,7 @@ export interface SurvivorPickData {
   externalFixtureId: string;
   externalRound: string;
   externalPickedTeamId: string;
-  externalPickedTeamName: string;
+  externalPickedTeamName: string | null;
 }
 
 export interface CalculatedSurvivorStatus {
