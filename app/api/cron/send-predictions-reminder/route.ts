@@ -392,15 +392,29 @@ export async function GET(request: Request) {
           missingPredictions,
         );
 
-        await resend.emails.send({
-          from: "Quiniela Turbo <noreply@quinielaturbo.com>",
-          to: user.email,
-          subject: `⚽ Tienes ${missingPredictions.length} pronóstico${missingPredictions.length > 1 ? "s" : ""} pendiente${missingPredictions.length > 1 ? "s" : ""}`,
-          html: emailHtml,
-          replyTo: "quinielaturbo1@gmail.com",
-        });
+        try {
+          const result = await resend.emails.send({
+            from: "Quiniela Turbo <noreply@quinielaturbo.com>",
+            to: user.email,
+            subject: `⚽ Tienes ${missingPredictions.length} pronóstico${missingPredictions.length > 1 ? "s" : ""} pendiente${missingPredictions.length > 1 ? "s" : ""}`,
+            html: emailHtml,
+            replyTo: "quinielaturbo1@gmail.com",
+          });
 
-        emailsSent++;
+          if (result.error) {
+            console.error(
+              `Failed to send email to ${user.email}:`,
+              result.error,
+            );
+          } else {
+            console.log(
+              `Email sent successfully to ${user.email}, id: ${result.data?.id}`,
+            );
+            emailsSent++;
+          }
+        } catch (emailError) {
+          console.error(`Error sending email to ${user.email}:`, emailError);
+        }
       } else {
         console.log(
           `User ${user.email} has no missing predictions for the current round`,

@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-// Use Node.js runtime for database operations
 export const runtime = "nodejs";
 
 import { db } from "@/db";
@@ -16,37 +15,81 @@ import {
   getActiveRound,
 } from "@/lib/api-football/fetchRoundFixtures";
 
-export async function GET(request: NextRequest) {
+interface DebugMissingPrediction {
+  quinielaName: string;
+  quinielaId: string;
+  fixtureId: string;
+  homeTeam: string;
+  awayTeam: string;
+  matchDate: string;
+  status: string;
+}
+
+interface DebugUserResult {
+  userId: string;
+  email: string | null;
+  name: string | null;
+  quinielas: number;
+  missingPredictions: DebugMissingPrediction[];
+  completedPredictions: {
+    quinielaName: string;
+    fixtureId: string;
+    homeTeam: string;
+    awayTeam: string;
+    predictedHome: number | null;
+    predictedAway: number | null;
+  }[];
+  skippedFixtures: {
+    quinielaName: string;
+    fixtureId: string;
+    homeTeam: string;
+    awayTeam: string;
+    reason: string;
+  }[];
+}
+
+// Debug endpoint - shows what emails would be sent without actually sending
+export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const skipCache = searchParams.get("skipCache") === "true";
+    // Verify cron secret for security
+    const authHeader = request.headers.get("authorization");
+    if (
+      process.env.CRON_SECRET &&
+      authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const debugInfo: Record<string, unknown> = {};
+    console.log("[Predictions Reminder Debug] Starting debug analysis...");
 
-    // Show date info
-    const now = new Date();
-    debugInfo.dateInfo = {
-      serverTime: now.toISOString(),
-      serverTimeLocal: now.toString(),
-      skipCache,
-    };
-
-    // Step 1: Get all users
+    // Get all users
     const allUsers = await db.select().from(users);
-    debugInfo.totalUsers = allUsers.length;
-    debugInfo.users = allUsers.map((u) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name,
-    }));
 
-    // Step 2: For each user, get their quinielas
-    const userQuinielas: Record<string, unknown>[] = [];
+    const debugResults: DebugUserResult[] = [];
+
+    // Optional: Only check specific user for testing
+    const onlySendEmailsTo = process.env.ONLY_SEND_EMAILS_TO;
 
     for (const user of allUsers) {
       if (!user.email) continue;
 
-      const participations = await db
+      // Skip users that don't match the test email filter
+      if (onlySendEmailsTo && user.email !== onlySendEmailsTo) {
+        continue;
+      }
+
+      const userResult: DebugUserResult = {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        quinielas: 0,
+        missingPredictions: [],
+        completedPredictions: [],
+        skippedFixtures: [],
+      };
+
+      // Get all quinielas this user participates in
+      const userParticipations = await db
         .select({
           quinielaId: quiniela_participants.quinielaId,
           quinielaName: quinielas.name,
@@ -61,126 +104,140 @@ export async function GET(request: NextRequest) {
         )
         .where(eq(quiniela_participants.userId, user.id));
 
-      const quinielaDetails = [];
+      userResult.quinielas = userParticipations.length;
 
-      for (const p of participations) {
-        // Step 3: Get active round and fetch its fixtures
-        const activeRound = getActiveRound(p.roundsSelected || []);
+      for (const participation of userParticipations) {
+        // Get the active/next round
+        const activeRound = getActiveRound(participation.roundsSelected || []);
 
         if (!activeRound) {
-          quinielaDetails.push({
-            quinielaName: p.quinielaName,
-            quinielaId: p.quinielaId,
-            leagueId: p.externalLeagueId,
-            season: p.externalSeason,
-            activeRound: null,
-            error: "No active round found",
-          });
           continue;
         }
 
+        // Fetch fixtures for the active round
         const roundFixtures = await fetchRoundFixtures(
-          p.externalLeagueId,
-          p.externalSeason,
+          participation.externalLeagueId,
+          participation.externalSeason,
           activeRound.roundName,
-          skipCache,
         );
 
-        // Step 4: Get existing predictions
-        const fixtureIds = roundFixtures.map((f) => f.fixture.id.toString());
-
-        let existingPreds: { externalFixtureId: string }[] = [];
-        if (fixtureIds.length > 0) {
-          existingPreds = await db
-            .select({ externalFixtureId: predictions.externalFixtureId })
-            .from(predictions)
-            .where(
-              and(
-                eq(predictions.userId, user.id),
-                eq(predictions.quinielaId, p.quinielaId),
-                inArray(predictions.externalFixtureId, fixtureIds),
-              ),
-            );
+        if (roundFixtures.length === 0) {
+          continue;
         }
 
-        const predictedIds = new Set(
-          existingPreds.map((e) => e.externalFixtureId),
+        // Get fixture IDs
+        const fixtureIds = roundFixtures.map((f) => f.fixture.id.toString());
+
+        // Get user's existing predictions for these fixtures
+        const existingPredictions = await db
+          .select()
+          .from(predictions)
+          .where(
+            and(
+              eq(predictions.userId, user.id),
+              eq(predictions.quinielaId, participation.quinielaId),
+              inArray(predictions.externalFixtureId, fixtureIds),
+            ),
+          );
+
+        // Map predictions by fixture ID
+        const predictionsByFixture = new Map(
+          existingPredictions.map((p) => [p.externalFixtureId, p]),
         );
 
-        // Find missing (not predicted + not started)
-        const currentTime = new Date();
-        const missingFixtures = roundFixtures.filter((f) => {
-          const fixtureId = f.fixture.id.toString();
-          const matchDate = new Date(f.fixture.date);
-          const isPredicted = predictedIds.has(fixtureId);
-          const hasNotStarted = matchDate > currentTime;
-          return !isPredicted && hasNotStarted;
-        });
+        // Check each fixture
+        const now = new Date();
+        for (const fixture of roundFixtures) {
+          const fixtureId = fixture.fixture.id.toString();
+          const matchDate = new Date(fixture.fixture.date);
+          const prediction = predictionsByFixture.get(fixtureId);
 
-        quinielaDetails.push({
-          quinielaName: p.quinielaName,
-          quinielaId: p.quinielaId,
-          leagueId: p.externalLeagueId,
-          season: p.externalSeason,
-          activeRound: activeRound.roundName,
-          activeRoundDates: activeRound.dates,
-          roundFixturesCount: roundFixtures.length,
-          roundFixtures: roundFixtures.map((f) => ({
-            id: f.fixture.id,
-            date: f.fixture.date,
-            status: f.fixture.status.short,
-            home: f.teams.home.name,
-            away: f.teams.away.name,
-            hasStarted: new Date(f.fixture.date) <= currentTime,
-          })),
-          existingPredictionsCount: existingPreds.length,
-          existingPredictionFixtureIds: existingPreds.map(
-            (e) => e.externalFixtureId,
-          ),
-          missingPredictionsCount: missingFixtures.length,
-          missingFixtures: missingFixtures.map((f) => ({
-            id: f.fixture.id,
-            date: f.fixture.date,
-            home: f.teams.home.name,
-            away: f.teams.away.name,
-          })),
-        });
+          const fixtureInfo = {
+            quinielaName: participation.quinielaName,
+            quinielaId: participation.quinielaId,
+            fixtureId,
+            homeTeam: fixture.teams.home.name,
+            awayTeam: fixture.teams.away.name,
+          };
+
+          // Check if match has already started
+          if (matchDate <= now) {
+            userResult.skippedFixtures.push({
+              ...fixtureInfo,
+              reason: `Match already started/finished (${fixture.fixture.status.short})`,
+            });
+            continue;
+          }
+
+          // Check if prediction exists with actual values
+          if (
+            prediction &&
+            prediction.predictedHomeScore !== null &&
+            prediction.predictedAwayScore !== null
+          ) {
+            userResult.completedPredictions.push({
+              ...fixtureInfo,
+              predictedHome: prediction.predictedHomeScore,
+              predictedAway: prediction.predictedAwayScore,
+            });
+          } else {
+            userResult.missingPredictions.push({
+              ...fixtureInfo,
+              matchDate: fixture.fixture.date,
+              status: fixture.fixture.status.short,
+            });
+          }
+        }
       }
 
-      userQuinielas.push({
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
-        participationsCount: participations.length,
-        quinielas: quinielaDetails,
-        totalMissingPredictions: quinielaDetails.reduce(
-          (sum, q) => sum + (q.missingPredictionsCount as number),
-          0,
-        ),
-      });
+      // Only include users with some quiniela activity
+      if (userResult.quinielas > 0) {
+        debugResults.push(userResult);
+      }
     }
 
-    debugInfo.userQuinielas = userQuinielas;
+    // Summary stats
+    const usersWithMissingPredictions = debugResults.filter(
+      (r) => r.missingPredictions.length > 0,
+    );
+    const totalMissingPredictions = usersWithMissingPredictions.reduce(
+      (sum, r) => sum + r.missingPredictions.length,
+      0,
+    );
 
-    // Summary
-    debugInfo.summary = {
-      usersWithMissingPredictions: userQuinielas.filter(
-        (u) => (u.totalMissingPredictions as number) > 0,
-      ).length,
-      totalMissingPredictions: userQuinielas.reduce(
-        (sum, u) => sum + (u.totalMissingPredictions as number),
-        0,
-      ),
-    };
+    // Get active round info for context
+    const sampleQuiniela = await db.select().from(quinielas).limit(1);
+    let activeRoundInfo = null;
+    if (sampleQuiniela.length > 0) {
+      const activeRound = getActiveRound(
+        sampleQuiniela[0].roundsSelected || [],
+      );
+      if (activeRound) {
+        activeRoundInfo = {
+          roundName: activeRound.roundName,
+          dates: activeRound.dates,
+        };
+      }
+    }
 
-    return NextResponse.json(debugInfo, { status: 200 });
+    return NextResponse.json({
+      success: true,
+      note: "This is a debug endpoint - no emails were sent",
+      timestamp: new Date().toISOString(),
+      activeRound: activeRoundInfo,
+      summary: {
+        totalUsersChecked: debugResults.length,
+        usersWhoWouldReceiveEmail: usersWithMissingPredictions.length,
+        totalMissingPredictions: totalMissingPredictions,
+      },
+      users: debugResults,
+    });
   } catch (error) {
-    console.error("Debug error:", error);
+    console.error("[Predictions Reminder Debug] Error:", error);
     return NextResponse.json(
       {
-        error: "Debug failed",
+        error: "Failed to analyze predictions reminders",
         details: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : undefined,
       },
       { status: 500 },
     );

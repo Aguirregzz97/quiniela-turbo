@@ -401,15 +401,32 @@ export async function GET(request: Request) {
           missingSurvivorPicks,
         );
 
-        await resend.emails.send({
-          from: "Quiniela Turbo <noreply@quinielaturbo.com>",
-          to: user.email,
-          subject: `⚔️ Elige tu equipo en ${missingSurvivorPicks.length} Survivor${missingSurvivorPicks.length > 1 ? "s" : ""}`,
-          html: emailHtml,
-          replyTo: "quinielaturbo1@gmail.com",
-        });
+        try {
+          const result = await resend.emails.send({
+            from: "Quiniela Turbo <noreply@quinielaturbo.com>",
+            to: user.email,
+            subject: `⚔️ Elige tu equipo en ${missingSurvivorPicks.length} Survivor${missingSurvivorPicks.length > 1 ? "s" : ""}`,
+            html: emailHtml,
+            replyTo: "quinielaturbo1@gmail.com",
+          });
 
-        emailsSent++;
+          if (result.error) {
+            console.error(
+              `[Survivor Reminder] Failed to send email to ${user.email}:`,
+              result.error,
+            );
+          } else {
+            console.log(
+              `[Survivor Reminder] Email sent successfully to ${user.email}, id: ${result.data?.id}`,
+            );
+            emailsSent++;
+          }
+        } catch (emailError) {
+          console.error(
+            `[Survivor Reminder] Error sending email to ${user.email}:`,
+            emailError,
+          );
+        }
       } else {
         console.log(
           `[Survivor Reminder] User ${user.email} has picks for all active survivor rounds`,
