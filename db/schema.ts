@@ -290,9 +290,6 @@ export const survivor_game_participants = pgTable("survivor_game_participant", {
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  livesRemaining: integer("livesRemaining").notNull(),
-  isEliminated: boolean("isEliminated").notNull().default(false),
-  eliminatedAtRound: text("eliminatedAtRound"),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });

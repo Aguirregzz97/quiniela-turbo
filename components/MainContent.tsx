@@ -13,6 +13,11 @@ export default function MainContent({
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   useEffect(() => {
     const checkWidth = () => {
       // Default to collapsed on narrow screens
