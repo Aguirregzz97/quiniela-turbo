@@ -4,8 +4,9 @@ import { FixturesApiResponse, FixtureData } from "@/types/fixtures";
 
 /**
  * Determines the current/next active round from a list of rounds
- * Returns the first round whose start date is today or in the future.
- * This ensures we move to the next round once a round's first match day has passed.
+ * Returns the first round that is still ongoing or hasn't started yet.
+ * A round is considered "ongoing" if its last match day (end date) is today or in the future.
+ * This ensures we stay on the current round until all its matches are complete.
  */
 export function getActiveRound(
   rounds: { roundName: string; dates: string[] }[],
@@ -18,16 +19,18 @@ export function getActiveRound(
   for (const round of rounds) {
     if (round.dates.length === 0) continue;
 
-    const roundStart = new Date(round.dates[0]);
-    roundStart.setHours(0, 0, 0, 0);
+    // Get the last date of the round (end date)
+    const roundEnd = new Date(round.dates[round.dates.length - 1]);
+    roundEnd.setHours(0, 0, 0, 0);
 
-    // Return the first round whose start date is today or in the future
-    if (roundStart >= today) {
+    // Return the first round whose end date is today or in the future
+    // This means the round is either ongoing or hasn't started yet
+    if (roundEnd >= today) {
       return round;
     }
   }
 
-  // If no future round found, return the last round (all rounds have started)
+  // If no ongoing/future round found, return the last round (all rounds have ended)
   return rounds[rounds.length - 1];
 }
 
