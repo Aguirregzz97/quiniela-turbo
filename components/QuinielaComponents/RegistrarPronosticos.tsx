@@ -64,15 +64,20 @@ export function getDefaultActiveRound(
 ): string {
   if (!rounds.length) return "";
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Get today's date in Mexico City timezone
+  const now = new Date();
+  const mexicoCityDate = now.toLocaleDateString("en-CA", {
+    timeZone: "America/Mexico_City",
+  }); // Returns YYYY-MM-DD format
+  const today = new Date(mexicoCityDate + "T00:00:00");
 
   // Check if today falls within any round
   for (const round of rounds) {
     if (round.dates.length === 0) continue;
 
-    const roundEnd = new Date(round.dates[round.dates.length - 1]);
-    roundEnd.setHours(23, 59, 59, 999);
+    // round.dates are in YYYY-MM-DD format (Mexico City dates from API)
+    const roundEndDate = round.dates[round.dates.length - 1];
+    const roundEnd = new Date(roundEndDate + "T23:59:59");
 
     if (roundEnd >= today) {
       return round.roundName;

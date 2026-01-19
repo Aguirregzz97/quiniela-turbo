@@ -130,18 +130,22 @@ export default function CreateQuinielaForm() {
       return rounds.response;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of today
+    // Get today's date in Mexico City timezone
+    const now = new Date();
+    const mexicoCityDate = now.toLocaleDateString("en-CA", {
+      timeZone: "America/Mexico_City",
+    }); // Returns YYYY-MM-DD format
+    const today = new Date(mexicoCityDate + "T00:00:00");
 
     return rounds.response.filter((round) => {
       // Check if the round hasn't started yet (earliest date is in the future)
-      const earliestDate = round.dates
-        .map((dateStr) => new Date(dateStr))
-        .sort((a, b) => a.getTime() - b.getTime())[0];
+      // round.dates are in YYYY-MM-DD format (Mexico City dates from API)
+      const sortedDates = [...round.dates].sort();
+      const earliestDateStr = sortedDates[0];
 
-      if (!earliestDate) return false;
+      if (!earliestDateStr) return false;
 
-      earliestDate.setHours(0, 0, 0, 0);
+      const earliestDate = new Date(earliestDateStr + "T00:00:00");
       return earliestDate >= today;
     });
   }, [rounds, allowAllRounds]);
