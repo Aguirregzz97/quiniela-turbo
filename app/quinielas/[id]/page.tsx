@@ -155,7 +155,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
               currentUserId={session.user.id}
               participants={participants}
             />
-            <QuinielaDetailsDrawer quinielaData={quinielaData} />
+            <QuinielaDetailsDrawer quinielaData={quinielaData} participantCount={participants.length} />
             {session?.user?.id === quinielaData.ownerId && (
               <>
                 <Button asChild size="sm">

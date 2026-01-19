@@ -9,10 +9,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Info, X } from "lucide-react";
+import { Info, X, Trophy, DollarSign } from "lucide-react";
 import Image from "next/image";
 import ClickableJoinCode from "./ClickableJoinCode";
 import CopyJoinLinkButton from "./CopyJoinLinkButton";
+
+interface PrizePosition {
+  position: number;
+  percentage: number;
+}
 
 interface QuinielaDetailsDrawerProps {
   quinielaData: {
@@ -24,12 +29,19 @@ interface QuinielaDetailsDrawerProps {
     createdAt: Date;
     ownerName: string | null;
     ownerEmail: string | null;
+    moneyToEnter?: number | null;
+    prizeDistribution?: PrizePosition[] | null;
   };
+  participantCount?: number;
 }
 
 export default function QuinielaDetailsDrawer({
   quinielaData,
+  participantCount = 0,
 }: QuinielaDetailsDrawerProps) {
+  const moneyToEnter = quinielaData.moneyToEnter ?? 0;
+  const totalPrize = moneyToEnter * participantCount;
+  const prizeDistribution = quinielaData.prizeDistribution ?? [];
 
   return (
     <Drawer>
@@ -81,6 +93,88 @@ export default function QuinielaDetailsDrawer({
                 </p>
               </div>
             </div>
+
+            {/* Prize Section */}
+            {moneyToEnter > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-foreground">Premios</h3>
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  {/* Total Prize */}
+                  <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                        <DollarSign className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Pozo Total</p>
+                        <p className="text-xl font-bold text-green-600">
+                          ${totalPrize.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <p>{participantCount} participante{participantCount !== 1 ? "s" : ""}</p>
+                      <p>${moneyToEnter} c/u</p>
+                    </div>
+                  </div>
+
+                  {/* Prize Distribution */}
+                  {prizeDistribution.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Distribución de Premios
+                      </p>
+                      <div className="space-y-2">
+                        {prizeDistribution
+                          .sort((a, b) => a.position - b.position)
+                          .map((prize) => {
+                            const prizeAmount = (totalPrize * prize.percentage) / 100;
+                            return (
+                              <div
+                                key={prize.position}
+                                className="flex items-center justify-between rounded-md bg-background px-3 py-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                                      prize.position === 1
+                                        ? "bg-yellow-500/20 text-yellow-600"
+                                        : prize.position === 2
+                                          ? "bg-gray-300/30 text-gray-500"
+                                          : prize.position === 3
+                                            ? "bg-orange-500/20 text-orange-600"
+                                            : "bg-muted text-muted-foreground"
+                                    }`}
+                                  >
+                                    {prize.position}°
+                                  </div>
+                                  <span className="text-sm">
+                                    {prize.position === 1
+                                      ? "Primer lugar"
+                                      : prize.position === 2
+                                        ? "Segundo lugar"
+                                        : prize.position === 3
+                                          ? "Tercer lugar"
+                                          : `${prize.position}° lugar`}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold">
+                                    ${prizeAmount.toLocaleString()}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {prize.percentage}%
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* League and Admin Info */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

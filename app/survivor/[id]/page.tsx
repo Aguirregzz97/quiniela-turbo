@@ -222,7 +222,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
               totalLives={survivorData.lives}
               participants={participants}
             />
-            <SurvivorDetailsDrawer survivorData={survivorData} />
+            <SurvivorDetailsDrawer survivorData={survivorData} participantCount={participants.length} />
             {session?.user?.id === survivorData.ownerId && (
               <>
                 <Button asChild size="sm">
