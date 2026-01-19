@@ -13,15 +13,20 @@ export function getActiveRound(
 ): { roundName: string; dates: string[] } | null {
   if (!rounds.length) return null;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Get today's date in Mexico City timezone
+  const now = new Date();
+  const mexicoCityDate = now.toLocaleDateString("en-CA", {
+    timeZone: "America/Mexico_City",
+  }); // Returns YYYY-MM-DD format
+  const today = new Date(mexicoCityDate + "T00:00:00");
 
   for (const round of rounds) {
     if (round.dates.length === 0) continue;
 
     // Get the last date of the round (end date)
-    const roundEnd = new Date(round.dates[round.dates.length - 1]);
-    roundEnd.setHours(0, 0, 0, 0);
+    // round.dates are in YYYY-MM-DD format
+    const roundEndDate = round.dates[round.dates.length - 1];
+    const roundEnd = new Date(roundEndDate + "T00:00:00");
 
     // Return the first round whose end date is today or in the future
     // This means the round is either ongoing or hasn't started yet
