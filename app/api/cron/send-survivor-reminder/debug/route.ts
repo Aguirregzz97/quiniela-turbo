@@ -16,27 +16,34 @@ import {
 } from "@/lib/api-football/fetchRoundFixtures";
 import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
-interface DebugSurvivorPick {
+interface DebugPick {
+  round: string;
+  teamPicked: string;
+  fixtureId: string;
+}
+
+interface DebugSurvivorGame {
   survivorName: string;
   survivorId: string;
-  roundName: string;
-  firstMatchDate: string;
-  fixtureCount: number;
-  fixtures: { home: string; away: string; date: string; status: string }[];
+  leagueId: string;
+  season: string;
+  totalLives: number;
+  livesRemaining: number;
+  isEliminated: boolean;
+  eliminatedAtRound: string | null;
+  activeRound: string | null;
+  hasPickForActiveRound: boolean;
+  activeRoundPickedTeam: string | null;
+  allPicks: DebugPick[];
+  needsReminder: boolean;
 }
 
 interface DebugUserResult {
   userId: string;
   email: string | null;
   name: string | null;
-  activeSurvivorGames: number;
-  missingSurvivorPicks: DebugSurvivorPick[];
-  gamesWithPicks: {
-    survivorName: string;
-    roundName: string;
-    pickedTeam: string;
-  }[];
-  eliminatedGames: { name: string; livesRemaining: number; eliminatedAt: string | null }[];
+  survivorGames: DebugSurvivorGame[];
+  wouldReceiveEmail: boolean;
 }
 
 // Debug endpoint - shows what emails would be sent without actually sending
@@ -61,6 +68,12 @@ export async function GET(request: Request) {
     // Optional: Only check specific user for testing
     const onlySendEmailsTo = process.env.ONLY_SEND_EMAILS_TO;
 
+    // Get current time info for context
+    const now = new Date();
+    const mexicoCityTime = now.toLocaleString("es-MX", {
+      timeZone: "America/Mexico_City",
+    });
+
     for (const user of allUsers) {
       if (!user.email) continue;
 
@@ -73,10 +86,8 @@ export async function GET(request: Request) {
         userId: user.id,
         email: user.email,
         name: user.name,
-        activeSurvivorGames: 0,
-        missingSurvivorPicks: [],
-        gamesWithPicks: [],
-        eliminatedGames: [],
+        survivorGames: [],
+        wouldReceiveEmail: false,
       };
 
       // Get all survivor games this user participates in
@@ -124,99 +135,80 @@ export async function GET(request: Request) {
           participation.externalSeason,
         );
 
-        // Track eliminated games
-        if (status.isEliminated) {
-          userResult.eliminatedGames.push({
-            name: participation.survivorName,
-            livesRemaining: status.livesRemaining,
-            eliminatedAt: status.eliminatedAtRound,
-          });
-          continue;
-        }
-
-        userResult.activeSurvivorGames++;
-
         // Get the active/next round
         const activeRound = getActiveRound(participation.roundsSelected || []);
 
-        if (!activeRound) {
-          continue;
-        }
-
         // Check if user already has a pick for this round
-        const existingPick = userPicks.find(
-          (p) => p.externalRound === activeRound.roundName,
-        );
+        const existingPick = activeRound
+          ? userPicks.find((p) => p.externalRound === activeRound.roundName)
+          : null;
 
-        if (existingPick) {
-          userResult.gamesWithPicks.push({
-            survivorName: participation.survivorName,
-            roundName: activeRound.roundName,
-            pickedTeam: existingPick.externalPickedTeamName,
-          });
-          continue;
-        }
+        // Determine if this game needs a reminder
+        const needsReminder =
+          !status.isEliminated && !!activeRound && !existingPick;
 
-        // Fetch fixtures for the active round
-        const roundFixtures = await fetchRoundFixtures(
-          participation.externalLeagueId,
-          participation.externalSeason,
-          activeRound.roundName,
-        );
+        // Build all picks list
+        const allPicks: DebugPick[] = userPicks.map((pick) => ({
+          round: pick.externalRound,
+          teamPicked: pick.externalPickedTeamName,
+          fixtureId: pick.externalFixtureId,
+        }));
 
-        if (roundFixtures.length === 0) {
-          continue;
-        }
-
-        // Get first match date
-        const sortedFixtures = [...roundFixtures].sort(
-          (a, b) =>
-            new Date(a.fixture.date).getTime() -
-            new Date(b.fixture.date).getTime(),
-        );
-        const firstMatchDate = new Date(sortedFixtures[0].fixture.date);
-
-        userResult.missingSurvivorPicks.push({
+        const gameInfo: DebugSurvivorGame = {
           survivorName: participation.survivorName,
           survivorId: participation.survivorId,
-          roundName: activeRound.roundName,
-          firstMatchDate: firstMatchDate.toISOString(),
-          fixtureCount: roundFixtures.length,
-          fixtures: roundFixtures.slice(0, 5).map((f) => ({
-            home: f.teams.home.name,
-            away: f.teams.away.name,
-            date: f.fixture.date,
-            status: f.fixture.status.short,
-          })),
-        });
+          leagueId: participation.externalLeagueId,
+          season: participation.externalSeason,
+          totalLives: participation.lives,
+          livesRemaining: status.livesRemaining,
+          isEliminated: status.isEliminated,
+          eliminatedAtRound: status.eliminatedAtRound,
+          activeRound: activeRound?.roundName || null,
+          hasPickForActiveRound: !!existingPick,
+          activeRoundPickedTeam: existingPick?.externalPickedTeamName || null,
+          allPicks,
+          needsReminder,
+        };
+
+        userResult.survivorGames.push(gameInfo);
+
+        if (needsReminder) {
+          userResult.wouldReceiveEmail = true;
+        }
       }
 
-      // Only include users with some survivor activity
-      if (
-        userResult.activeSurvivorGames > 0 ||
-        userResult.eliminatedGames.length > 0
-      ) {
+      // Only include users with survivor games
+      if (userResult.survivorGames.length > 0) {
         debugResults.push(userResult);
       }
     }
 
     // Summary stats
-    const usersWithMissingPicks = debugResults.filter(
-      (r) => r.missingSurvivorPicks.length > 0,
+    const usersWhoWouldReceiveEmail = debugResults.filter(
+      (r) => r.wouldReceiveEmail,
     );
-    const totalMissingPicks = usersWithMissingPicks.reduce(
-      (sum, r) => sum + r.missingSurvivorPicks.length,
+    const totalGamesNeedingReminder = debugResults.reduce(
+      (sum, r) => sum + r.survivorGames.filter((g) => g.needsReminder).length,
       0,
+    );
+    const totalEliminatedUsers = debugResults.filter(
+      (r) =>
+        r.survivorGames.length > 0 &&
+        r.survivorGames.every((g) => g.isEliminated === true),
     );
 
     return NextResponse.json({
       success: true,
       note: "This is a debug endpoint - no emails were sent",
-      timestamp: new Date().toISOString(),
+      serverTime: {
+        utc: now.toISOString(),
+        mexicoCity: mexicoCityTime,
+      },
       summary: {
-        totalUsersChecked: debugResults.length,
-        usersWhoWouldReceiveEmail: usersWithMissingPicks.length,
-        totalMissingSurvivorPicks: totalMissingPicks,
+        totalUsersWithSurvivorGames: debugResults.length,
+        usersWhoWouldReceiveEmail: usersWhoWouldReceiveEmail.length,
+        totalGamesNeedingReminder,
+        usersFullyEliminated: totalEliminatedUsers.length,
       },
       users: debugResults,
     });
