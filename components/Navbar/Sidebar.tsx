@@ -18,6 +18,7 @@ import {
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
 import { useSession } from "next-auth/react";
+import SignOutButton from "./SignOutButton";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
@@ -327,15 +328,7 @@ const Sidebar = () => {
           </Link>
 
           {/* Sign Out */}
-          <Link
-            href="/api/auth/signout"
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-          >
-            <LogOut className="h-4 w-4" />
-            {!isCollapsed && "Cerrar Sesión"}
-          </Link>
+          <SignOutButton isCollapsed={isCollapsed} />
         </div>
       </div>
 
