@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import redis from "@/redisClient";
 import { FixturesApiResponse } from "@/types/fixtures";
+import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
     const params: Record<string, string> = {
       league: leagueId,
       season: season,
+      timezone: MEXICO_CITY_TIMEZONE,
     };
 
     // Add date filters if provided

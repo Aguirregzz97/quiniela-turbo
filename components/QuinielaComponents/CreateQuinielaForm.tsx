@@ -118,8 +118,17 @@ export default function CreateQuinielaForm() {
   } = useRounds(leagueId, CURRENT_SEASON);
 
   // Filter future rounds only - rounds that haven't started yet
+  // Unless NEXT_PUBLIC_ALLOW_ALL_ROUNDS is set to "true"
+  const allowAllRounds =
+    process.env.NEXT_PUBLIC_ALLOW_ALL_ROUNDS === "true";
+
   const futureRounds = useMemo(() => {
     if (!rounds?.response) return [];
+
+    // If allowAllRounds is enabled, return all rounds without filtering
+    if (allowAllRounds) {
+      return rounds.response;
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to start of today
@@ -135,7 +144,7 @@ export default function CreateQuinielaForm() {
       earliestDate.setHours(0, 0, 0, 0);
       return earliestDate >= today;
     });
-  }, [rounds]);
+  }, [rounds, allowAllRounds]);
 
   // Create dynamic schema with rounds validation
   const createQuinielaSchemaWithValidation = useMemo(() => {

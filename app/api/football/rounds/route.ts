@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import redis from "@/redisClient";
 import { RoundsApiResponse, RoundData } from "@/types/rounds";
+import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 type Tournament = "apertura" | "clausura";
 
@@ -41,11 +42,19 @@ function getRoundTournament(round: RoundData): Tournament | null {
  * by finding the next upcoming round or the most recent one
  */
 function detectCurrentTournament(rounds: RoundData[]): Tournament {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Get today's date in Mexico City timezone
+  const now = new Date();
+  const mexicoCityDate = now.toLocaleDateString("en-CA", {
+    timeZone: MEXICO_CITY_TIMEZONE,
+  }); // Returns YYYY-MM-DD format
+  const today = new Date(mexicoCityDate + "T00:00:00");
 
   const upcomingRound = rounds.find((round) =>
-    round.dates.some((date) => new Date(date) >= today),
+    round.dates.some((dateStr) => {
+      // Dates from API are in Mexico City timezone (YYYY-MM-DD format)
+      const date = new Date(dateStr + "T00:00:00");
+      return date >= today;
+    }),
   );
 
   if (!upcomingRound) {
@@ -53,7 +62,6 @@ function detectCurrentTournament(rounds: RoundData[]): Tournament {
   }
 
   const isApertura = upcomingRound.round.toLowerCase().startsWith("apertura");
-  const isClausura = upcomingRound.round.toLowerCase().startsWith("clausura");
 
   return isApertura ? "apertura" : "clausura";
 }
@@ -106,6 +114,7 @@ export async function GET(request: NextRequest) {
           league: leagueId,
           season: season,
           dates: "true",
+          timezone: MEXICO_CITY_TIMEZONE,
         },
         headers: {
           "X-RapidAPI-Key": apiKey,

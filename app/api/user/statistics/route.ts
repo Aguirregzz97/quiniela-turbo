@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import axios from "axios";
 import redis from "@/redisClient";
+import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 export interface UserStatisticsResponse {
   // Overall accuracy metrics
@@ -87,6 +88,7 @@ async function fetchFixturesForQuiniela(
     const params: Record<string, string> = {
       league: leagueId,
       season: season,
+      timezone: MEXICO_CITY_TIMEZONE,
     };
 
     if (fromDate) params.from = fromDate;

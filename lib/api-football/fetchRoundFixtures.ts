@@ -1,6 +1,7 @@
 import axios from "axios";
 import redis from "@/redisClient";
 import { FixturesApiResponse, FixtureData } from "@/types/fixtures";
+import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 /**
  * Determines the current/next active round from a list of rounds
@@ -98,6 +99,7 @@ export async function fetchRoundFixtures(
         league: leagueId,
         season: season,
         round: roundName,
+        timezone: MEXICO_CITY_TIMEZONE,
       },
       headers: {
         "X-RapidAPI-Key": apiKey,
