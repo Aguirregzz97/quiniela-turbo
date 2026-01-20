@@ -9,7 +9,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Info, X, Trophy, DollarSign } from "lucide-react";
+import { Info, X, DollarSign, Target, CheckCircle, XCircle } from "lucide-react";
 import Image from "next/image";
 import ClickableJoinCode from "./ClickableJoinCode";
 import CopyJoinLinkButton from "./CopyJoinLinkButton";
@@ -31,6 +31,8 @@ interface QuinielaDetailsDrawerProps {
     ownerEmail: string | null;
     moneyToEnter?: number | null;
     prizeDistribution?: PrizePosition[] | null;
+    pointsForExactResultPrediction?: number | null;
+    pointsForCorrectResultPrediction?: number | null;
   };
   participantCount?: number;
 }
@@ -42,6 +44,8 @@ export default function QuinielaDetailsDrawer({
   const moneyToEnter = quinielaData.moneyToEnter ?? 0;
   const totalPrize = moneyToEnter * participantCount;
   const prizeDistribution = quinielaData.prizeDistribution ?? [];
+  const exactPoints = quinielaData.pointsForExactResultPrediction ?? 2;
+  const correctResultPoints = quinielaData.pointsForCorrectResultPrediction ?? 1;
 
   return (
     <Drawer>
@@ -175,6 +179,34 @@ export default function QuinielaDetailsDrawer({
                 </div>
               </div>
             )}
+
+            {/* Points System */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-foreground">Sistema de Puntos</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
+                    <Target className="h-4 w-4 text-green-600" />
+                  </div>
+                  <p className="text-lg font-bold text-green-600">{exactPoints}</p>
+                  <p className="text-xs text-muted-foreground">Resultado Exacto</p>
+                </div>
+                <div className="rounded-lg bg-blue-500/10 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/20">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <p className="text-lg font-bold text-blue-600">{correctResultPoints}</p>
+                  <p className="text-xs text-muted-foreground">Resultado Correcto</p>
+                </div>
+                <div className="rounded-lg bg-red-500/10 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20">
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  </div>
+                  <p className="text-lg font-bold text-red-600">0</p>
+                  <p className="text-xs text-muted-foreground">Incorrecto</p>
+                </div>
+              </div>
+            </div>
 
             {/* League and Admin Info */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
