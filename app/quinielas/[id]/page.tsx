@@ -3,7 +3,6 @@ import {
   Award,
   ArrowLeft,
   Edit,
-  Dices,
   Users,
   Trophy,
   ChevronRight,
@@ -25,6 +24,8 @@ import QuinielaDetailsDrawer from "@/components/QuinielaComponents/QuinielaDetai
 import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderboard";
 import QuinielaParticipantsDrawer from "@/components/QuinielaComponents/QuinielaParticipantsDrawer";
 import DeleteQuinielaDialog from "@/components/QuinielaComponents/DeleteQuinielaDialog";
+import PendingPredictionsSection from "@/components/QuinielaComponents/PendingPredictionsSection";
+import { getPendingPredictions } from "../pending-predictions-action";
 
 interface QuinielaPageProps {
   params: Promise<{
@@ -88,6 +89,17 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     .innerJoin(users, eq(quiniela_participants.userId, users.id))
     .where(eq(quiniela_participants.quinielaId, id))
     .orderBy(quiniela_participants.createdAt);
+
+  // Fetch pending predictions data
+  const pendingPredictionsData = await getPendingPredictions(
+    quinielaData.id,
+    session.user.id,
+    quinielaData.externalLeagueId,
+    quinielaData.externalSeason,
+    (quinielaData.roundsSelected || []) as { roundName: string; dates: string[] }[]
+  );
+
+  const isAdmin = session.user.id === quinielaData.ownerId;
 
   return (
     <div className="max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -175,30 +187,16 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-8">
-        <Link
-          href={`/quinielas/${quinielaData.id}/registrar-pronosticos`}
-          className="group"
-        >
-          <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
-            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                <Dices className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold transition-colors group-hover:text-primary">
-                  Registrar Pronósticos
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Haz tus predicciones para los partidos
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
+      {/* Registrar Pronósticos Section */}
+      <PendingPredictionsSection
+        quinielaId={quinielaData.id}
+        isAdmin={isAdmin}
+        activeRound={pendingPredictionsData.activeRound}
+        totalFixtures={pendingPredictionsData.totalFixtures}
+        usersWithPending={pendingPredictionsData.usersWithPending}
+        currentUserHasPending={pendingPredictionsData.currentUserHasPending}
+        currentUserPendingCount={pendingPredictionsData.currentUserPendingCount}
+      />
 
       {/* Resultados Section */}
       <div className="mb-8">
