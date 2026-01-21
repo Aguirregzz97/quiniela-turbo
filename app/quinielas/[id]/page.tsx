@@ -62,6 +62,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         quiniela_settings.pointsForCorrectResultPrediction,
       moneyToEnter: quiniela_settings.moneyToEnter,
       prizeDistribution: quiniela_settings.prizeDistribution,
+      moneyPerRoundToEnter: quiniela_settings.moneyPerRoundToEnter,
+      prizeDistributionPerRound: quiniela_settings.prizeDistributionPerRound,
     })
     .from(quinielas)
     .innerJoin(users, eq(quinielas.ownerId, users.id))
@@ -201,7 +203,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
       {/* Resultados Section */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold">
-          Resultados de Pronósticos
+          Resultados de Pronósticos por jornada
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
@@ -218,7 +220,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
                     Resultados Por Usuario
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Ve los resultados de las predicciones de cada usuario
+                    Ve los resultados de las predicciones de cada usuario por jornada
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
@@ -240,7 +242,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
                     Resultados Por Partido
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Ve los resultados de las predicciones de cada partido
+                    Ve los resultados de las predicciones de cada partido por jornada
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />

@@ -30,18 +30,31 @@ import {
   Loader2,
   AlertCircle,
   Play,
+  DollarSign,
+  Crown,
+  Medal,
+  Award,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
 import { FixtureData } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
 import { getDefaultActiveRound } from "./RegistrarPronosticos";
 
+interface PrizeDistribution {
+  position: number;
+  percentage: number;
+}
+
 interface ResultadosPorUsuarioProps {
   quiniela: Quiniela;
   userId: string;
   exactPoints?: number;
   correctResultPoints?: number;
+  moneyPerRoundToEnter?: number | null;
+  prizeDistributionPerRound?: PrizeDistribution[] | null;
+  participantCount?: number;
 }
 
 interface UserStats {
@@ -191,8 +204,21 @@ export default function ResultadosPorUsuario({
   userId,
   exactPoints = 2,
   correctResultPoints = 1,
+  moneyPerRoundToEnter,
+  prizeDistributionPerRound,
+  participantCount = 0,
 }: ResultadosPorUsuarioProps) {
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
+
+  // Calculate per-round prize pool
+  const roundPrizePool = moneyPerRoundToEnter ? moneyPerRoundToEnter * participantCount : 0;
+  
+  const getPrizeForPosition = (position: number): number | null => {
+    if (!moneyPerRoundToEnter || !prizeDistributionPerRound || roundPrizePool === 0) return null;
+    const prize = prizeDistributionPerRound.find((p) => p.position === position);
+    if (!prize) return null;
+    return (roundPrizePool * prize.percentage) / 100;
+  };
 
   const {
     data: fixturesData,
@@ -222,6 +248,15 @@ export default function ResultadosPorUsuario({
   const roundFixtures = useMemo(() => {
     return filterFixturesByRound(fixturesData?.response, selectedRound);
   }, [fixturesData?.response, selectedRound]);
+
+  // Check if all fixtures in the round are finished
+  const isRoundComplete = useMemo(() => {
+    if (!roundFixtures.length) return false;
+    return roundFixtures.every((fixture) => {
+      const status = fixture.fixture.status.short;
+      return status === "FT" || status === "AET" || status === "PEN";
+    });
+  }, [roundFixtures]);
 
   // Filter predictions by selected round and group by user
   const roundPredictions = useMemo(() => {
@@ -348,6 +383,29 @@ export default function ResultadosPorUsuario({
     });
   }, [usersWithPredictions, userStats]);
 
+  // Determine winners (users tied for first place when round is complete)
+  const winnerUserIds = useMemo(() => {
+    if (!isRoundComplete || sortedUsers.length === 0) return new Set<string>();
+    
+    const firstUserStats = userStats.get(sortedUsers[0].id);
+    const topPoints = firstUserStats?.totalPoints || 0;
+    
+    // If top points is 0, no winner
+    if (topPoints === 0) return new Set<string>();
+    
+    // Find all users with the same top points
+    const winners = new Set<string>();
+    for (const user of sortedUsers) {
+      const stats = userStats.get(user.id);
+      if (stats?.totalPoints === topPoints) {
+        winners.add(user.id);
+      } else {
+        break; // Since sorted, no need to continue
+      }
+    }
+    return winners;
+  }, [isRoundComplete, sortedUsers, userStats]);
+
   // State to manage which cards are open
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({});
 
@@ -390,27 +448,41 @@ export default function ResultadosPorUsuario({
                 <p className="text-xs text-muted-foreground">
                   {roundFixtures.length} partidos • {sortedUsers.length}{" "}
                   participantes
+                  {isRoundComplete && " • Jornada finalizada"}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Jornada:</span>
-            <Select value={selectedRound} onValueChange={setSelectedRound}>
-              <SelectTrigger className="w-40 border-border/50">
-                <SelectValue placeholder="Seleccionar jornada" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableRounds.map(
-                  (round: { roundName: string; dates: string[] }) => (
-                    <SelectItem key={round.roundName} value={round.roundName}>
-                      {round.roundName}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {roundPrizePool > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1">
+                  <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    ${roundPrizePool.toLocaleString("es-MX")}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Premio de jornada</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Jornada:</span>
+              <Select value={selectedRound} onValueChange={setSelectedRound}>
+                <SelectTrigger className="w-40 border-border/50">
+                  <SelectValue placeholder="Seleccionar jornada" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableRounds.map(
+                    (round: { roundName: string; dates: string[] }) => (
+                      <SelectItem key={round.roundName} value={round.roundName}>
+                        {round.roundName}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -473,6 +545,7 @@ export default function ResultadosPorUsuario({
             const stats = userStats.get(user.id);
             const isOpen = openCards[user.id] || false;
             const isTopThree = index < 3;
+            const isWinner = winnerUserIds.has(user.id);
 
             if (!stats) return null;
 
@@ -485,8 +558,12 @@ export default function ResultadosPorUsuario({
                 }
               >
                 <Card
-                  className={`border-border/50 transition-all duration-200 ${
-                    isOpen ? "ring-1 ring-primary/20" : "hover:border-border"
+                  className={`transition-all duration-200 ${
+                    isWinner
+                      ? "border-amber-500/50 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 ring-1 ring-amber-500/30"
+                      : isOpen
+                        ? "border-border/50 ring-1 ring-primary/20"
+                        : "border-border/50 hover:border-border"
                   }`}
                 >
                   <CollapsibleTrigger asChild>
@@ -536,18 +613,46 @@ export default function ResultadosPorUsuario({
                             </Avatar>
 
                             <div className="min-w-0 flex-1 text-left">
-                              <h3 className="truncate text-sm font-semibold sm:text-base">
-                                {user.name || user.email}
-                              </h3>
-                              <div className="mt-1 flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <h3 className="truncate text-sm font-semibold sm:text-base">
+                                  {user.name || user.email}
+                                </h3>
+                                {isWinner && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] px-1.5 py-0.5"
+                                  >
+                                    <Crown className="mr-0.5 h-2.5 w-2.5" />
+                                    Ganador
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="mt-1 flex items-center gap-1.5">
                                 <span
-                                  className={`text-lg font-bold tabular-nums ${isTopThree ? "text-primary" : "text-foreground"}`}
+                                  className={`text-lg font-bold tabular-nums ${isWinner ? "text-amber-600 dark:text-amber-400" : isTopThree ? "text-primary" : "text-foreground"}`}
                                 >
                                   {stats.totalPoints}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   pts
                                 </span>
+                                {/* Round Prize - show when round is complete */}
+                                {isRoundComplete && (() => {
+                                  const prize = getPrizeForPosition(index + 1);
+                                  if (prize === null) return null;
+                                  return (
+                                    <Badge
+                                      variant="secondary"
+                                      className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5"
+                                    >
+                                      <DollarSign className="mr-0.5 h-2.5 w-2.5" />
+                                      {prize.toLocaleString("es-MX", {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                      })}
+                                    </Badge>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>

@@ -9,7 +9,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Info, X, DollarSign, Target, CheckCircle, XCircle } from "lucide-react";
+import { Info, X, DollarSign, Target, CheckCircle, XCircle, Trophy, Calendar } from "lucide-react";
 import Image from "next/image";
 import ClickableJoinCode from "./ClickableJoinCode";
 import CopyJoinLinkButton from "./CopyJoinLinkButton";
@@ -31,6 +31,8 @@ interface QuinielaDetailsDrawerProps {
     ownerEmail: string | null;
     moneyToEnter?: number | null;
     prizeDistribution?: PrizePosition[] | null;
+    moneyPerRoundToEnter?: number | null;
+    prizeDistributionPerRound?: PrizePosition[] | null;
     pointsForExactResultPrediction?: number | null;
     pointsForCorrectResultPrediction?: number | null;
   };
@@ -41,11 +43,22 @@ export default function QuinielaDetailsDrawer({
   quinielaData,
   participantCount = 0,
 }: QuinielaDetailsDrawerProps) {
+  // Tournament prizes
   const moneyToEnter = quinielaData.moneyToEnter ?? 0;
-  const totalPrize = moneyToEnter * participantCount;
+  const totalTournamentPrize = moneyToEnter * participantCount;
   const prizeDistribution = quinielaData.prizeDistribution ?? [];
+
+  // Per-round prizes
+  const moneyPerRoundToEnter = quinielaData.moneyPerRoundToEnter ?? 0;
+  const totalRoundPrize = moneyPerRoundToEnter * participantCount;
+  const prizeDistributionPerRound = quinielaData.prizeDistributionPerRound ?? [];
+
+  // Points
   const exactPoints = quinielaData.pointsForExactResultPrediction ?? 2;
   const correctResultPoints = quinielaData.pointsForCorrectResultPrediction ?? 1;
+
+  const hasTournamentPrize = moneyToEnter > 0 && prizeDistribution.length > 0;
+  const hasRoundPrize = moneyPerRoundToEnter > 0 && prizeDistributionPerRound.length > 0;
 
   return (
     <Drawer>
@@ -98,89 +111,7 @@ export default function QuinielaDetailsDrawer({
               </div>
             </div>
 
-            {/* Prize Section */}
-            {moneyToEnter > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground">Premios</h3>
-                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  {/* Total Prize */}
-                  <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-                        <DollarSign className="h-5 w-5 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Pozo Total</p>
-                        <p className="text-xl font-bold text-green-600">
-                          ${totalPrize.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right text-sm text-muted-foreground">
-                      <p>{participantCount} participante{participantCount !== 1 ? "s" : ""}</p>
-                      <p>${moneyToEnter} c/u</p>
-                    </div>
-                  </div>
-
-                  {/* Prize Distribution */}
-                  {prizeDistribution.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Distribución de Premios
-                      </p>
-                      <div className="space-y-2">
-                        {prizeDistribution
-                          .sort((a, b) => a.position - b.position)
-                          .map((prize) => {
-                            const prizeAmount = (totalPrize * prize.percentage) / 100;
-                            return (
-                              <div
-                                key={prize.position}
-                                className="flex items-center justify-between rounded-md bg-background px-3 py-2"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                                      prize.position === 1
-                                        ? "bg-yellow-500/20 text-yellow-600"
-                                        : prize.position === 2
-                                          ? "bg-gray-300/30 text-gray-500"
-                                          : prize.position === 3
-                                            ? "bg-orange-500/20 text-orange-600"
-                                            : "bg-muted text-muted-foreground"
-                                    }`}
-                                  >
-                                    {prize.position}°
-                                  </div>
-                                  <span className="text-sm">
-                                    {prize.position === 1
-                                      ? "Primer lugar"
-                                      : prize.position === 2
-                                        ? "Segundo lugar"
-                                        : prize.position === 3
-                                          ? "Tercer lugar"
-                                          : `${prize.position}° lugar`}
-                                  </span>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">
-                                    ${prizeAmount.toLocaleString()}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {prize.percentage}%
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Points System */}
+            {/* Points System - Moved above prizes */}
             <div className="space-y-3">
               <h3 className="font-semibold text-foreground">Sistema de Puntos</h3>
               <div className="grid grid-cols-3 gap-3">
@@ -207,6 +138,172 @@ export default function QuinielaDetailsDrawer({
                 </div>
               </div>
             </div>
+
+            {/* Tournament Prize Section */}
+            {hasTournamentPrize && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-foreground">Premio de Torneo Completo</h3>
+                </div>
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  {/* Total Prize */}
+                  <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                        <DollarSign className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Pozo Total</p>
+                        <p className="text-xl font-bold text-green-600">
+                          ${totalTournamentPrize.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <p>{participantCount} participante{participantCount !== 1 ? "s" : ""}</p>
+                      <p>${moneyToEnter} c/u</p>
+                    </div>
+                  </div>
+
+                  {/* Prize Distribution */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Distribución de Premios
+                    </p>
+                    <div className="space-y-2">
+                      {prizeDistribution
+                        .sort((a, b) => a.position - b.position)
+                        .map((prize) => {
+                          const prizeAmount = (totalTournamentPrize * prize.percentage) / 100;
+                          return (
+                            <div
+                              key={prize.position}
+                              className="flex items-center justify-between rounded-md bg-background px-3 py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                                    prize.position === 1
+                                      ? "bg-yellow-500/20 text-yellow-600"
+                                      : prize.position === 2
+                                        ? "bg-gray-300/30 text-gray-500"
+                                        : prize.position === 3
+                                          ? "bg-orange-500/20 text-orange-600"
+                                          : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {prize.position}°
+                                </div>
+                                <span className="text-sm">
+                                  {prize.position === 1
+                                    ? "Primer lugar"
+                                    : prize.position === 2
+                                      ? "Segundo lugar"
+                                      : prize.position === 3
+                                        ? "Tercer lugar"
+                                        : `${prize.position}° lugar`}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">
+                                  ${prizeAmount.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {prize.percentage}%
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Per-Round Prize Section */}
+            {hasRoundPrize && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-amber-500" />
+                  <h3 className="font-semibold text-foreground">Premio por Jornada</h3>
+                </div>
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                  {/* Total Prize per Round */}
+                  <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                        <DollarSign className="h-5 w-5 text-amber-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Pozo por Jornada</p>
+                        <p className="text-xl font-bold text-amber-600">
+                          ${totalRoundPrize.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <p>{participantCount} participante{participantCount !== 1 ? "s" : ""}</p>
+                      <p>${moneyPerRoundToEnter} c/u</p>
+                    </div>
+                  </div>
+
+                  {/* Prize Distribution */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Distribución de Premios (cada jornada)
+                    </p>
+                    <div className="space-y-2">
+                      {prizeDistributionPerRound
+                        .sort((a, b) => a.position - b.position)
+                        .map((prize) => {
+                          const prizeAmount = (totalRoundPrize * prize.percentage) / 100;
+                          return (
+                            <div
+                              key={prize.position}
+                              className="flex items-center justify-between rounded-md bg-background px-3 py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                                    prize.position === 1
+                                      ? "bg-yellow-500/20 text-yellow-600"
+                                      : prize.position === 2
+                                        ? "bg-gray-300/30 text-gray-500"
+                                        : prize.position === 3
+                                          ? "bg-orange-500/20 text-orange-600"
+                                          : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {prize.position}°
+                                </div>
+                                <span className="text-sm">
+                                  {prize.position === 1
+                                    ? "Primer lugar"
+                                    : prize.position === 2
+                                      ? "Segundo lugar"
+                                      : prize.position === 3
+                                        ? "Tercer lugar"
+                                        : `${prize.position}° lugar`}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">
+                                  ${prizeAmount.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {prize.percentage}%
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* League and Admin Info */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

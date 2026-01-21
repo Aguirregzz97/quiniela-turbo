@@ -357,26 +357,28 @@ export default function QuinielaLeaderboard({
     <Card className="overflow-hidden border-border/50">
       <CardContent className="p-0">
         {/* Header */}
-        <div className="border-b border-border/50 bg-gradient-to-b from-muted/30 to-transparent p-6">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-border/50 bg-gradient-to-b from-muted/30 to-transparent p-4 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25">
                 <Trophy className="h-5 w-5 text-primary-foreground" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold">Tabla de Posiciones</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userStats.length} participantes
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  {userStats.length} participantes • Torneo completo
                 </p>
               </div>
             </div>
             {totalPrizePool > 0 && (
-              <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
-                <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400 sm:h-4 sm:w-4" />
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:text-sm">
-                  ${totalPrizePool.toLocaleString("es-MX")}
-                  <span className="hidden sm:inline"> en premios</span>
-                </span>
+              <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
+                <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
+                  <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400 sm:h-4 sm:w-4" />
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:text-sm">
+                    ${totalPrizePool.toLocaleString("es-MX")}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Premio del torneo</span>
               </div>
             )}
           </div>

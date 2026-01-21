@@ -3,8 +3,8 @@ import { redirect, notFound } from "next/navigation";
 import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
-import { quinielas, quiniela_settings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { quinielas, quiniela_settings, quiniela_participants } from "@/db/schema";
+import { eq, count } from "drizzle-orm";
 import ResultadosPorUsuario from "@/components/QuinielaComponents/ResultadosPorUsuario";
 
 interface ResultadosPorUsuarioPageProps {
@@ -43,6 +43,14 @@ export default async function ResultadosPorUsuarioPage({
 
   const { quiniela, settings } = quinielaData[0];
 
+  // Get participant count
+  const participantCountResult = await db
+    .select({ count: count() })
+    .from(quiniela_participants)
+    .where(eq(quiniela_participants.quinielaId, id));
+
+  const participantCount = participantCountResult[0]?.count || 0;
+
   return (
     <div className="max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
       {/* Back Button */}
@@ -73,6 +81,13 @@ export default async function ResultadosPorUsuarioPage({
         userId={session.user.id}
         exactPoints={settings?.pointsForExactResultPrediction ?? 2}
         correctResultPoints={settings?.pointsForCorrectResultPrediction ?? 1}
+        moneyPerRoundToEnter={settings?.moneyPerRoundToEnter}
+        prizeDistributionPerRound={
+          settings?.prizeDistributionPerRound as
+            | { position: number; percentage: number }[]
+            | null
+        }
+        participantCount={participantCount}
       />
     </div>
   );
