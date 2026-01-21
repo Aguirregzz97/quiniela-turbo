@@ -15,6 +15,13 @@
       "when": 1768605545157,
       "tag": "0001_left_the_executioner",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768958760806,
+      "tag": "0002_ambitious_scarecrow",
+      "breakpoints": true
     }
   ]
 }

@@ -136,10 +136,9 @@ export const quiniela_settings = pgTable("quiniela_settings", {
     .notNull()
     .unique()
     .references(() => quinielas.id, { onDelete: "cascade" }),
-  moneyToEnter: integer("moneyToEnter").notNull(),
+  moneyToEnter: integer("moneyToEnter"),
   prizeDistribution: jsonb("prizeDistribution")
-    .$type<{ position: number; percentage: number }[]>()
-    .notNull(),
+    .$type<{ position: number; percentage: number }[]>(),
   allowEditPredictions: boolean("allowEditPredictions").notNull().default(true),
   pointsForExactResultPrediction: integer("pointsForExactResultPrediction")
     .notNull()
@@ -147,6 +146,9 @@ export const quiniela_settings = pgTable("quiniela_settings", {
   pointsForCorrectResultPrediction: integer("pointsForCorrectResultPrediction")
     .notNull()
     .default(1),
+  moneyPerRoundToEnter: integer("moneyPerRoundToEnter"),
+  prizeDistributionPerRound: jsonb("prizeDistributionPerRound")
+    .$type<{ position: number; percentage: number }[]>(),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
@@ -185,6 +187,42 @@ export const predictions = pgTable("predictions", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// Audit log for admin edits to predictions (transparency)
+export const prediction_edit_history = pgTable("prediction_edit_history", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  // Which prediction was edited
+  predictionId: text("predictionId")
+    .notNull()
+    .references(() => predictions.id, { onDelete: "cascade" }),
+  // Which quiniela this belongs to (for easier querying)
+  quinielaId: text("quinielaId")
+    .notNull()
+    .references(() => quinielas.id, { onDelete: "cascade" }),
+  // The user whose prediction was edited
+  targetUserId: text("targetUserId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // The admin who made the edit
+  editedByUserId: text("editedByUserId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // Match info for context
+  externalFixtureId: text("externalFixtureId").notNull(),
+  externalRound: text("externalRound").notNull(),
+  // Previous values (what it was before the edit)
+  previousHomeScore: integer("previousHomeScore"),
+  previousAwayScore: integer("previousAwayScore"),
+  // New values (what it was changed to)
+  newHomeScore: integer("newHomeScore"),
+  newAwayScore: integer("newAwayScore"),
+  // Optional reason/note from admin
+  reason: text("reason"),
+  // When the edit was made
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 // relations
 
 export const userRelations = relations(users, ({ many }) => ({
@@ -206,7 +244,32 @@ export const quinielaRelations = relations(quinielas, ({ many, one }) => ({
   }),
   participants: many(quiniela_participants),
   predictions: many(predictions),
+  predictionEditHistory: many(prediction_edit_history),
 }));
+
+export const predictionEditHistoryRelations = relations(
+  prediction_edit_history,
+  ({ one }) => ({
+    prediction: one(predictions, {
+      fields: [prediction_edit_history.predictionId],
+      references: [predictions.id],
+    }),
+    quiniela: one(quinielas, {
+      fields: [prediction_edit_history.quinielaId],
+      references: [quinielas.id],
+    }),
+    targetUser: one(users, {
+      fields: [prediction_edit_history.targetUserId],
+      references: [users.id],
+      relationName: "targetUser",
+    }),
+    editedByUser: one(users, {
+      fields: [prediction_edit_history.editedByUserId],
+      references: [users.id],
+      relationName: "editedByUser",
+    }),
+  })
+);
 
 export const participantsRelations = relations(
   quiniela_participants,
@@ -249,6 +312,9 @@ export type NewQuinielaParticipant = typeof quiniela_participants.$inferInsert;
 
 export type Prediction = typeof predictions.$inferSelect;
 export type NewPrediction = typeof predictions.$inferInsert;
+
+export type PredictionEditHistory = typeof prediction_edit_history.$inferSelect;
+export type NewPredictionEditHistory = typeof prediction_edit_history.$inferInsert;
 
 // Survivor game tables
 
