@@ -16,7 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Settings, FileText, Trophy, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  Settings,
+  FileText,
+  Trophy,
+  CheckCircle,
+  Calendar,
+  Info,
+  Users,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { createQuiniela } from "@/app/quinielas/create-action";
 import { Switch } from "@/components/ui/switch";
 
@@ -35,76 +45,133 @@ const getLigaMXSeason = () => {
 
 const CURRENT_SEASON = getLigaMXSeason();
 
+// Prize distribution schema (reusable)
+const prizeDistributionSchema = z
+  .array(
+    z.object({
+      position: z.number(),
+      percentage: z
+        .number()
+        .min(1, "El porcentaje debe ser mayor a 0")
+        .max(100, "El porcentaje no puede exceder 100"),
+    })
+  )
+  .min(1, "Debe haber al menos una posición de premio")
+  .refine(
+    (positions) => {
+      const total = positions.reduce((sum, pos) => sum + pos.percentage, 0);
+      return total === 100;
+    },
+    {
+      message: "El total de porcentajes debe ser 100%",
+    }
+  )
+  .refine(
+    (positions) => {
+      return !positions.some((pos) => pos.percentage === 0);
+    },
+    {
+      message: "Todas las posiciones deben tener un porcentaje mayor a 0%",
+    }
+  );
+
 // Zod schema for quiniela details
-const createQuinielaSchema = z.object({
-  name: z
-    .string()
-    .min(1, "El nombre es requerido")
-    .max(100, "El nombre no puede exceder 100 caracteres"),
-  description: z
-    .string()
-    .min(1, "La descripción es requerida")
-    .max(500, "La descripción no puede exceder 500 caracteres"),
-  league: z.string().min(1, "La liga es requerida"),
-  externalLeagueId: z.string().min(1, "ID de liga requerido"),
-  moneyToEnter: z
-    .number()
-    .min(1, "El dinero de entrada debe ser mayor a 0")
-    .int("El dinero de entrada debe ser un número entero"),
-  desde: z.string().min(1, "Debe seleccionar una jornada de inicio"),
-  hasta: z.string().min(1, "Debe seleccionar una jornada de fin"),
-  roundsSelected: z
-    .array(
-      z.object({
-        roundName: z.string(),
-        dates: z.array(z.string()),
-      }),
-    )
-    .min(1, "Debe seleccionar al menos una jornada"),
-  pointsForExactResultPrediction: z
-    .number()
-    .min(1, "Mínimo 1 punto")
-    .max(10, "Máximo 10 puntos"),
-  pointsForCorrectResultPrediction: z
-    .number()
-    .min(1, "Mínimo 1 punto")
-    .max(10, "Máximo 10 puntos"),
-  allowEditPredictions: z.boolean(),
-  prizeDistribution: z
-    .array(
-      z.object({
-        position: z.number(),
-        percentage: z
-          .number()
-          .min(1, "El porcentaje debe ser mayor a 0")
-          .max(100, "El porcentaje no puede exceder 100"),
-      }),
-    )
-    .min(1, "Debe haber al menos una posición de premio")
-    .refine(
-      (positions) => {
-        const total = positions.reduce((sum, pos) => sum + pos.percentage, 0);
-        return total === 100;
-      },
-      {
-        message: "El total de porcentajes debe ser 100%",
-        path: ["prizeDistribution"],
-      },
-    )
-    .refine(
-      (positions) => {
-        return !positions.some((pos) => pos.percentage === 0);
-      },
-      {
-        message: "Todas las posiciones deben tener un porcentaje mayor a 0%",
-        path: ["prizeDistribution"],
-      },
-    ),
-  externalSeason: z
-    .string()
-    .min(1, "La temporada es requerida")
-    .default(CURRENT_SEASON),
-});
+const createQuinielaSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "El nombre es requerido")
+      .max(100, "El nombre no puede exceder 100 caracteres"),
+    description: z
+      .string()
+      .min(1, "La descripción es requerida")
+      .max(500, "La descripción no puede exceder 500 caracteres"),
+    league: z.string().min(1, "La liga es requerida"),
+    externalLeagueId: z.string().min(1, "ID de liga requerido"),
+    desde: z.string().min(1, "Debe seleccionar una jornada de inicio"),
+    hasta: z.string().min(1, "Debe seleccionar una jornada de fin"),
+    roundsSelected: z
+      .array(
+        z.object({
+          roundName: z.string(),
+          dates: z.array(z.string()),
+        })
+      )
+      .min(1, "Debe seleccionar al menos una jornada"),
+    pointsForExactResultPrediction: z
+      .number()
+      .min(1, "Mínimo 1 punto")
+      .max(10, "Máximo 10 puntos"),
+    pointsForCorrectResultPrediction: z
+      .number()
+      .min(1, "Mínimo 1 punto")
+      .max(10, "Máximo 10 puntos"),
+    // Game mode toggles
+    playByTournament: z.boolean(),
+    playByRound: z.boolean(),
+    // Tournament-wide prize settings (optional based on playByTournament)
+    moneyToEnter: z.number().int().optional().nullable(),
+    prizeDistribution: prizeDistributionSchema.optional().nullable(),
+    // Per-round prize settings (optional based on playByRound)
+    moneyPerRoundToEnter: z.number().int().optional().nullable(),
+    prizeDistributionPerRound: prizeDistributionSchema.optional().nullable(),
+    externalSeason: z
+      .string()
+      .min(1, "La temporada es requerida")
+      .default(CURRENT_SEASON),
+  })
+  .refine(
+    (data) => {
+      // At least one game mode must be selected
+      return data.playByTournament || data.playByRound;
+    },
+    {
+      message: "Debes seleccionar al menos un modo de juego",
+      path: ["playByTournament"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If playByTournament is enabled, moneyToEnter and prizeDistribution are required
+      if (data.playByTournament) {
+        return (
+          data.moneyToEnter !== null &&
+          data.moneyToEnter !== undefined &&
+          data.moneyToEnter >= 1 &&
+          data.prizeDistribution !== null &&
+          data.prizeDistribution !== undefined &&
+          data.prizeDistribution.length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        "El precio de entrada y distribución de premios son requeridos para el modo torneo",
+      path: ["moneyToEnter"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If playByRound is enabled, moneyPerRoundToEnter and prizeDistributionPerRound are required
+      if (data.playByRound) {
+        return (
+          data.moneyPerRoundToEnter !== null &&
+          data.moneyPerRoundToEnter !== undefined &&
+          data.moneyPerRoundToEnter >= 1 &&
+          data.prizeDistributionPerRound !== null &&
+          data.prizeDistributionPerRound !== undefined &&
+          data.prizeDistributionPerRound.length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        "El precio de entrada y distribución de premios son requeridos para el modo por jornada",
+      path: ["moneyPerRoundToEnter"],
+    }
+  );
 
 export type CreateQuinielaFormData = z.infer<typeof createQuinielaSchema>;
 
@@ -119,8 +186,7 @@ export default function CreateQuinielaForm() {
 
   // Filter future rounds only - rounds that haven't started yet
   // Unless NEXT_PUBLIC_ALLOW_ALL_ROUNDS is set to "true"
-  const allowAllRounds =
-    process.env.NEXT_PUBLIC_ALLOW_ALL_ROUNDS === "true";
+  const allowAllRounds = process.env.NEXT_PUBLIC_ALLOW_ALL_ROUNDS === "true";
 
   const futureRounds = useMemo(() => {
     if (!rounds?.response) return [];
@@ -158,12 +224,8 @@ export default function CreateQuinielaForm() {
           return true; // Skip validation if data not available
         }
 
-        const desdeIndex = futureRounds.findIndex(
-          (r) => r.round === data.desde,
-        );
-        const hastaIndex = futureRounds.findIndex(
-          (r) => r.round === data.hasta,
-        );
+        const desdeIndex = futureRounds.findIndex((r) => r.round === data.desde);
+        const hastaIndex = futureRounds.findIndex((r) => r.round === data.hasta);
 
         return desdeIndex <= hastaIndex;
       },
@@ -171,7 +233,7 @@ export default function CreateQuinielaForm() {
         message:
           "La jornada 'desde' debe ser anterior o igual a la jornada 'hasta'",
         path: ["hasta"],
-      },
+      }
     );
   }, [futureRounds]);
 
@@ -182,18 +244,20 @@ export default function CreateQuinielaForm() {
       description: "",
       league: "",
       externalLeagueId: "",
-      moneyToEnter: 100,
       desde: "",
       hasta: "",
       roundsSelected: [],
       pointsForExactResultPrediction: 2,
       pointsForCorrectResultPrediction: 1,
-      allowEditPredictions: true,
-      prizeDistribution: [
-        { position: 1, percentage: 50 },
-        { position: 2, percentage: 30 },
-        { position: 3, percentage: 20 },
-      ],
+      // Game mode toggles - default both off
+      playByTournament: false,
+      playByRound: false,
+      // Tournament-wide settings
+      moneyToEnter: null,
+      prizeDistribution: null,
+      // Per-round settings
+      moneyPerRoundToEnter: null,
+      prizeDistributionPerRound: null,
     },
   });
 
@@ -209,11 +273,102 @@ export default function CreateQuinielaForm() {
     trigger,
   } = form;
 
-  const allowEditPredictions = watch("allowEditPredictions");
+  const playByTournament = watch("playByTournament");
+  const playByRound = watch("playByRound");
+  const moneyToEnter = watch("moneyToEnter");
+  const prizeDistribution = watch("prizeDistribution");
+  const moneyPerRoundToEnter = watch("moneyPerRoundToEnter");
+  const prizeDistributionPerRound = watch("prizeDistributionPerRound");
+  const roundsSelected = watch("roundsSelected");
 
   // Watch the form values
   const desde = watch("desde");
   const hasta = watch("hasta");
+
+  // Helper function to check if prize distribution is valid (totals 100%)
+  const isPrizeDistributionValid = (
+    distribution: { position: number; percentage: number }[] | null | undefined
+  ): boolean => {
+    if (!distribution || distribution.length === 0) return false;
+    const total = distribution.reduce((sum, pos) => sum + pos.percentage, 0);
+    return total === 100 && !distribution.some((pos) => pos.percentage === 0);
+  };
+
+  // Calculate example prizes
+  const EXAMPLE_PLAYERS = 5;
+
+  const tournamentPrizeExample = useMemo(() => {
+    if (
+      !moneyToEnter ||
+      !prizeDistribution ||
+      !isPrizeDistributionValid(prizeDistribution)
+    )
+      return null;
+    const totalPool = moneyToEnter * EXAMPLE_PLAYERS;
+    return {
+      totalPool,
+      prizes: prizeDistribution.map((pos) => ({
+        position: pos.position,
+        amount: Math.round((totalPool * pos.percentage) / 100),
+        percentage: pos.percentage,
+      })),
+    };
+  }, [moneyToEnter, prizeDistribution]);
+
+  const roundPrizeExample = useMemo(() => {
+    if (
+      !moneyPerRoundToEnter ||
+      !prizeDistributionPerRound ||
+      !isPrizeDistributionValid(prizeDistributionPerRound)
+    )
+      return null;
+    const totalPoolPerRound = moneyPerRoundToEnter * EXAMPLE_PLAYERS;
+    const numRounds = roundsSelected?.length || 1;
+    return {
+      totalPoolPerRound,
+      numRounds,
+      totalAllRounds: totalPoolPerRound * numRounds,
+      prizes: prizeDistributionPerRound.map((pos) => ({
+        position: pos.position,
+        amount: Math.round((totalPoolPerRound * pos.percentage) / 100),
+        percentage: pos.percentage,
+      })),
+    };
+  }, [moneyPerRoundToEnter, prizeDistributionPerRound, roundsSelected]);
+
+  // Initialize prize distributions when toggles are enabled
+  useEffect(() => {
+    if (playByTournament && !watch("prizeDistribution")) {
+      setValue("prizeDistribution", [
+        { position: 1, percentage: 50 },
+        { position: 2, percentage: 30 },
+        { position: 3, percentage: 20 },
+      ]);
+      setValue("moneyToEnter", 100);
+    }
+  }, [playByTournament, setValue, watch]);
+
+  useEffect(() => {
+    if (playByRound && !watch("prizeDistributionPerRound")) {
+      setValue("prizeDistributionPerRound", [{ position: 1, percentage: 100 }]);
+      setValue("moneyPerRoundToEnter", 50);
+    }
+  }, [playByRound, setValue, watch]);
+
+  // Clear values when toggles are disabled
+  useEffect(() => {
+    if (!playByTournament) {
+      setValue("moneyToEnter", null);
+      setValue("prizeDistribution", null);
+    }
+  }, [playByTournament, setValue]);
+
+  useEffect(() => {
+    if (!playByRound) {
+      setValue("moneyPerRoundToEnter", null);
+      setValue("prizeDistributionPerRound", null);
+    }
+  }, [playByRound, setValue]);
 
   // Convert desde/hasta selection to roundsSelected format
   useEffect(() => {
@@ -248,7 +403,6 @@ export default function CreateQuinielaForm() {
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {
       const { quinielaId } = await createQuiniela(data);
-      // Server action will handle the redirect, so we don't need client-side redirect
       toast({
         title: "¡Quiniela creada!",
         description: "Tu quiniela ha sido creada exitosamente.",
@@ -331,9 +485,7 @@ export default function CreateQuinielaForm() {
                 className="border-border/50"
               />
               {errors.name && (
-                <p className="text-sm text-destructive">
-                  {errors.name.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
             </div>
 
@@ -358,8 +510,7 @@ export default function CreateQuinielaForm() {
               <div>
                 <h3 className="font-medium">Selección de Jornadas</h3>
                 <p className="text-xs text-muted-foreground">
-                  Solo se muestran jornadas futuras disponibles para
-                  predicciones.
+                  Solo se muestran jornadas futuras disponibles para predicciones.
                 </p>
               </div>
               {roundsLoading ? (
@@ -434,110 +585,325 @@ export default function CreateQuinielaForm() {
           </CardContent>
         </Card>
 
-        {/* Quiniela Settings Section */}
+        {/* Points Configuration */}
         <Card className="border-border/50">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Settings className="h-4 w-4 text-muted-foreground" />
-              Ajustes de la Quiniela
+              Configuración de Puntos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {/* Prize Configuration */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="moneyToEnter">Precio de entrada *</Label>
-                <div className="relative">
-                  <Input
-                    id="moneyToEnter"
-                    type="number"
-                    {...register("moneyToEnter", { valueAsNumber: true })}
-                    placeholder="Ej: 100"
-                    className="border-border/50 pl-7"
-                    min={1}
-                  />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    $
-                  </span>
-                </div>
-                {errors.moneyToEnter && (
+                <Label htmlFor="pointsForExactResultPrediction">
+                  Puntos por Resultado Exacto
+                </Label>
+                <Input
+                  id="pointsForExactResultPrediction"
+                  type="number"
+                  {...register("pointsForExactResultPrediction", {
+                    valueAsNumber: true,
+                  })}
+                  min={1}
+                  max={10}
+                  className="border-border/50"
+                />
+                {errors.pointsForExactResultPrediction && (
                   <p className="text-sm text-destructive">
-                    {errors.moneyToEnter.message}
+                    {errors.pointsForExactResultPrediction.message}
                   </p>
                 )}
               </div>
 
-              {/* Points Configuration */}
-              <div className="space-y-4 border-t border-border/50 pt-4">
-                <h3 className="font-medium">Configuración de Puntos</h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="pointsForExactResultPrediction">
-                      Puntos por Resultado Exacto
-                    </Label>
-                    <Input
-                      id="pointsForExactResultPrediction"
-                      type="number"
-                      {...register("pointsForExactResultPrediction", {
-                        valueAsNumber: true,
-                      })}
-                      min={1}
-                      max={10}
-                      className="border-border/50"
-                    />
-                    {errors.pointsForExactResultPrediction && (
-                      <p className="text-sm text-destructive">
-                        {errors.pointsForExactResultPrediction.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pointsForCorrectResultPrediction">
-                      Puntos por Resultado Correcto
-                    </Label>
-                    <Input
-                      id="pointsForCorrectResultPrediction"
-                      type="number"
-                      {...register("pointsForCorrectResultPrediction", {
-                        valueAsNumber: true,
-                      })}
-                      min={1}
-                      max={10}
-                      className="border-border/50"
-                    />
-                    {errors.pointsForCorrectResultPrediction && (
-                      <p className="text-sm text-destructive">
-                        {errors.pointsForCorrectResultPrediction.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Edit Predictions Toggle */}
-              <div className="flex items-start gap-4 border-t border-border/50 pt-4">
-                <div className="flex-1 space-y-1">
-                  <Label htmlFor="allowEditPredictions">
-                    Permitir Editar Predicciones
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Los participantes podrán modificar sus predicciones hasta el
-                    inicio del partido
-                  </p>
-                </div>
-                <Switch
-                  id="allowEditPredictions"
-                  checked={allowEditPredictions}
-                  onCheckedChange={(checked) =>
-                    setValue("allowEditPredictions", checked)
-                  }
+              <div className="space-y-2">
+                <Label htmlFor="pointsForCorrectResultPrediction">
+                  Puntos por Resultado Correcto
+                </Label>
+                <Input
+                  id="pointsForCorrectResultPrediction"
+                  type="number"
+                  {...register("pointsForCorrectResultPrediction", {
+                    valueAsNumber: true,
+                  })}
+                  min={1}
+                  max={10}
+                  className="border-border/50"
                 />
+                {errors.pointsForCorrectResultPrediction && (
+                  <p className="text-sm text-destructive">
+                    {errors.pointsForCorrectResultPrediction.message}
+                  </p>
+                )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Prize Distribution Section */}
-              <div className="border-t border-border/50 pt-4">
-                <PrizeDistributionForm name="prizeDistribution" />
+        {/* Game Mode Selection */}
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+              Modos de Juego y Premios
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Info Banner */}
+            <div className="flex items-start gap-3 rounded-lg bg-primary/5 p-4 border border-primary/20">
+              <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-primary mb-1">
+                  Puedes activar ambos modos a la vez
+                </p>
+                <p className="text-muted-foreground">
+                  Si activas ambos, los participantes competirán por premios de
+                  jornada y también por el premio del torneo completo. Cada modo
+                  tiene su propio precio de entrada y distribución de premios.
+                </p>
+              </div>
+            </div>
+
+            {/* Error for no mode selected */}
+            {errors.playByTournament && !playByTournament && !playByRound && (
+              <p className="text-sm text-destructive">
+                {errors.playByTournament.message}
+              </p>
+            )}
+
+            {/* Play by Tournament Toggle */}
+            <div className="space-y-4">
+              <div
+                className={`rounded-xl border-2 p-4 transition-all ${
+                  playByTournament
+                    ? "border-primary bg-primary/5"
+                    : "border-border/50"
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-primary" />
+                      <Label
+                        htmlFor="playByTournament"
+                        className="text-base font-semibold cursor-pointer"
+                      >
+                        Jugar por Torneo Completo
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Un solo ganador al final del torneo basado en puntos
+                      acumulados de todas las jornadas
+                    </p>
+                  </div>
+                  <Switch
+                    id="playByTournament"
+                    checked={playByTournament}
+                    onCheckedChange={(checked) =>
+                      setValue("playByTournament", checked)
+                    }
+                  />
+                </div>
+
+                {/* Tournament Prize Settings */}
+                {playByTournament && (
+                  <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moneyToEnter">
+                        Precio de entrada para premio de torneo *
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="moneyToEnter"
+                          type="number"
+                          {...register("moneyToEnter", { valueAsNumber: true })}
+                          placeholder="Ej: 100"
+                          className="border-border/50 pl-7"
+                          min={1}
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          $
+                        </span>
+                      </div>
+                      {errors.moneyToEnter && (
+                        <p className="text-sm text-destructive">
+                          {errors.moneyToEnter.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <PrizeDistributionForm name="prizeDistribution" />
+                    </div>
+
+                    {/* Tournament Prize Example */}
+                    {tournamentPrizeExample && (
+                      <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Users className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                            Ejemplo con {EXAMPLE_PLAYERS} jugadores
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Bolsa total del torneo:
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-500/10 text-green-700 dark:text-green-400"
+                            >
+                              ${tournamentPrizeExample.totalPool.toLocaleString()}
+                            </Badge>
+                          </div>
+                          <div className="border-t border-border/50 pt-2 space-y-1.5">
+                            {tournamentPrizeExample.prizes.map((prize) => (
+                              <div
+                                key={prize.position}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <span className="text-muted-foreground">
+                                  {prize.position}° lugar ({prize.percentage}%):
+                                </span>
+                                <span className="font-medium">
+                                  ${prize.amount.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Play by Round Toggle */}
+            <div className="space-y-4">
+              <div
+                className={`rounded-xl border-2 p-4 transition-all ${
+                  playByRound
+                    ? "border-primary bg-primary/5"
+                    : "border-border/50"
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <Label
+                        htmlFor="playByRound"
+                        className="text-base font-semibold cursor-pointer"
+                      >
+                        Jugar por Jornada
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Un ganador por cada jornada basado en los puntos de esa
+                      jornada específica
+                    </p>
+                  </div>
+                  <Switch
+                    id="playByRound"
+                    checked={playByRound}
+                    onCheckedChange={(checked) =>
+                      setValue("playByRound", checked)
+                    }
+                  />
+                </div>
+
+                {/* Per-Round Prize Settings */}
+                {playByRound && (
+                  <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moneyPerRoundToEnter">
+                        Precio de entrada por jornada *
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="moneyPerRoundToEnter"
+                          type="number"
+                          {...register("moneyPerRoundToEnter", {
+                            valueAsNumber: true,
+                          })}
+                          placeholder="Ej: 50"
+                          className="border-border/50 pl-7"
+                          min={1}
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          $
+                        </span>
+                      </div>
+                      {errors.moneyPerRoundToEnter && (
+                        <p className="text-sm text-destructive">
+                          {errors.moneyPerRoundToEnter.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <PrizeDistributionForm name="prizeDistributionPerRound" />
+                    </div>
+
+                    {/* Round Prize Example */}
+                    {roundPrizeExample && (
+                      <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Users className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                            Ejemplo con {EXAMPLE_PLAYERS} jugadores
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Bolsa por jornada:
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-500/10 text-green-700 dark:text-green-400"
+                            >
+                              ${roundPrizeExample.totalPoolPerRound.toLocaleString()}
+                            </Badge>
+                          </div>
+                          {roundPrizeExample.numRounds > 1 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                Total en {roundPrizeExample.numRounds} jornadas:
+                              </span>
+                              <Badge
+                                variant="secondary"
+                                className="bg-green-500/10 text-green-700 dark:text-green-400"
+                              >
+                                ${roundPrizeExample.totalAllRounds.toLocaleString()}
+                              </Badge>
+                            </div>
+                          )}
+                          <div className="border-t border-border/50 pt-2 space-y-1.5">
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Premio por jornada:
+                            </p>
+                            {roundPrizeExample.prizes.map((prize) => (
+                              <div
+                                key={prize.position}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <span className="text-muted-foreground">
+                                  {prize.position}° lugar ({prize.percentage}%):
+                                </span>
+                                <span className="font-medium">
+                                  ${prize.amount.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

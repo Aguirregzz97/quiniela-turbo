@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
 import EditQuinielaForm from "@/components/QuinielaComponents/EditQuinielaForm";
 import { db } from "@/db";
-import { quinielas, quiniela_settings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { quinielas, quiniela_settings, quiniela_participants } from "@/db/schema";
+import { eq, count } from "drizzle-orm";
 import { Pencil, ArrowLeft } from "lucide-react";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -38,6 +38,8 @@ export default async function EditQuinielaPage({
       // Settings
       moneyToEnter: quiniela_settings.moneyToEnter,
       prizeDistribution: quiniela_settings.prizeDistribution,
+      moneyPerRoundToEnter: quiniela_settings.moneyPerRoundToEnter,
+      prizeDistributionPerRound: quiniela_settings.prizeDistributionPerRound,
       allowEditPredictions: quiniela_settings.allowEditPredictions,
       pointsForExactResultPrediction:
         quiniela_settings.pointsForExactResultPrediction,
@@ -63,6 +65,20 @@ export default async function EditQuinielaPage({
   if (quinielaData.ownerId !== session.user.id) {
     redirect("/quinielas");
   }
+
+  // Get participant count
+  const participantCountResult = await db
+    .select({ count: count() })
+    .from(quiniela_participants)
+    .where(eq(quiniela_participants.quinielaId, id));
+
+  const participantCount = participantCountResult[0]?.count || 0;
+
+  // Get rounds count from roundsSelected
+  const roundsSelected = quinielaData.roundsSelected as
+    | { roundName: string; dates: string[] }[]
+    | null;
+  const roundsCount = roundsSelected?.length || 0;
 
   return (
     <div className="max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
@@ -90,7 +106,27 @@ export default async function EditQuinielaPage({
         </div>
       </div>
 
-      <EditQuinielaForm quiniela={quinielaData} />
+      <EditQuinielaForm
+        quiniela={{
+          id: quinielaData.id,
+          name: quinielaData.name,
+          description: quinielaData.description,
+          moneyToEnter: quinielaData.moneyToEnter,
+          prizeDistribution: quinielaData.prizeDistribution as
+            | { position: number; percentage: number }[]
+            | null,
+          moneyPerRoundToEnter: quinielaData.moneyPerRoundToEnter,
+          prizeDistributionPerRound: quinielaData.prizeDistributionPerRound as
+            | { position: number; percentage: number }[]
+            | null,
+          pointsForExactResultPrediction:
+            quinielaData.pointsForExactResultPrediction,
+          pointsForCorrectResultPrediction:
+            quinielaData.pointsForCorrectResultPrediction,
+        }}
+        participantCount={participantCount}
+        roundsCount={roundsCount}
+      />
     </div>
   );
 }

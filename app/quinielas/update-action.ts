@@ -23,6 +23,13 @@ export async function updateQuiniela(
       throw new Error("El nombre y descripción son requeridos");
     }
 
+    // Validate at least one game mode is selected
+    if (!data.playByTournament && !data.playByRound) {
+      throw new Error(
+        "Debe seleccionar al menos una modalidad de juego (por torneo o por jornada)"
+      );
+    }
+
     // Check if user owns the quiniela
     const existingQuiniela = await db
       .select()
@@ -48,17 +55,38 @@ export async function updateQuiniela(
       })
       .where(eq(quinielas.id, quinielaId));
 
+    // Build settings update object
+    const settingsUpdate: Record<string, unknown> = {
+      pointsForExactResultPrediction: data.pointsForExactResultPrediction,
+      pointsForCorrectResultPrediction: data.pointsForCorrectResultPrediction,
+      allowEditPredictions: true, // Always true now
+      updatedAt: new Date(),
+    };
+
+    // Handle tournament mode settings
+    if (data.playByTournament) {
+      settingsUpdate.moneyToEnter = data.moneyToEnter;
+      settingsUpdate.prizeDistribution = data.prizeDistribution;
+    } else {
+      // Clear tournament settings if mode is disabled
+      settingsUpdate.moneyToEnter = null;
+      settingsUpdate.prizeDistribution = null;
+    }
+
+    // Handle per-round mode settings
+    if (data.playByRound) {
+      settingsUpdate.moneyPerRoundToEnter = data.moneyPerRoundToEnter;
+      settingsUpdate.prizeDistributionPerRound = data.prizeDistributionPerRound;
+    } else {
+      // Clear per-round settings if mode is disabled
+      settingsUpdate.moneyPerRoundToEnter = null;
+      settingsUpdate.prizeDistributionPerRound = null;
+    }
+
     // Update the quiniela settings
     await db
       .update(quiniela_settings)
-      .set({
-        moneyToEnter: data.moneyToEnter,
-        prizeDistribution: data.prizeDistribution,
-        allowEditPredictions: data.allowEditPredictions,
-        pointsForExactResultPrediction: data.pointsForExactResultPrediction,
-        pointsForCorrectResultPrediction: data.pointsForCorrectResultPrediction,
-        updatedAt: new Date(),
-      })
+      .set(settingsUpdate)
       .where(eq(quiniela_settings.quinielaId, quinielaId));
 
     // Revalidate the quinielas pages

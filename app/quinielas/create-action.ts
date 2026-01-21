@@ -31,6 +31,11 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       throw new Error("La liga es requerida");
     }
 
+    // Validate at least one game mode is selected
+    if (!data.playByTournament && !data.playByRound) {
+      throw new Error("Debes seleccionar al menos un modo de juego");
+    }
+
     // Create the quiniela data object
     const quinielaData: Pick<
       NewQuiniela,
@@ -63,9 +68,16 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
       "id" | "createdAt" | "updatedAt"
     > = {
       quinielaId: newQuiniela[0].id,
-      moneyToEnter: data.moneyToEnter,
-      prizeDistribution: data.prizeDistribution,
-      allowEditPredictions: data.allowEditPredictions,
+      // Tournament-wide settings (only if playByTournament is enabled)
+      moneyToEnter: data.playByTournament ? data.moneyToEnter : null,
+      prizeDistribution: data.playByTournament ? data.prizeDistribution : null,
+      // Per-round settings (only if playByRound is enabled)
+      moneyPerRoundToEnter: data.playByRound ? data.moneyPerRoundToEnter : null,
+      prizeDistributionPerRound: data.playByRound
+        ? data.prizeDistributionPerRound
+        : null,
+      // Default settings
+      allowEditPredictions: true,
       pointsForExactResultPrediction: data.pointsForExactResultPrediction,
       pointsForCorrectResultPrediction: data.pointsForCorrectResultPrediction,
     };
@@ -98,7 +110,7 @@ export async function createQuiniela(data: CreateQuinielaFormData) {
   } catch (error) {
     console.error("Error creating quiniela:", error);
     throw new Error(
-      error instanceof Error ? error.message : "Error al crear la quiniela",
+      error instanceof Error ? error.message : "Error al crear la quiniela"
     );
   }
 }
