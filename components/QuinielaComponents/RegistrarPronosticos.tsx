@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
-import { FixtureData, isMatchFinished } from "@/types/fixtures";
+import { FixtureData, getTeamResultFromTeam, isMatchFinished } from "@/types/fixtures";
 import { usePredictions } from "@/hooks/predictions/usePredictions";
 import { useMultipleOdds } from "@/hooks/api-football/useOdds";
 import { OddsApiResponse, Bet, Value } from "@/types/odds";
@@ -212,12 +212,9 @@ function getTeamResult(
 ): "win" | "draw" | "loss" | null {
   const { teams } = fixture;
   const isHomeTeam = teams.home.id === teamId;
-  const teamWinner = isHomeTeam ? teams.home.winner : teams.away.winner;
+  const team = isHomeTeam ? teams.home : teams.away;
 
-  if (teamWinner === true) return "win";
-  if (teamWinner === false) return "loss";
-  if (teamWinner === null) return "draw";
-  return null;
+  return getTeamResultFromTeam(team);
 }
 
 // Tournament type based on round name (Clausura or Apertura)

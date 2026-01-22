@@ -34,6 +34,13 @@ export type ShortFixtureStatus =
 // Statuses that indicate a match has finished
 export const FINISHED_STATUSES: ShortFixtureStatus[] = ["FT", "AET", "PEN"];
 
+// Statuses that indicate a match is live
+export const LIVE_STATUSES: ShortFixtureStatus[] = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+
+export function isMatchLive(status: ShortFixtureStatus | string): boolean {
+  return LIVE_STATUSES.includes(status as ShortFixtureStatus);
+}
+
 // Helper function to check if a match is finished
 export function isMatchFinished(status: ShortFixtureStatus | string): boolean {
   return FINISHED_STATUSES.includes(status as ShortFixtureStatus);
@@ -74,6 +81,13 @@ export interface Team {
   logo: string;
   winner: boolean | null;
 }
+
+export function getTeamResultFromTeam(team: Team): "win" | "loss" | "draw" | null {
+  if (team.winner === true) return "win";
+  if (team.winner === false) return "loss";
+  if (team.winner === null) return "draw";
+  return null;
+};
 
 export interface Teams {
   home: Team;

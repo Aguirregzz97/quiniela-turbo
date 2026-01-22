@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Crown, Medal, Award, DollarSign } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Quiniela } from "@/db/schema";
-import { FixtureData } from "@/types/fixtures";
+import { FixtureData, isMatchFinished, isMatchLive } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
 
 interface PrizeDistribution {
@@ -46,7 +46,7 @@ function evaluatePrediction(
     predictedAwayScore: number | null;
   },
   actualResult: { homeScore: number | null; awayScore: number | null },
-  matchFinished: boolean,
+  canEvaluate: boolean, // true if match is finished or live
   exactPoints: number = 2,
   correctResultPoints: number = 1,
 ): {
@@ -64,9 +64,9 @@ function evaluatePrediction(
     };
   }
 
-  // Match not finished yet
+  // Match not started yet or no scores available
   if (
-    !matchFinished ||
+    !canEvaluate ||
     actualResult.homeScore === null ||
     actualResult.awayScore === null
   ) {
@@ -179,11 +179,11 @@ export default function QuinielaLeaderboard({
       // Check each finished fixture
       fixturesData.response.forEach((fixture: FixtureData) => {
         const matchFinished =
-          fixture.fixture.status.short === "FT" ||
-          fixture.fixture.status.short === "AET" ||
-          fixture.fixture.status.short === "PEN";
+          isMatchFinished(fixture.fixture.status.short);
 
-        if (!matchFinished) return;
+        const matchLive = isMatchLive(fixture.fixture.status.short);
+
+        if (!matchFinished && !matchLive) return;
 
         const prediction = userPredictions.find(
           (p) => p.externalFixtureId === fixture.fixture.id.toString(),
@@ -205,7 +205,7 @@ export default function QuinielaLeaderboard({
                 predictedAwayScore: null,
               },
           actualResult,
-          matchFinished,
+          matchFinished || matchLive,
           exactPoints,
           correctResultPoints,
         );
