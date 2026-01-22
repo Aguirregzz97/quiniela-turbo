@@ -600,7 +600,7 @@ function TeamSelectionCard({
   const odds = getMatchWinnerOdds(fixtureOdds);
   const allOdds = getAllOdds(fixtureOdds);
   const hasAnyOdds =
-    allOdds.matchWinner || allOdds.bothTeamsScore || allOdds.cleanSheet;
+    !!(allOdds.matchWinner || allOdds.bothTeamsScore || allOdds.cleanSheet);
   const oddsNotAvailable =
     !isLoadingOdds && fixtureOdds?.response?.length === 0;
 
@@ -912,7 +912,10 @@ export default function SeleccionarEquipo({
   const { data: existingPicks = [] } = useSurvivorPicks(survivorGame.id);
 
   // Get available rounds from survivor game data
-  const availableRounds = survivorGame.roundsSelected || [];
+  const availableRounds = useMemo(
+    () => survivorGame.roundsSelected || [],
+    [survivorGame.roundsSelected],
+  );
 
   // Determine tournament type (Clausura or Apertura) from the first round
   const tournamentType = useMemo(() => {
