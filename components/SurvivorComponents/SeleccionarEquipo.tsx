@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useFixtures } from "@/hooks/api-football/useFixtures";
+import {
+  useFixtures,
+  useTeamLastFixtures,
+} from "@/hooks/api-football/useFixtures";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -35,7 +38,8 @@ import {
 } from "@/components/ui/drawer";
 import Image from "next/image";
 import { SurvivorGame } from "@/db/schema";
-import { FixtureData } from "@/types/fixtures";
+import { FixtureData, getTeamResultFromTeam, isMatchFinished } from "@/types/fixtures";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSurvivorPicks } from "@/hooks/survivor/useSurvivorPicks";
 import { useMultipleOdds } from "@/hooks/api-football/useOdds";
 import { OddsApiResponse, Bet, Value } from "@/types/odds";
@@ -220,6 +224,336 @@ function getMatchWinnerOdds(
   };
 }
 
+// Tournament type based on round name (Clausura or Apertura)
+type TournamentType = "Clausura" | "Apertura" | null;
+
+// Helper function to extract tournament type from round name
+function getTournamentType(roundName: string): TournamentType {
+  if (roundName.includes("Clausura")) return "Clausura";
+  if (roundName.includes("Apertura")) return "Apertura";
+  return null;
+}
+
+// Helper function to check if a fixture belongs to a tournament type
+function fixtureMatchesTournament(
+  fixture: FixtureData,
+  tournamentType: TournamentType,
+): boolean {
+  if (!tournamentType) return true; // If no tournament type, include all
+  return fixture.league.round.includes(tournamentType);
+}
+
+// Helper function to get team's result from a fixture (win/draw/loss)
+function getTeamResult(
+  fixture: FixtureData,
+  teamId: number,
+): "win" | "draw" | "loss" | null {
+  const { teams } = fixture;
+  const isHomeTeam = teams.home.id === teamId;
+  const team = isHomeTeam ? teams.home : teams.away;
+
+  return getTeamResultFromTeam(team);
+}
+
+// Component for displaying last 5 games results
+interface Last5GamesProps {
+  teamId: number;
+  tournamentType: TournamentType;
+  enabled: boolean;
+}
+
+function Last5Games({ teamId, tournamentType, enabled }: Last5GamesProps) {
+  const { data, isLoading } = useTeamLastFixtures(teamId, 10, enabled); // Fetch 10 to have buffer for filtering
+
+  if (!enabled) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-5 w-5 rounded-full" />
+        ))}
+      </div>
+    );
+  }
+
+  const fixtures = data?.response || [];
+
+  // Filter fixtures by tournament type and finished status, then take last 5
+  const filteredFixtures = fixtures
+    .filter((fixture) => {
+      const finished = isMatchFinished(fixture.fixture.status.short);
+      const matchesTournament = fixtureMatchesTournament(fixture, tournamentType);
+      return finished && matchesTournament;
+    })
+    .slice(0, 5);
+
+  // If no fixtures, show empty state
+  if (filteredFixtures.length === 0) {
+    return (
+      <div className="flex items-center justify-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/50"
+          >
+            <span className="text-[10px] text-muted-foreground">−</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Get results for each fixture (API returns most recent first, so reverse for display oldest to newest)
+  const results = filteredFixtures
+    .map((fixture) => getTeamResult(fixture, teamId))
+    .reverse();
+
+  // Pad with empty slots if less than 5 games
+  while (results.length < 5) {
+    results.unshift(null);
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {results.slice(-5).map((result, i) => (
+        <div
+          key={i}
+          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+            result === "win"
+              ? "bg-emerald-500 text-white"
+              : result === "loss"
+                ? "bg-red-500 text-white"
+                : result === "draw"
+                  ? "bg-amber-500 text-white"
+                  : "bg-muted/50 text-muted-foreground"
+          }`}
+        >
+          {result === "win" ? "✓" : result === "loss" ? "✗" : result === "draw" ? "−" : "−"}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Drawer component with Last 5 Games
+interface DrawerWithLast5GamesProps {
+  fixture: FixtureData;
+  allOdds: AllOdds;
+  hasAnyOdds: boolean;
+  oddsNotAvailable: boolean;
+  isLoadingOdds: boolean;
+  tournamentType: TournamentType;
+}
+
+function DrawerWithLast5Games({
+  fixture,
+  allOdds,
+  hasAnyOdds,
+  oddsNotAvailable,
+  isLoadingOdds,
+  tournamentType,
+}: DrawerWithLast5GamesProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  return (
+    <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+      <DrawerTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isLoadingOdds}
+          className="h-7 gap-1.5 border-primary/30 bg-primary/5 px-2 text-xs hover:bg-primary/10"
+        >
+          {isLoadingOdds ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <BarChart3 className="h-3 w-3" />
+          )}
+          <span className="hidden sm:inline">Probabilidades</span>
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-md">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="flex items-center justify-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-md shadow-primary/25">
+                <BarChart3 className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="text-lg">Probabilidades</span>
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="mt-4 px-4 pb-8">
+            {/* Match Info with Last 5 Games */}
+            <div className="mb-6 rounded-xl border border-border/50 bg-muted/30 p-4">
+              <div className="flex items-center justify-center gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
+                    <Image
+                      src={fixture.teams.home.logo}
+                      alt={fixture.teams.home.name}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 object-contain"
+                    />
+                  </div>
+                  <span className="max-w-[100px] truncate text-center text-xs font-medium">
+                    {fixture.teams.home.name}
+                  </span>
+                  {/* Home Team Last 5 Games */}
+                  <Last5Games
+                    teamId={fixture.teams.home.id}
+                    tournamentType={tournamentType}
+                    enabled={drawerOpen}
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="rounded-lg bg-muted px-3 py-1.5 text-sm font-bold text-muted-foreground">
+                    VS
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
+                    <Image
+                      src={fixture.teams.away.logo}
+                      alt={fixture.teams.away.name}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 object-contain"
+                    />
+                  </div>
+                  <span className="max-w-[100px] truncate text-center text-xs font-medium">
+                    {fixture.teams.away.name}
+                  </span>
+                  {/* Away Team Last 5 Games */}
+                  <Last5Games
+                    teamId={fixture.teams.away.id}
+                    tournamentType={tournamentType}
+                    enabled={drawerOpen}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* All Odds Sections */}
+            {hasAnyOdds ? (
+              <div className="space-y-5">
+                {/* Match Winner */}
+                {allOdds.matchWinner && (
+                  <div className="space-y-3">
+                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Ganador del partido
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Local
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.matchWinner.home)}
+                        </p>
+                      </div>
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Empate
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.matchWinner.draw)}
+                        </p>
+                      </div>
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Visitante
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.matchWinner.away)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Both Teams Score */}
+                {allOdds.bothTeamsScore && (
+                  <div className="space-y-3">
+                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Ambos equipos anotan
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Sí
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.bothTeamsScore.yes)}
+                        </p>
+                      </div>
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          No
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.bothTeamsScore.no)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Clean Sheet */}
+                {allOdds.cleanSheet && (
+                  <div className="space-y-3">
+                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Portería a cero
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Local
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.cleanSheet.home)}
+                        </p>
+                      </div>
+                      <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
+                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Visitante
+                        </p>
+                        <p className="text-xl font-bold tabular-nums text-primary">
+                          {oddsToPercentage(allOdds.cleanSheet.away)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : oddsNotAvailable ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+                  <BarChart3 className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Probabilidades no disponibles
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  Las probabilidades para este partido aún no están disponibles
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Cargando probabilidades...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
 // Team Selection Card Component
 interface TeamSelectionCardProps {
   fixture: FixtureData;
@@ -230,6 +564,7 @@ interface TeamSelectionCardProps {
   oddsData: Record<number, OddsApiResponse> | undefined;
   isLoadingOdds: boolean;
   isSubmitting: boolean;
+  tournamentType: TournamentType;
 }
 
 function TeamSelectionCard({
@@ -241,6 +576,7 @@ function TeamSelectionCard({
   oddsData,
   isLoadingOdds,
   isSubmitting,
+  tournamentType,
 }: TeamSelectionCardProps) {
   const { date, time } = formatDateTime(fixture.fixture.date);
   const statusInfo = getMatchStatusInfo(fixture);
@@ -326,193 +662,14 @@ function TeamSelectionCard({
 
             {/* Odds Drawer */}
             {!isFinished && (
-              <Drawer>
-                <DrawerTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoadingOdds}
-                    className="h-7 gap-1.5 border-primary/30 bg-primary/5 px-2 text-xs hover:bg-primary/10"
-                  >
-                    {isLoadingOdds ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <BarChart3 className="h-3 w-3" />
-                    )}
-                    <span className="hidden sm:inline">Probabilidades</span>
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent>
-                  <div className="mx-auto w-full max-w-md">
-                    <DrawerHeader className="pb-2">
-                      <DrawerTitle className="flex items-center justify-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-md shadow-primary/25">
-                          <BarChart3 className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                        <span className="text-lg">Probabilidades</span>
-                      </DrawerTitle>
-                    </DrawerHeader>
-                    <div className="mt-4 px-4 pb-8">
-                      {/* Match Info */}
-                      <div className="mb-6 rounded-xl border border-border/50 bg-muted/30 p-4">
-                        <div className="flex items-center justify-center gap-6">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
-                              <Image
-                                src={fixture.teams.home.logo}
-                                alt={fixture.teams.home.name}
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 object-contain"
-                              />
-                            </div>
-                            <span className="max-w-[100px] truncate text-center text-xs font-medium">
-                              {fixture.teams.home.name}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="rounded-lg bg-muted px-3 py-1.5 text-sm font-bold text-muted-foreground">
-                              VS
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-md ring-1 ring-black/5">
-                              <Image
-                                src={fixture.teams.away.logo}
-                                alt={fixture.teams.away.name}
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 object-contain"
-                              />
-                            </div>
-                            <span className="max-w-[100px] truncate text-center text-xs font-medium">
-                              {fixture.teams.away.name}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* All Odds Sections */}
-                      {hasAnyOdds ? (
-                        <div className="space-y-5">
-                          {/* Match Winner */}
-                          {allOdds.matchWinner && (
-                            <div className="space-y-3">
-                              <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Ganador del partido
-                              </p>
-                              <div className="grid grid-cols-3 gap-2">
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Local
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.matchWinner.home)}
-                                  </p>
-                                </div>
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Empate
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.matchWinner.draw)}
-                                  </p>
-                                </div>
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Visitante
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.matchWinner.away)}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Both Teams Score */}
-                          {allOdds.bothTeamsScore && (
-                            <div className="space-y-3">
-                              <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Ambos equipos anotan
-                              </p>
-                              <div className="grid grid-cols-2 gap-2">
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Sí
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(
-                                      allOdds.bothTeamsScore.yes,
-                                    )}
-                                  </p>
-                                </div>
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    No
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(
-                                      allOdds.bothTeamsScore.no,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Clean Sheet */}
-                          {allOdds.cleanSheet && (
-                            <div className="space-y-3">
-                              <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Portería a cero
-                              </p>
-                              <div className="grid grid-cols-2 gap-2">
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Local
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.cleanSheet.home)}
-                                  </p>
-                                </div>
-                                <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
-                                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    Visitante
-                                  </p>
-                                  <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.cleanSheet.away)}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : oddsNotAvailable ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
-                            <BarChart3 className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            Probabilidades no disponibles
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground/70">
-                            Las probabilidades para este partido aún no están
-                            disponibles
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-8">
-                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                          <p className="mt-3 text-sm text-muted-foreground">
-                            Cargando probabilidades...
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </DrawerContent>
-              </Drawer>
+              <DrawerWithLast5Games
+                fixture={fixture}
+                allOdds={allOdds}
+                hasAnyOdds={hasAnyOdds}
+                oddsNotAvailable={oddsNotAvailable}
+                isLoadingOdds={isLoadingOdds}
+                tournamentType={tournamentType}
+              />
             )}
           </div>
         </div>
@@ -756,6 +913,12 @@ export default function SeleccionarEquipo({
 
   // Get available rounds from survivor game data
   const availableRounds = survivorGame.roundsSelected || [];
+
+  // Determine tournament type (Clausura or Apertura) from the first round
+  const tournamentType = useMemo(() => {
+    if (availableRounds.length === 0) return null;
+    return getTournamentType(availableRounds[0].roundName);
+  }, [availableRounds]);
 
   // Determine default active round
   const defaultRound = getDefaultActiveRound(availableRounds);
@@ -1041,6 +1204,7 @@ export default function SeleccionarEquipo({
               oddsData={oddsData}
               isLoadingOdds={isLoadingOdds}
               isSubmitting={isSubmitting}
+              tournamentType={tournamentType}
             />
           ))
         )}
