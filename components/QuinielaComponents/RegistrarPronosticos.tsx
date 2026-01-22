@@ -54,6 +54,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LiveBadge } from "@/components/ui/live-badge";
 
 interface RegistrarPronosticosProps {
   quiniela: Quiniela;
@@ -137,12 +138,7 @@ function getMatchStatusInfo(fixture: FixtureData): {
 
   // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
   return {
-    icon: (
-      <div className="flex items-center">
-        <Play className="h-4 w-4 animate-pulse text-red-600" />
-        <span className="ml-1 text-xs font-medium text-red-600">EN VIVO</span>
-      </div>
-    ),
+    icon: <LiveBadge />,
     status: "in-progress",
     statusText: "En progreso",
   };

@@ -11,6 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Quiniela } from "@/db/schema";
 import { FixtureData, isMatchFinished, isMatchLive } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
+import { LiveBadge } from "@/components/ui/live-badge";
 
 interface PrizeDistribution {
   position: number;
@@ -152,6 +153,14 @@ export default function QuinielaLeaderboard({
     isLoading: predictionsLoading,
     error: predictionsError,
   } = useAllPredictions(quiniela.id);
+
+  // Check if there are any live matches
+  const hasLiveMatches = useMemo(() => {
+    if (!fixturesData?.response) return false;
+    return fixturesData.response.some((fixture: FixtureData) =>
+      isMatchLive(fixture.fixture.status.short),
+    );
+  }, [fixturesData?.response]);
 
   // Calculate user statistics across all rounds
   const userStats = useMemo(() => {
@@ -364,7 +373,10 @@ export default function QuinielaLeaderboard({
                 <Trophy className="h-5 w-5 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold">Tabla de Posiciones</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">Tabla de Posiciones</h3>
+                  {hasLiveMatches && <LiveBadge size="sm" />}
+                </div>
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   {userStats.length} participantes • Torneo completo
                 </p>
