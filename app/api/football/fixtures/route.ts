@@ -7,14 +7,15 @@ import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const leagueId = searchParams.get("league") || "262";
-    const season =
-      searchParams.get("season") || new Date().getFullYear().toString();
+    const leagueId = searchParams.get("league");
+    const season = searchParams.get("season");
     const fromDate = searchParams.get("from");
     const toDate = searchParams.get("to");
+    const last = searchParams.get("last");
+    const team = searchParams.get("team");
 
-    // Create cache key
-    const cacheKey = `fixtures:${leagueId}:${season}:${fromDate}:${toDate}`;
+    // Create cache key based on all parameters
+    const cacheKey = `fixtures:${leagueId}:${season}:${fromDate}:${toDate}:${last}:${team}`;
 
     // Try to get from Redis cache first
     const cachedData = await redis.get(cacheKey);
@@ -35,10 +36,16 @@ export async function GET(request: NextRequest) {
     }
 
     const params: Record<string, string> = {
-      league: leagueId,
-      season: season,
       timezone: MEXICO_CITY_TIMEZONE,
     };
+
+    // Add league and season if provided
+    if (leagueId) {
+      params.league = leagueId;
+    }
+    if (season) {
+      params.season = season;
+    }
 
     // Add date filters if provided
     if (fromDate) {
@@ -46,6 +53,16 @@ export async function GET(request: NextRequest) {
     }
     if (toDate) {
       params.to = toDate;
+    }
+
+    // Add last parameter for fetching last N fixtures
+    if (last) {
+      params.last = last;
+    }
+
+    // Add team parameter for filtering by team
+    if (team) {
+      params.team = team;
     }
 
     const response = await axios.get(`${apiUrl}/fixtures`, {
