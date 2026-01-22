@@ -27,7 +27,9 @@ import { redirect, notFound } from "next/navigation";
 import SurvivorDetailsDrawer from "@/components/SurvivorComponents/SurvivorDetailsDrawer";
 import SurvivorParticipantsDrawer from "@/components/SurvivorComponents/SurvivorParticipantsDrawer";
 import DeleteSurvivorDialog from "@/components/SurvivorComponents/DeleteSurvivorDialog";
+import PendingPicksSection from "@/components/SurvivorComponents/PendingPicksSection";
 import { calculateSurvivorStatusBatch } from "@/lib/survivor/calculateSurvivorStatus";
+import { getPendingSurvivorPicks } from "../pending-picks-action";
 
 interface SurvivorPageProps {
   params: Promise<{
@@ -155,6 +157,18 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
     };
   });
 
+  // Fetch pending picks data
+  const pendingPicksData = await getPendingSurvivorPicks(
+    survivorData.id,
+    session.user.id,
+    survivorData.externalLeagueId,
+    survivorData.externalSeason,
+    (survivorData.roundsSelected || []) as { roundName: string; dates: string[] }[],
+    survivorData.lives
+  );
+
+  const isAdmin = session.user.id === survivorData.ownerId;
+
   return (
     <div className="max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       {/* Back Button */}
@@ -242,33 +256,23 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
-        <Link
-          href={`/survivor/${survivorData.id}/seleccionar-equipo`}
-          className="group"
-        >
-          <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
-            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                <Swords className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold transition-colors group-hover:text-primary">
-                  Seleccionar Equipo
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Elige tu equipo para cada jornada
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
+      {/* Pending Picks Section */}
+      <PendingPicksSection
+        survivorGameId={survivorData.id}
+        isAdmin={isAdmin}
+        activeRound={pendingPicksData.activeRound}
+        totalTeamsAvailable={pendingPicksData.totalTeamsAvailable}
+        usersWithPendingPick={pendingPicksData.usersWithPendingPick}
+        currentUserHasPendingPick={pendingPicksData.currentUserHasPendingPick}
+        currentUserIsEliminated={pendingPicksData.currentUserIsEliminated}
+      />
 
+      {/* Historial Link */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-lg font-semibold">Historial</h2>
         <Link
           href={`/survivor/${survivorData.id}/historial`}
-          className="group"
+          className="group block"
         >
           <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
             <CardContent className="flex items-center gap-4 p-5 sm:p-6">
