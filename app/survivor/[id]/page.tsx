@@ -8,7 +8,6 @@ import {
   History,
   Heart,
   Skull,
-  Crown,
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -344,49 +343,28 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                 )}
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {alivePlayers.map((participant, index) => {
+                  {alivePlayers.map((participant) => {
                     const isCurrentUser =
                       participant.oderId === session.user.id;
-                    const isOwner = participant.oderId === survivorData.ownerId;
 
                     return (
                       <Card
                         key={participant.id}
-                        className={`relative overflow-hidden border-border/50 ${
+                        className={`overflow-hidden border-border/50 ${
                           isCurrentUser ? "ring-2 ring-primary/50" : ""
                         }`}
                       >
-                        {/* Rank indicator for top 3 */}
-                        {index < 3 && (
-                          <div
-                            className={`absolute left-0 top-0 h-full w-1 ${
-                              index === 0
-                                ? "bg-amber-500"
-                                : index === 1
-                                  ? "bg-slate-400"
-                                  : "bg-amber-700"
-                            }`}
-                          />
-                        )}
-
                         <CardContent className="flex items-center gap-3 p-4">
-                          <div className="relative">
-                            <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
-                              <Image
-                                src={
-                                  participant.userImage || "/img/profile.png"
-                                }
-                                alt={participant.userName || "Participante"}
-                                fill
-                                className="object-cover"
-                                sizes="44px"
-                              />
-                            </div>
-                            {isOwner && (
-                              <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500">
-                                <Crown className="h-2.5 w-2.5 text-white" />
-                              </div>
-                            )}
+                          <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
+                            <Image
+                              src={
+                                participant.userImage || "/img/profile.png"
+                              }
+                              alt={participant.userName || "Participante"}
+                              fill
+                              className="object-cover"
+                              sizes="44px"
+                            />
                           </div>
 
                           <div className="min-w-0 flex-1">
@@ -448,8 +426,6 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                   new Date(a.joinedAt).getTime(),
               );
 
-            if (eliminatedPlayers.length === 0) return null;
-
             return (
               <div>
                 <div className="mb-4 flex items-center gap-2">
@@ -467,21 +443,31 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                   </Badge>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {eliminatedPlayers.map((participant) => {
-                    const isCurrentUser =
-                      participant.oderId === session.user.id;
-                    const isOwner = participant.oderId === survivorData.ownerId;
+                {eliminatedPlayers.length === 0 ? (
+                  <Card className="overflow-hidden border-border/30 bg-muted/10">
+                    <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                        <span className="text-2xl">😅</span>
+                      </div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        No hay eliminados, por ahora
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {eliminatedPlayers.map((participant) => {
+                      const isCurrentUser =
+                        participant.oderId === session.user.id;
 
-                    return (
-                      <Card
-                        key={participant.id}
-                        className={`relative overflow-hidden border-border/30 bg-muted/20 opacity-70 ${
-                          isCurrentUser ? "ring-2 ring-destructive/30" : ""
-                        }`}
-                      >
-                        <CardContent className="flex items-center gap-3 p-4">
-                          <div className="relative">
+                      return (
+                        <Card
+                          key={participant.id}
+                          className={`overflow-hidden border-border/30 bg-muted/20 opacity-70 ${
+                            isCurrentUser ? "ring-2 ring-destructive/30" : ""
+                          }`}
+                        >
+                          <CardContent className="flex items-center gap-3 p-4">
                             <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-red-500/20">
                               <Image
                                 src={
@@ -496,43 +482,38 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                                 <Skull className="h-4 w-4 text-white" />
                               </div>
                             </div>
-                            {isOwner && (
-                              <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/50">
-                                <Crown className="h-2.5 w-2.5 text-white" />
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <p className="truncate text-sm font-medium line-through">
+                                  {participant.userName || "Sin nombre"}
+                                </p>
+                                {isCurrentUser && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="h-4 bg-destructive/10 px-1 text-[10px] text-destructive"
+                                  >
+                                    Tú
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <p className="truncate text-sm font-medium line-through">
-                                {participant.userName || "Sin nombre"}
+                              <p className="text-xs text-muted-foreground">
+                                {participant.eliminatedAtRound
+                                  ? `Eliminado en ${participant.eliminatedAtRound}`
+                                  : "Eliminado"}
                               </p>
-                              {isCurrentUser && (
-                                <Badge
-                                  variant="secondary"
-                                  className="h-4 bg-destructive/10 px-1 text-[10px] text-destructive"
-                                >
-                                  Tú
-                                </Badge>
-                              )}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {participant.eliminatedAtRound
-                                ? `Eliminado en ${participant.eliminatedAtRound}`
-                                : "Eliminado"}
-                            </p>
-                          </div>
 
-                          <Badge variant="destructive" className="gap-1">
-                            <Skull className="h-3 w-3" />
-                            OUT
-                          </Badge>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                            <Badge variant="destructive" className="gap-1">
+                              <Skull className="h-3 w-3" />
+                              OUT
+                            </Badge>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })()}
