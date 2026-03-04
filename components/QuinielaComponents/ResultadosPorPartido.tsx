@@ -29,12 +29,12 @@ import {
   Calendar,
   Loader2,
   AlertCircle,
-  Play,
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
-import { FixtureData } from "@/types/fixtures";
+import { FixtureData, isMatchFinished, isMatchLive } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
+import { LiveBadge } from "@/components/ui/live-badge";
 import { getDefaultActiveRound } from "./RegistrarPronosticos";
 
 interface ResultadosPorPartidoProps {
@@ -68,7 +68,7 @@ function evaluatePrediction(
     predictedAwayScore: number | null;
   },
   actualResult: { homeScore: number | null; awayScore: number | null },
-  matchFinished: boolean,
+  canEvaluate: boolean,
   exactPoints: number = 2,
   correctResultPoints: number = 1,
 ): {
@@ -90,9 +90,9 @@ function evaluatePrediction(
     };
   }
 
-  // Match not finished yet - show as pending
+  // Match not evaluable yet (not finished and not live)
   if (
-    !matchFinished ||
+    !canEvaluate ||
     actualResult.homeScore === null ||
     actualResult.awayScore === null
   ) {
@@ -180,14 +180,6 @@ function formatDate(dateString: string): string {
   });
 }
 
-// Helper function to check if match is live
-function isMatchLive(fixture: FixtureData): boolean {
-  const statusShort = fixture.fixture.status.short;
-  // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
-  const liveStatuses = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
-  return liveStatuses.includes(statusShort);
-}
-
 export default function ResultadosPorPartido({
   quiniela,
   userId,
@@ -272,10 +264,8 @@ export default function ResultadosPorPartido({
         homeScore: fixture.goals.home,
         awayScore: fixture.goals.away,
       };
-      const matchFinished =
-        fixture.fixture.status.short === "FT" ||
-        fixture.fixture.status.short === "AET" ||
-        fixture.fixture.status.short === "PEN";
+      const matchFinished = isMatchFinished(fixture.fixture.status.short);
+      const matchLive = isMatchLive(fixture.fixture.status.short);
 
       let exact = 0;
       let correctResult = 0;
@@ -296,7 +286,7 @@ export default function ResultadosPorPartido({
                 predictedAwayScore: null,
               },
           actualResult,
-          matchFinished,
+          matchFinished || matchLive,
           exactPoints,
           correctResultPoints,
         );
@@ -339,18 +329,16 @@ export default function ResultadosPorPartido({
   // Sort fixtures: finished first, then by date
   const sortedFixtures = useMemo(() => {
     return [...roundFixtures].sort((a, b) => {
-      const aFinished =
-        a.fixture.status.short === "FT" ||
-        a.fixture.status.short === "AET" ||
-        a.fixture.status.short === "PEN";
-      const bFinished =
-        b.fixture.status.short === "FT" ||
-        b.fixture.status.short === "AET" ||
-        b.fixture.status.short === "PEN";
+      const aFinished = isMatchFinished(a.fixture.status.short);
+      const bFinished = isMatchFinished(b.fixture.status.short);
+      const aLive = isMatchLive(a.fixture.status.short);
+      const bLive = isMatchLive(b.fixture.status.short);
 
-      // Finished matches first
-      if (aFinished && !bFinished) return -1;
-      if (!aFinished && bFinished) return 1;
+      // Priority: finished > live > not started
+      const aPriority = aFinished ? 0 : aLive ? 1 : 2;
+      const bPriority = bFinished ? 0 : bLive ? 1 : 2;
+
+      if (aPriority !== bPriority) return aPriority - bPriority;
 
       // Then sort by date
       return (
@@ -484,10 +472,8 @@ export default function ResultadosPorPartido({
             const predictions = fixturePredictions.get(fixtureId) || [];
             const stats = fixtureStats.get(fixtureId);
             const isOpen = openCards[fixtureId] || false;
-            const matchFinished =
-              fixture.fixture.status.short === "FT" ||
-              fixture.fixture.status.short === "AET" ||
-              fixture.fixture.status.short === "PEN";
+            const matchFinished = isMatchFinished(fixture.fixture.status.short);
+            const matchLive = isMatchLive(fixture.fixture.status.short);
             const matchNotStarted = fixture.fixture.status.short === "NS";
 
             if (!stats) return null;
@@ -541,12 +527,9 @@ export default function ResultadosPorPartido({
                               <span className="rounded-md bg-gradient-to-br from-primary/20 to-primary/10 px-3 py-1.5 text-lg font-bold tabular-nums text-primary ring-1 ring-primary/20">
                                 {fixture.goals.home} - {fixture.goals.away}
                               </span>
-                            ) : isMatchLive(fixture) ? (
+                            ) : matchLive ? (
                               <div className="flex flex-col items-center gap-1">
-                                <div className="flex items-center gap-1">
-                                  <Play className="h-3 w-3 animate-pulse text-red-600" />
-                                  <span className="text-[10px] font-medium text-red-600">EN VIVO</span>
-                                </div>
+                                <LiveBadge size="sm" />
                                 <span className="rounded-md bg-gradient-to-br from-primary/20 to-primary/10 px-3 py-1.5 text-lg font-bold tabular-nums text-primary ring-1 ring-primary/20">
                                   {fixture.goals.home ?? 0} - {fixture.goals.away ?? 0}
                                 </span>
@@ -575,7 +558,7 @@ export default function ResultadosPorPartido({
                           </div>
 
                           {/* Stats Summary - Desktop */}
-                          {matchFinished && (
+                          {(matchFinished || matchLive) && (
                             <div className="hidden items-center gap-2 sm:flex">
                               {stats.exact > 0 && (
                                 <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
@@ -630,7 +613,7 @@ export default function ResultadosPorPartido({
                         </div>
 
                         {/* Mobile Stats Summary */}
-                        {matchFinished && (
+                        {(matchFinished || matchLive) && (
                           <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3 sm:hidden">
                             {stats.exact > 0 && (
                               <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
@@ -702,7 +685,7 @@ export default function ResultadosPorPartido({
                                       predictedAwayScore: null,
                                     },
                                 actualResult,
-                                matchFinished,
+                                matchFinished || matchLive,
                                 exactPoints,
                                 correctResultPoints,
                               );
@@ -720,7 +703,7 @@ export default function ResultadosPorPartido({
                                       predictedAwayScore: null,
                                     },
                                 actualResult,
-                                matchFinished,
+                                matchFinished || matchLive,
                                 exactPoints,
                                 correctResultPoints,
                               );
@@ -764,7 +747,7 @@ export default function ResultadosPorPartido({
                                   predictedAwayScore: null,
                                 },
                             actualResult,
-                            matchFinished,
+                            matchFinished || matchLive,
                             exactPoints,
                             correctResultPoints,
                           );

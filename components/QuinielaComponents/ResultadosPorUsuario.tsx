@@ -29,7 +29,6 @@ import {
   Users,
   Loader2,
   AlertCircle,
-  Play,
   DollarSign,
   Crown,
   Medal,
@@ -38,8 +37,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
-import { FixtureData } from "@/types/fixtures";
+import { FixtureData, isMatchFinished, isMatchLive } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
+import { LiveBadge } from "@/components/ui/live-badge";
 import { getDefaultActiveRound } from "./RegistrarPronosticos";
 
 interface PrizeDistribution {
@@ -81,7 +81,7 @@ function evaluatePrediction(
     predictedAwayScore: number | null;
   },
   actualResult: { homeScore: number | null; awayScore: number | null },
-  matchFinished: boolean,
+  canEvaluate: boolean,
   exactPoints: number = 2,
   correctResultPoints: number = 1,
 ): {
@@ -103,9 +103,9 @@ function evaluatePrediction(
     };
   }
 
-  // Match not finished yet - treat as no prediction for now
+  // Match not evaluable yet (not finished and not live)
   if (
-    !matchFinished ||
+    !canEvaluate ||
     actualResult.homeScore === null ||
     actualResult.awayScore === null
   ) {
@@ -191,14 +191,6 @@ function getMatchResult(fixture: FixtureData): string {
   return `${homeGoals}-${awayGoals}`;
 }
 
-// Helper function to check if match is live
-function isMatchLive(fixture: FixtureData): boolean {
-  const statusShort = fixture.fixture.status.short;
-  // Match is in progress (1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE, etc.)
-  const liveStatuses = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
-  return liveStatuses.includes(statusShort);
-}
-
 export default function ResultadosPorUsuario({
   quiniela,
   userId,
@@ -252,10 +244,9 @@ export default function ResultadosPorUsuario({
   // Check if all fixtures in the round are finished
   const isRoundComplete = useMemo(() => {
     if (!roundFixtures.length) return false;
-    return roundFixtures.every((fixture) => {
-      const status = fixture.fixture.status.short;
-      return status === "FT" || status === "AET" || status === "PEN";
-    });
+    return roundFixtures.every((fixture) =>
+      isMatchFinished(fixture.fixture.status.short),
+    );
   }, [roundFixtures]);
 
   // Filter predictions by selected round and group by user
@@ -315,10 +306,8 @@ export default function ResultadosPorUsuario({
           homeScore: fixture.goals.home,
           awayScore: fixture.goals.away,
         };
-        const matchFinished =
-          fixture.fixture.status.short === "FT" ||
-          fixture.fixture.status.short === "AET" ||
-          fixture.fixture.status.short === "PEN";
+        const matchFinished = isMatchFinished(fixture.fixture.status.short);
+        const matchLive = isMatchLive(fixture.fixture.status.short);
 
         const evaluation = evaluatePrediction(
           prediction
@@ -331,7 +320,7 @@ export default function ResultadosPorUsuario({
                 predictedAwayScore: null,
               },
           actualResult,
-          matchFinished,
+          matchFinished || matchLive,
           exactPoints,
           correctResultPoints,
         );
@@ -776,14 +765,12 @@ export default function ResultadosPorUsuario({
                                 awayScore: b.goals.away,
                               };
 
-                              const aFinished =
-                                a.fixture.status.short === "FT" ||
-                                a.fixture.status.short === "AET" ||
-                                a.fixture.status.short === "PEN";
-                              const bFinished =
-                                b.fixture.status.short === "FT" ||
-                                b.fixture.status.short === "AET" ||
-                                b.fixture.status.short === "PEN";
+                              const aCanEvaluate =
+                                isMatchFinished(a.fixture.status.short) ||
+                                isMatchLive(a.fixture.status.short);
+                              const bCanEvaluate =
+                                isMatchFinished(b.fixture.status.short) ||
+                                isMatchLive(b.fixture.status.short);
 
                               const aEvaluation = evaluatePrediction(
                                 aPrediction
@@ -798,7 +785,7 @@ export default function ResultadosPorUsuario({
                                       predictedAwayScore: null,
                                     },
                                 aResult,
-                                aFinished,
+                                aCanEvaluate,
                                 exactPoints,
                                 correctResultPoints,
                               );
@@ -816,7 +803,7 @@ export default function ResultadosPorUsuario({
                                       predictedAwayScore: null,
                                     },
                                 bResult,
-                                bFinished,
+                                bCanEvaluate,
                                 exactPoints,
                                 correctResultPoints,
                               );
@@ -847,10 +834,8 @@ export default function ResultadosPorUsuario({
                             homeScore: fixture.goals.home,
                             awayScore: fixture.goals.away,
                           };
-                          const matchFinished =
-                            fixture.fixture.status.short === "FT" ||
-                            fixture.fixture.status.short === "AET" ||
-                            fixture.fixture.status.short === "PEN";
+                          const matchFinished = isMatchFinished(fixture.fixture.status.short);
+                          const matchLive = isMatchLive(fixture.fixture.status.short);
 
                           const evaluation = evaluatePrediction(
                             prediction
@@ -865,7 +850,7 @@ export default function ResultadosPorUsuario({
                                   predictedAwayScore: null,
                                 },
                             actualResult,
-                            matchFinished,
+                            matchFinished || matchLive,
                             exactPoints,
                             correctResultPoints,
                           );
@@ -898,12 +883,9 @@ export default function ResultadosPorUsuario({
                                   <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-sm font-bold tabular-nums text-foreground">
                                     {fixture.goals.home}-{fixture.goals.away}
                                   </span>
-                                ) : isMatchLive(fixture) ? (
+                                ) : matchLive ? (
                                   <div className="flex flex-col items-center gap-0.5">
-                                    <div className="flex items-center gap-1">
-                                      <Play className="h-2.5 w-2.5 animate-pulse text-red-600" />
-                                      <span className="text-[9px] font-medium text-red-600">EN VIVO</span>
-                                    </div>
+                                    <LiveBadge size="sm" />
                                     <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-sm font-bold tabular-nums text-foreground">
                                       {fixture.goals.home ?? 0}-{fixture.goals.away ?? 0}
                                     </span>
