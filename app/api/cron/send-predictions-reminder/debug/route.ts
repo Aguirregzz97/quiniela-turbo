@@ -3,53 +3,13 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 import { db } from "@/db";
-import {
-  users,
-  quiniela_participants,
-  quinielas,
-  predictions,
-} from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
-import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
+import { users, quinielas } from "@/db/schema";
 import { getActiveRound } from "@/lib/rounds";
+import { analyzeUserPredictions } from "@/lib/cron/predictions-reminder";
 
-interface DebugMissingPrediction {
-  quinielaName: string;
-  quinielaId: string;
-  fixtureId: string;
-  homeTeam: string;
-  awayTeam: string;
-  matchDate: string;
-  status: string;
-}
-
-interface DebugUserResult {
-  userId: string;
-  email: string | null;
-  name: string | null;
-  quinielas: number;
-  missingPredictions: DebugMissingPrediction[];
-  completedPredictions: {
-    quinielaName: string;
-    fixtureId: string;
-    homeTeam: string;
-    awayTeam: string;
-    predictedHome: number | null;
-    predictedAway: number | null;
-  }[];
-  skippedFixtures: {
-    quinielaName: string;
-    fixtureId: string;
-    homeTeam: string;
-    awayTeam: string;
-    reason: string;
-  }[];
-}
-
-// Debug endpoint - shows what emails would be sent without actually sending
+// Debug endpoint — shows what emails would be sent without actually sending
 export async function GET(request: Request) {
   try {
-    // Verify cron secret for security
     const authHeader = request.headers.get("authorization");
     if (
       process.env.CRON_SECRET &&
@@ -60,138 +20,78 @@ export async function GET(request: Request) {
 
     console.log("[Predictions Reminder Debug] Starting debug analysis...");
 
-    // Get all users
     const allUsers = await db.select().from(users);
-
-    const debugResults: DebugUserResult[] = [];
-
-    // Optional: Only check specific user for testing
     const onlySendEmailsTo = process.env.ONLY_SEND_EMAILS_TO;
+
+    const debugResults: {
+      userId: string;
+      email: string | null;
+      name: string | null;
+      quinielas: number;
+      missingPredictions: {
+        quinielaName: string;
+        quinielaId: string;
+        fixtureId: string;
+        homeTeam: string;
+        awayTeam: string;
+        matchDate: string;
+        status: string;
+      }[];
+      completedPredictions: {
+        quinielaName: string;
+        fixtureId: string;
+        homeTeam: string;
+        awayTeam: string;
+        predictedHome: number | null;
+        predictedAway: number | null;
+      }[];
+      skippedFixtures: {
+        quinielaName: string;
+        fixtureId: string;
+        homeTeam: string;
+        awayTeam: string;
+        reason: string;
+      }[];
+    }[] = [];
 
     for (const user of allUsers) {
       if (!user.email) continue;
+      if (onlySendEmailsTo && user.email !== onlySendEmailsTo) continue;
 
-      // Skip users that don't match the test email filter
-      if (onlySendEmailsTo && user.email !== onlySendEmailsTo) {
-        continue;
-      }
+      const analysis = await analyzeUserPredictions(user.id);
 
-      const userResult: DebugUserResult = {
+      if (analysis.quinielasCount === 0) continue;
+
+      debugResults.push({
         userId: user.id,
         email: user.email,
         name: user.name,
-        quinielas: 0,
-        missingPredictions: [],
-        completedPredictions: [],
-        skippedFixtures: [],
-      };
-
-      // Get all quinielas this user participates in
-      const userParticipations = await db
-        .select({
-          quinielaId: quiniela_participants.quinielaId,
-          quinielaName: quinielas.name,
-          externalLeagueId: quinielas.externalLeagueId,
-          externalSeason: quinielas.externalSeason,
-          roundsSelected: quinielas.roundsSelected,
-        })
-        .from(quiniela_participants)
-        .innerJoin(
-          quinielas,
-          eq(quiniela_participants.quinielaId, quinielas.id),
-        )
-        .where(eq(quiniela_participants.userId, user.id));
-
-      userResult.quinielas = userParticipations.length;
-
-      for (const participation of userParticipations) {
-        // Get the active/next round
-        const activeRound = getActiveRound(participation.roundsSelected || []);
-
-        if (!activeRound) {
-          continue;
-        }
-
-        // Fetch fixtures for the active round
-        const roundFixtures = await fetchRoundFixtures(
-          participation.externalLeagueId,
-          participation.externalSeason,
-          activeRound.roundName,
-        );
-
-        if (roundFixtures.length === 0) {
-          continue;
-        }
-
-        // Get fixture IDs
-        const fixtureIds = roundFixtures.map((f) => f.fixture.id.toString());
-
-        // Get user's existing predictions for these fixtures
-        const existingPredictions = await db
-          .select()
-          .from(predictions)
-          .where(
-            and(
-              eq(predictions.userId, user.id),
-              eq(predictions.quinielaId, participation.quinielaId),
-              inArray(predictions.externalFixtureId, fixtureIds),
-            ),
-          );
-
-        // Map predictions by fixture ID
-        const predictionsByFixture = new Map(
-          existingPredictions.map((p) => [p.externalFixtureId, p]),
-        );
-
-        // Check each fixture
-        const now = new Date();
-        for (const fixture of roundFixtures) {
-          const fixtureId = fixture.fixture.id.toString();
-          const matchDate = new Date(fixture.fixture.date);
-          const prediction = predictionsByFixture.get(fixtureId);
-
-          const fixtureInfo = {
-            quinielaName: participation.quinielaName,
-            quinielaId: participation.quinielaId,
-            fixtureId,
-            homeTeam: fixture.teams.home.name,
-            awayTeam: fixture.teams.away.name,
-          };
-
-          // Check if match has already started
-          if (matchDate <= now) {
-            userResult.skippedFixtures.push({
-              ...fixtureInfo,
-              reason: `Match already started/finished (${fixture.fixture.status.short})`,
-            });
-            continue;
-          }
-
-          // Check if prediction exists with actual values
-          if (
-            prediction &&
-            prediction.predictedHomeScore !== null &&
-            prediction.predictedAwayScore !== null
-          ) {
-            userResult.completedPredictions.push({
-              ...fixtureInfo,
-              predictedHome: prediction.predictedHomeScore,
-              predictedAway: prediction.predictedAwayScore,
-            });
-          } else {
-            userResult.missingPredictions.push({
-              ...fixtureInfo,
-              matchDate: fixture.fixture.date,
-              status: fixture.fixture.status.short,
-            });
-          }
-        }
-      }
-
-      // Only include users with some quiniela activity
-      if (userResult.quinielas > 0) {
-        debugResults.push(userResult);
-      }
+        quinielas: analysis.quinielasCount,
+        missingPredictions: analysis.missingPredictions.map((mp) => ({
+          quinielaName: mp.quinielaName,
+          quinielaId: mp.quinielaId,
+          fixtureId: mp.fixture.fixture.id.toString(),
+          homeTeam: mp.fixture.teams.home.name,
+          awayTeam: mp.fixture.teams.away.name,
+          matchDate: mp.fixture.fixture.date,
+          status: mp.fixture.fixture.status.short,
+        })),
+        completedPredictions: analysis.completedPredictions.map((cp) => ({
+          quinielaName: cp.quinielaName,
+          fixtureId: cp.fixtureId,
+          homeTeam: cp.homeTeam,
+          awayTeam: cp.awayTeam,
+          predictedHome: cp.predictedHome,
+          predictedAway: cp.predictedAway,
+        })),
+        skippedFixtures: analysis.skippedFixtures.map((sf) => ({
+          quinielaName: sf.quinielaName,
+          fixtureId: sf.fixtureId,
+          homeTeam: sf.homeTeam,
+          awayTeam: sf.awayTeam,
+          reason: sf.reason,
+        })),
+      });
     }
 
     // Summary stats
@@ -226,7 +126,7 @@ export async function GET(request: Request) {
       summary: {
         totalUsersChecked: debugResults.length,
         usersWhoWouldReceiveEmail: usersWithMissingPredictions.length,
-        totalMissingPredictions: totalMissingPredictions,
+        totalMissingPredictions,
       },
       users: debugResults,
     });
