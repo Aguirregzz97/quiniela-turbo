@@ -55,6 +55,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LiveBadge } from "@/components/ui/live-badge";
+import { getDefaultActiveRound } from "@/lib/rounds";
 
 interface RegistrarPronosticosProps {
   quiniela: Quiniela;
@@ -62,35 +63,6 @@ interface RegistrarPronosticosProps {
 }
 
 const COLLAPSE_BREAKPOINT = 1200;
-
-// Helper function to determine the default active round
-export function getDefaultActiveRound(
-  rounds: { roundName: string; dates: string[] }[],
-): string {
-  if (!rounds.length) return "";
-
-  // Get today's date in Mexico City timezone
-  const now = new Date();
-  const mexicoCityDate = now.toLocaleDateString("en-CA", {
-    timeZone: "America/Mexico_City",
-  }); // Returns YYYY-MM-DD format
-  const today = new Date(mexicoCityDate + "T00:00:00");
-
-  // Check if today falls within any round
-  for (const round of rounds) {
-    if (round.dates.length === 0) continue;
-
-    // round.dates are in YYYY-MM-DD format (Mexico City dates from API)
-    const roundEndDate = round.dates[round.dates.length - 1];
-    const roundEnd = new Date(roundEndDate + "T23:59:59");
-
-    if (roundEnd >= today) {
-      return round.roundName;
-    }
-  }
-
-  return rounds[0].roundName;
-}
 
 // Helper function to filter fixtures by round
 function filterFixturesByRound(

@@ -4,38 +4,6 @@ import { FixturesApiResponse, FixtureData } from "@/types/fixtures";
 import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 /**
- * Determines the current/next active round from a list of rounds
- * Returns the first round whose end date is >= today
- */
-export function getActiveRound(
-  rounds: { roundName: string; dates: string[] }[],
-): { roundName: string; dates: string[] } | null {
-  if (!rounds.length) return null;
-
-  // Get today's date in Mexico City timezone
-  const now = new Date();
-  const mexicoCityDate = now.toLocaleDateString("en-CA", {
-    timeZone: "America/Mexico_City",
-  }); // Returns YYYY-MM-DD format
-  const today = new Date(mexicoCityDate + "T00:00:00");
-
-  for (const round of rounds) {
-    if (round.dates.length === 0) continue;
-
-    // round.dates are in YYYY-MM-DD format
-    const roundEndDate = round.dates[round.dates.length - 1];
-    const roundEnd = new Date(roundEndDate + "T23:59:59");
-
-    if (roundEnd >= today) {
-      return round;
-    }
-  }
-
-  // If no future round found, return the first round
-  return rounds[0];
-}
-
-/**
  * Fetches fixtures for a specific round from the Football API
  * This is a server-side function for use in cron jobs and server actions
  *

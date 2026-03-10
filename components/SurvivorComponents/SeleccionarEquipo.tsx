@@ -49,7 +49,7 @@ import {
 } from "@/app/survivor/picks-action";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { getDefaultActiveRound } from "@/components/QuinielaComponents/RegistrarPronosticos";
+import { getDefaultActiveRound } from "@/lib/rounds";
 
 interface SeleccionarEquipoProps {
   survivorGame: SurvivorGame;

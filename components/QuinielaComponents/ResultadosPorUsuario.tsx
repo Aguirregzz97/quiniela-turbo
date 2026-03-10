@@ -40,7 +40,7 @@ import { Quiniela } from "@/db/schema";
 import { FixtureData, isMatchFinished, isMatchLive } from "@/types/fixtures";
 import { AllPredictionsData } from "@/hooks/predictions/useAllPredictions";
 import { LiveBadge } from "@/components/ui/live-badge";
-import { getDefaultActiveRound } from "./RegistrarPronosticos";
+import { getDefaultActiveRound } from "@/lib/rounds";
 
 interface PrizeDistribution {
   position: number;

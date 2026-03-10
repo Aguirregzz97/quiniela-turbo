@@ -10,10 +10,8 @@ import {
   predictions,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
-import {
-  fetchRoundFixtures,
-  getActiveRound,
-} from "@/lib/api-football/fetchRoundFixtures";
+import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
+import { getActiveRound } from "@/lib/rounds";
 
 interface DebugMissingPrediction {
   quinielaName: string;

@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { predictions, quiniela_participants, users } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
-import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
+import { getActiveRound } from "@/lib/rounds";
 
 interface RoundSelected {
   roundName: string;
@@ -28,39 +28,6 @@ interface PendingPredictionsResult {
   currentUserHasPending: boolean;
   currentUserPendingCount: number;
   error?: string;
-}
-
-/**
- * Determines the current/next active round from a list of rounds
- * Returns the first round that is still ongoing or hasn't started yet.
- */
-function getActiveRound(
-  rounds: RoundSelected[]
-): RoundSelected | null {
-  if (!rounds.length) return null;
-
-  // Get today's date in Mexico City timezone
-  const now = new Date();
-  const mexicoCityDate = now.toLocaleDateString("en-CA", {
-    timeZone: MEXICO_CITY_TIMEZONE,
-  }); // Returns YYYY-MM-DD format
-  const today = new Date(mexicoCityDate + "T00:00:00");
-
-  for (const round of rounds) {
-    if (round.dates.length === 0) continue;
-
-    // Get the last date of the round (end date)
-    const roundEndDate = round.dates[round.dates.length - 1];
-    const roundEnd = new Date(roundEndDate + "T00:00:00");
-
-    // Return the first round whose end date is today or in the future
-    if (roundEnd >= today) {
-      return round;
-    }
-  }
-
-  // If no ongoing/future round found, return the last round
-  return rounds[rounds.length - 1];
 }
 
 /**

@@ -3,7 +3,8 @@
 import { db } from "@/db";
 import { survivor_game_picks, survivor_game_participants, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { fetchRoundFixtures, getActiveRound } from "@/lib/api-football/fetchRoundFixtures";
+import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
+import { getActiveRound } from "@/lib/rounds";
 import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
 interface RoundSelected {

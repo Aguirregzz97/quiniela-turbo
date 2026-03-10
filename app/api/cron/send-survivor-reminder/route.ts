@@ -11,10 +11,8 @@ import {
   survivor_game_picks,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import {
-  fetchRoundFixtures,
-  getActiveRound,
-} from "@/lib/api-football/fetchRoundFixtures";
+import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
+import { getActiveRound } from "@/lib/rounds";
 import { FixtureData } from "@/types/fixtures";
 import { calculateSurvivorStatus } from "@/lib/survivor/calculateSurvivorStatus";
 
