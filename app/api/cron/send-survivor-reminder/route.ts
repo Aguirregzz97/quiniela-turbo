@@ -27,7 +27,11 @@ export async function GET(request: Request) {
     const allUsers = await db.select().from(users);
 
     let emailsSent = 0;
+    let emailsFailed = 0;
     let usersProcessed = 0;
+
+    const sleep = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     const onlySendEmailsTo = process.env.ONLY_SEND_EMAILS_TO;
     if (onlySendEmailsTo) {
@@ -75,17 +79,22 @@ export async function GET(request: Request) {
             `[Survivor Reminder] Failed to send to ${user.email}:`,
             result.error,
           );
+          emailsFailed++;
         } else {
           console.log(
             `[Survivor Reminder] Sent to ${user.email}, id: ${result.data?.id}`,
           );
           emailsSent++;
         }
+
+        // Throttle to stay under Resend's 2 req/s rate limit
+        await sleep(600);
       } catch (emailError) {
         console.error(
           `[Survivor Reminder] Error sending to ${user.email}:`,
           emailError,
         );
+        emailsFailed++;
       }
     }
 
@@ -97,6 +106,7 @@ export async function GET(request: Request) {
       success: true,
       usersProcessed,
       emailsSent,
+      emailsFailed,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
