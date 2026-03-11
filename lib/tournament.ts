@@ -6,6 +6,21 @@ import {
 
 export type TournamentType = "Clausura" | "Apertura" | null;
 
+export interface TeamStanding {
+  teamId: number;
+  teamName: string;
+  teamLogo: string;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  last5: ("win" | "draw" | "loss" | null)[];
+}
+
 export function getTournamentType(roundName: string): TournamentType {
   if (roundName.includes("Clausura")) return "Clausura";
   if (roundName.includes("Apertura")) return "Apertura";
@@ -69,4 +84,93 @@ export function getTeamLastResults(
   }
 
   return results;
+}
+
+export function computeStandings(fixtures: FixtureData[]): TeamStanding[] {
+  const standingsMap = new Map<number, Omit<TeamStanding, "last5">>();
+
+  const finishedFixtures = fixtures.filter((f) =>
+    isMatchFinished(f.fixture.status.short),
+  );
+
+  for (const fixture of finishedFixtures) {
+    const homeTeam = fixture.teams.home;
+    const awayTeam = fixture.teams.away;
+    const homeGoals = fixture.goals.home ?? 0;
+    const awayGoals = fixture.goals.away ?? 0;
+
+    if (!standingsMap.has(homeTeam.id)) {
+      standingsMap.set(homeTeam.id, {
+        teamId: homeTeam.id,
+        teamName: homeTeam.name,
+        teamLogo: homeTeam.logo,
+        played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        points: 0,
+      });
+    }
+
+    if (!standingsMap.has(awayTeam.id)) {
+      standingsMap.set(awayTeam.id, {
+        teamId: awayTeam.id,
+        teamName: awayTeam.name,
+        teamLogo: awayTeam.logo,
+        played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        points: 0,
+      });
+    }
+
+    const home = standingsMap.get(homeTeam.id)!;
+    const away = standingsMap.get(awayTeam.id)!;
+
+    home.played++;
+    away.played++;
+    home.goalsFor += homeGoals;
+    home.goalsAgainst += awayGoals;
+    away.goalsFor += awayGoals;
+    away.goalsAgainst += homeGoals;
+
+    if (homeGoals > awayGoals) {
+      home.wins++;
+      home.points += 3;
+      away.losses++;
+    } else if (homeGoals < awayGoals) {
+      away.wins++;
+      away.points += 3;
+      home.losses++;
+    } else {
+      home.draws++;
+      home.points += 1;
+      away.draws++;
+      away.points += 1;
+    }
+  }
+
+  const standings: TeamStanding[] = Array.from(standingsMap.values()).map(
+    (team) => ({
+      ...team,
+      goalDifference: team.goalsFor - team.goalsAgainst,
+      last5: getTeamLastResults(fixtures, team.teamId, 5),
+    }),
+  );
+
+  standings.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.goalDifference !== a.goalDifference)
+      return b.goalDifference - a.goalDifference;
+    return b.goalsFor - a.goalsFor;
+  });
+
+  return standings;
 }
