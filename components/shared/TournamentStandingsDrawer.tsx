@@ -86,7 +86,7 @@ export function TournamentStandingsDrawer({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[420px] text-sm">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/50 bg-muted/30 text-[11px] uppercase tracking-wider text-muted-foreground">
                     <th className="w-7 py-2.5 pl-3 pr-1 text-center font-medium">
@@ -115,17 +115,17 @@ export function TournamentStandingsDrawer({
                         {index + 1}
                       </td>
                       <td className="py-2.5 pl-1 pr-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-white shadow-sm ring-1 ring-black/5">
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-white shadow-sm ring-1 ring-black/5 sm:h-6 sm:w-6 sm:rounded-md">
                             <Image
                               src={team.teamLogo}
                               alt={team.teamName}
                               width={18}
                               height={18}
-                              className="h-[18px] w-[18px] object-contain"
+                              className="h-4 w-4 object-contain sm:h-[18px] sm:w-[18px]"
                             />
                           </div>
-                          <span className="max-w-[90px] truncate text-xs font-medium">
+                          <span className="hidden max-w-[90px] truncate text-xs font-medium sm:inline">
                             {team.teamName}
                           </span>
                         </div>
