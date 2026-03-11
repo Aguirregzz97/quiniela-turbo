@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import {
-  useFixtures,
-  useTeamLastFixtures,
-} from "@/hooks/api-football/useFixtures";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+  TournamentType,
+  getTournamentType,
+  filterFixturesByRound,
+} from "@/lib/tournament";
+import { Last5Games } from "@/components/shared/Last5Games";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -30,7 +32,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Quiniela } from "@/db/schema";
-import { FixtureData, getTeamResultFromTeam, isMatchFinished } from "@/types/fixtures";
+import { FixtureData } from "@/types/fixtures";
 import { usePredictions } from "@/hooks/predictions/usePredictions";
 import { useMultipleOdds } from "@/hooks/api-football/useOdds";
 import { OddsApiResponse, Bet, Value } from "@/types/odds";
@@ -53,7 +55,6 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { LiveBadge } from "@/components/ui/live-badge";
 import { getDefaultActiveRound } from "@/lib/rounds";
 
@@ -63,15 +64,6 @@ interface RegistrarPronosticosProps {
 }
 
 const COLLAPSE_BREAKPOINT = 1200;
-
-// Helper function to filter fixtures by round
-function filterFixturesByRound(
-  fixtures: FixtureData[] | undefined,
-  roundName: string,
-): FixtureData[] {
-  if (!fixtures) return [];
-  return fixtures.filter((fixture) => fixture.league.round === roundName);
-}
 
 // Helper function to format match status
 function getMatchStatus(fixture: FixtureData): string {
@@ -173,118 +165,6 @@ function oddsToPercentage(decimalOdds: string): string {
   return `${percentage.toFixed(0)}%`;
 }
 
-// Helper function to get team's result from a fixture (win/draw/loss)
-function getTeamResult(
-  fixture: FixtureData,
-  teamId: number,
-): "win" | "draw" | "loss" | null {
-  const { teams } = fixture;
-  const isHomeTeam = teams.home.id === teamId;
-  const team = isHomeTeam ? teams.home : teams.away;
-
-  return getTeamResultFromTeam(team);
-}
-
-// Tournament type based on round name (Clausura or Apertura)
-type TournamentType = "Clausura" | "Apertura" | null;
-
-// Helper function to extract tournament type from round name
-function getTournamentType(roundName: string): TournamentType {
-  if (roundName.includes("Clausura")) return "Clausura";
-  if (roundName.includes("Apertura")) return "Apertura";
-  return null;
-}
-
-// Helper function to check if a fixture belongs to a tournament type
-function fixtureMatchesTournament(
-  fixture: FixtureData,
-  tournamentType: TournamentType,
-): boolean {
-  if (!tournamentType) return true; // If no tournament type, include all
-  return fixture.league.round.includes(tournamentType);
-}
-
-// Component for displaying last 5 games results
-interface Last5GamesProps {
-  teamId: number;
-  tournamentType: TournamentType;
-  enabled: boolean;
-}
-
-function Last5Games({ teamId, tournamentType, enabled }: Last5GamesProps) {
-  const { data, isLoading } = useTeamLastFixtures(teamId, 10, enabled); // Fetch 10 to have buffer for filtering
-
-  if (!enabled) return null;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-5 w-5 rounded-full" />
-        ))}
-      </div>
-    );
-  }
-
-  const fixtures = data?.response || [];
-
-  // Filter fixtures by tournament type and finished status, then take last 5
-  const filteredFixtures = fixtures
-    .filter((fixture) => {
-      const finished = isMatchFinished(fixture.fixture.status.short);
-      const matchesTournament = fixtureMatchesTournament(fixture, tournamentType);
-      return finished && matchesTournament;
-    })
-    .slice(0, 5);
-
-  // If no fixtures, show empty state
-  if (filteredFixtures.length === 0) {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/50"
-          >
-            <span className="text-[10px] text-muted-foreground">−</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Get results for each fixture (API returns most recent first, so reverse for display oldest to newest)
-  const results = filteredFixtures
-    .map((fixture) => getTeamResult(fixture, teamId))
-    .reverse();
-
-  // Pad with empty slots if less than 5 games
-  while (results.length < 5) {
-    results.unshift(null);
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1">
-      {results.slice(-5).map((result, i) => (
-        <div
-          key={i}
-          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-            result === "win"
-              ? "bg-emerald-500 text-white"
-              : result === "loss"
-                ? "bg-red-500 text-white"
-                : result === "draw"
-                  ? "bg-amber-500 text-white"
-                  : "bg-muted/50 text-muted-foreground"
-          }`}
-        >
-          {result === "win" ? "✓" : result === "loss" ? "✗" : result === "draw" ? "−" : "−"}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // Helper function to extract all odds from API response
 function getAllOdds(oddsData: OddsApiResponse | undefined): AllOdds {
   const result: AllOdds = {
@@ -370,7 +250,7 @@ interface FixtureCardProps {
   oddsData: Record<number, OddsApiResponse> | undefined;
   isLoadingOdds: boolean;
   isFinished?: boolean;
-  tournamentType: TournamentType;
+  tournamentFixtures: FixtureData[];
 }
 
 function FixtureCard({
@@ -381,7 +261,7 @@ function FixtureCard({
   oddsData,
   isLoadingOdds,
   isFinished = false,
-  tournamentType,
+  tournamentFixtures,
 }: FixtureCardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { date, time } = formatDateTime(fixture.fixture.date);
@@ -545,8 +425,7 @@ function FixtureCard({
                               {/* Home Team Last 5 Games */}
                               <Last5Games
                                 teamId={fixture.teams.home.id}
-                                tournamentType={tournamentType}
-                                enabled={drawerOpen}
+                                tournamentFixtures={tournamentFixtures}
                               />
                             </div>
                             <div className="flex flex-col items-center">
@@ -570,8 +449,7 @@ function FixtureCard({
                               {/* Away Team Last 5 Games */}
                               <Last5Games
                                 teamId={fixture.teams.away.id}
-                                tournamentType={tournamentType}
-                                enabled={drawerOpen}
+                                tournamentFixtures={tournamentFixtures}
                               />
                             </div>
                           </div>
@@ -1068,20 +946,6 @@ export default function RegistrarPronosticos({
 }: RegistrarPronosticosProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
-
-  const {
-    data: fixturesData,
-    isLoading,
-    error,
-  } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
-  );
-
-  const { data: existingPredictions = [] } = usePredictions(quiniela.id);
 
   // Get available rounds from quiniela data
   const availableRounds = useMemo(
@@ -1094,6 +958,18 @@ export default function RegistrarPronosticos({
     if (availableRounds.length === 0) return null;
     return getTournamentType(availableRounds[0].roundName);
   }, [availableRounds]);
+
+  const {
+    isLoading,
+    error,
+    tournamentFixtures,
+  } = useTournamentFixtures(
+    quiniela.externalLeagueId,
+    quiniela.externalSeason,
+    tournamentType,
+  );
+
+  const { data: existingPredictions = [] } = usePredictions(quiniela.id);
 
   // Determine default active round
   const defaultRound = getDefaultActiveRound(availableRounds);
@@ -1138,8 +1014,8 @@ export default function RegistrarPronosticos({
 
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
-    return filterFixturesByRound(fixturesData?.response, selectedRound);
-  }, [fixturesData?.response, selectedRound]);
+    return filterFixturesByRound(tournamentFixtures, selectedRound);
+  }, [tournamentFixtures, selectedRound]);
 
   // Get fixture IDs for odds fetching
   const fixtureIds = useMemo(() => {
@@ -1438,7 +1314,7 @@ export default function RegistrarPronosticos({
                     hasExistingPrediction={hasExistingPrediction}
                     oddsData={oddsData}
                     isLoadingOdds={isLoadingOdds}
-                    tournamentType={tournamentType}
+                    tournamentFixtures={tournamentFixtures}
                   />
                 ))}
               </div>
@@ -1482,7 +1358,7 @@ export default function RegistrarPronosticos({
                       oddsData={oddsData}
                       isLoadingOdds={isLoadingOdds}
                       isFinished
-                      tournamentType={tournamentType}
+                      tournamentFixtures={tournamentFixtures}
                     />
                   ))}
                 </CollapsibleContent>

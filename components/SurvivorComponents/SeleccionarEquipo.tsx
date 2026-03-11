@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import {
-  useFixtures,
-  useTeamLastFixtures,
-} from "@/hooks/api-football/useFixtures";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+  TournamentType,
+  getTournamentType,
+  filterFixturesByRound,
+} from "@/lib/tournament";
+import { Last5Games } from "@/components/shared/Last5Games";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -38,8 +40,7 @@ import {
 } from "@/components/ui/drawer";
 import Image from "next/image";
 import { SurvivorGame } from "@/db/schema";
-import { FixtureData, getTeamResultFromTeam, isMatchFinished } from "@/types/fixtures";
-import { Skeleton } from "@/components/ui/skeleton";
+import { FixtureData } from "@/types/fixtures";
 import { useSurvivorPicks } from "@/hooks/survivor/useSurvivorPicks";
 import { useMultipleOdds } from "@/hooks/api-football/useOdds";
 import { OddsApiResponse, Bet, Value } from "@/types/odds";
@@ -54,15 +55,6 @@ import { getDefaultActiveRound } from "@/lib/rounds";
 interface SeleccionarEquipoProps {
   survivorGame: SurvivorGame;
   userId: string;
-}
-
-// Helper function to filter fixtures by round
-function filterFixturesByRound(
-  fixtures: FixtureData[] | undefined,
-  roundName: string,
-): FixtureData[] {
-  if (!fixtures) return [];
-  return fixtures.filter((fixture) => fixture.league.round === roundName);
 }
 
 // Helper function to get match status info
@@ -224,118 +216,6 @@ function getMatchWinnerOdds(
   };
 }
 
-// Tournament type based on round name (Clausura or Apertura)
-type TournamentType = "Clausura" | "Apertura" | null;
-
-// Helper function to extract tournament type from round name
-function getTournamentType(roundName: string): TournamentType {
-  if (roundName.includes("Clausura")) return "Clausura";
-  if (roundName.includes("Apertura")) return "Apertura";
-  return null;
-}
-
-// Helper function to check if a fixture belongs to a tournament type
-function fixtureMatchesTournament(
-  fixture: FixtureData,
-  tournamentType: TournamentType,
-): boolean {
-  if (!tournamentType) return true; // If no tournament type, include all
-  return fixture.league.round.includes(tournamentType);
-}
-
-// Helper function to get team's result from a fixture (win/draw/loss)
-function getTeamResult(
-  fixture: FixtureData,
-  teamId: number,
-): "win" | "draw" | "loss" | null {
-  const { teams } = fixture;
-  const isHomeTeam = teams.home.id === teamId;
-  const team = isHomeTeam ? teams.home : teams.away;
-
-  return getTeamResultFromTeam(team);
-}
-
-// Component for displaying last 5 games results
-interface Last5GamesProps {
-  teamId: number;
-  tournamentType: TournamentType;
-  enabled: boolean;
-}
-
-function Last5Games({ teamId, tournamentType, enabled }: Last5GamesProps) {
-  const { data, isLoading } = useTeamLastFixtures(teamId, 10, enabled); // Fetch 10 to have buffer for filtering
-
-  if (!enabled) return null;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-5 w-5 rounded-full" />
-        ))}
-      </div>
-    );
-  }
-
-  const fixtures = data?.response || [];
-
-  // Filter fixtures by tournament type and finished status, then take last 5
-  const filteredFixtures = fixtures
-    .filter((fixture) => {
-      const finished = isMatchFinished(fixture.fixture.status.short);
-      const matchesTournament = fixtureMatchesTournament(fixture, tournamentType);
-      return finished && matchesTournament;
-    })
-    .slice(0, 5);
-
-  // If no fixtures, show empty state
-  if (filteredFixtures.length === 0) {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/50"
-          >
-            <span className="text-[10px] text-muted-foreground">−</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Get results for each fixture (API returns most recent first, so reverse for display oldest to newest)
-  const results = filteredFixtures
-    .map((fixture) => getTeamResult(fixture, teamId))
-    .reverse();
-
-  // Pad with empty slots if less than 5 games
-  while (results.length < 5) {
-    results.unshift(null);
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1">
-      {results.slice(-5).map((result, i) => (
-        <div
-          key={i}
-          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-            result === "win"
-              ? "bg-emerald-500 text-white"
-              : result === "loss"
-                ? "bg-red-500 text-white"
-                : result === "draw"
-                  ? "bg-amber-500 text-white"
-                  : "bg-muted/50 text-muted-foreground"
-          }`}
-        >
-          {result === "win" ? "✓" : result === "loss" ? "✗" : result === "draw" ? "−" : "−"}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // Drawer component with Last 5 Games
 interface DrawerWithLast5GamesProps {
   fixture: FixtureData;
@@ -343,7 +223,7 @@ interface DrawerWithLast5GamesProps {
   hasAnyOdds: boolean;
   oddsNotAvailable: boolean;
   isLoadingOdds: boolean;
-  tournamentType: TournamentType;
+  tournamentFixtures: FixtureData[];
 }
 
 function DrawerWithLast5Games({
@@ -352,7 +232,7 @@ function DrawerWithLast5Games({
   hasAnyOdds,
   oddsNotAvailable,
   isLoadingOdds,
-  tournamentType,
+  tournamentFixtures,
 }: DrawerWithLast5GamesProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -403,8 +283,7 @@ function DrawerWithLast5Games({
                   {/* Home Team Last 5 Games */}
                   <Last5Games
                     teamId={fixture.teams.home.id}
-                    tournamentType={tournamentType}
-                    enabled={drawerOpen}
+                    tournamentFixtures={tournamentFixtures}
                   />
                 </div>
                 <div className="flex flex-col items-center">
@@ -428,8 +307,7 @@ function DrawerWithLast5Games({
                   {/* Away Team Last 5 Games */}
                   <Last5Games
                     teamId={fixture.teams.away.id}
-                    tournamentType={tournamentType}
-                    enabled={drawerOpen}
+                    tournamentFixtures={tournamentFixtures}
                   />
                 </div>
               </div>
@@ -564,7 +442,7 @@ interface TeamSelectionCardProps {
   oddsData: Record<number, OddsApiResponse> | undefined;
   isLoadingOdds: boolean;
   isSubmitting: boolean;
-  tournamentType: TournamentType;
+  tournamentFixtures: FixtureData[];
 }
 
 function TeamSelectionCard({
@@ -576,7 +454,7 @@ function TeamSelectionCard({
   oddsData,
   isLoadingOdds,
   isSubmitting,
-  tournamentType,
+  tournamentFixtures,
 }: TeamSelectionCardProps) {
   const { date, time } = formatDateTime(fixture.fixture.date);
   const statusInfo = getMatchStatusInfo(fixture);
@@ -668,7 +546,7 @@ function TeamSelectionCard({
                 hasAnyOdds={hasAnyOdds}
                 oddsNotAvailable={oddsNotAvailable}
                 isLoadingOdds={isLoadingOdds}
-                tournamentType={tournamentType}
+                tournamentFixtures={tournamentFixtures}
               />
             )}
           </div>
@@ -896,20 +774,6 @@ export default function SeleccionarEquipo({
 }: SeleccionarEquipoProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const fixturesParams = getFixturesParamsFromQuiniela(survivorGame);
-
-  const {
-    data: fixturesData,
-    isLoading,
-    error,
-  } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
-  );
-
-  const { data: existingPicks = [] } = useSurvivorPicks(survivorGame.id);
 
   // Get available rounds from survivor game data
   const availableRounds = useMemo(
@@ -923,6 +787,18 @@ export default function SeleccionarEquipo({
     return getTournamentType(availableRounds[0].roundName);
   }, [availableRounds]);
 
+  const {
+    isLoading,
+    error,
+    tournamentFixtures,
+  } = useTournamentFixtures(
+    survivorGame.externalLeagueId,
+    survivorGame.externalSeason,
+    tournamentType,
+  );
+
+  const { data: existingPicks = [] } = useSurvivorPicks(survivorGame.id);
+
   // Determine default active round
   const defaultRound = getDefaultActiveRound(availableRounds);
   const [selectedRound, setSelectedRound] = useState<string>(defaultRound);
@@ -935,8 +811,8 @@ export default function SeleccionarEquipo({
 
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
-    return filterFixturesByRound(fixturesData?.response, selectedRound);
-  }, [fixturesData?.response, selectedRound]);
+    return filterFixturesByRound(tournamentFixtures, selectedRound);
+  }, [tournamentFixtures, selectedRound]);
 
   // Check if the round is locked (any match has started or is within 5 minutes)
   const allowPicksIndefinitely =
@@ -1207,7 +1083,7 @@ export default function SeleccionarEquipo({
               oddsData={oddsData}
               isLoadingOdds={isLoadingOdds}
               isSubmitting={isSubmitting}
-              tournamentType={tournamentType}
+              tournamentFixtures={tournamentFixtures}
             />
           ))
         )}
