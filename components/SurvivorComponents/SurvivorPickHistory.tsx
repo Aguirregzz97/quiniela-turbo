@@ -12,14 +12,14 @@ import {
   History,
   ChevronDown,
   ChevronRight,
-  Shield,
   Crown,
-  Heart,
   Skull,
   Check,
   X,
   Minus,
   Clock,
+  EyeOff,
+  Lock,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -29,6 +29,7 @@ import {
 import { useQueries } from "@tanstack/react-query";
 import { FixtureData } from "@/types/fixtures";
 import axios from "axios";
+import { getActiveRound } from "@/lib/rounds";
 
 interface Participant {
   id: string;
@@ -148,6 +149,44 @@ export default function SurvivorPickHistory({
 
   const fixturesLoading = fixtureQueries.some((q) => q.isLoading);
 
+  // Determine which rounds have started (at least one fixture in that round is no longer "NS")
+  const roundHasStarted = useMemo(() => {
+    const map = new Map<string, boolean>();
+
+    // Collect all loaded fixtures across all queries
+    const allFixtures: FixtureData[] = [];
+    fixtureQueries.forEach((query) => {
+      if (query.data) {
+        allFixtures.push(...query.data);
+      }
+    });
+
+    // Filter by actual league.round to handle the case where the API
+    // returns all season fixtures instead of just the requested round
+    roundsWithPicks.forEach((roundName) => {
+      const roundFixtures = allFixtures.filter(
+        (f) => f.league.round === roundName,
+      );
+      if (roundFixtures.length === 0) {
+        map.set(roundName, false);
+        return;
+      }
+      const hasStarted = roundFixtures.some(
+        (fixture) =>
+          fixture.fixture.status.short !== "NS" &&
+          fixture.fixture.status.short !== "TBD",
+      );
+      map.set(roundName, hasStarted);
+    });
+
+    return map;
+  }, [roundsWithPicks, fixtureQueries]);
+
+  const activeRoundName = useMemo(() => {
+    const active = getActiveRound(roundsSelected);
+    return active?.roundName ?? null;
+  }, [roundsSelected]);
+
   const toggleUser = (userId: string) => {
     setExpandedUsers((prev) => {
       const next = new Set(prev);
@@ -233,6 +272,15 @@ export default function SurvivorPickHistory({
         const isCurrentUser = participant.oderId === currentUserId;
         const isOwner = participant.oderId === ownerId;
 
+        // Find pick for the current active round
+        const activeRoundPick = activeRoundName
+          ? (userPicks.find((p) => p.externalRound === activeRoundName) ?? null)
+          : null;
+        const activePickHidden = activeRoundPick
+          ? !isCurrentUser &&
+            !(roundHasStarted.get(activeRoundPick.externalRound) ?? false)
+          : false;
+
         return (
           <Collapsible
             key={participant.id}
@@ -279,38 +327,60 @@ export default function SurvivorPickHistory({
                   <div className="min-w-0 flex-1 text-left">
                     <div className="flex items-center gap-1.5">
                       <p
-                        className={`truncate text-sm font-medium ${participant.isEliminated ? "line-through text-muted-foreground" : ""}`}
+                        className={`truncate text-sm font-medium ${participant.isEliminated ? "text-muted-foreground line-through" : ""}`}
                       >
                         {participant.userName || "Sin nombre"}
                       </p>
                       {isCurrentUser && (
-                        <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+                        <Badge
+                          variant="secondary"
+                          className="h-4 px-1 text-[10px]"
+                        >
                           Tú
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Shield className="h-3 w-3" />
-                        {userPicks.length} pick{userPicks.length !== 1 ? "s" : ""}
-                      </span>
-                      {!participant.isEliminated && (
-                        <span className="flex items-center gap-1">
-                          <Heart className="h-3 w-3 text-red-500" />
-                          {participant.livesRemaining} vida
-                          {participant.livesRemaining !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </div>
+                    {activeRoundName && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatRoundName(activeRoundName)}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Expand indicator */}
+                  {/* Current round pick preview */}
                   <div className="flex items-center gap-2">
-                    {userPicks.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {userPicks.length} jornada
-                        {userPicks.length !== 1 ? "s" : ""}
-                      </Badge>
+                    {activeRoundPick ? (
+                      activePickHidden ? (
+                        <div className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2 py-1">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-muted/60 ring-1 ring-black/5">
+                            <EyeOff className="h-3 w-3 text-muted-foreground/40" />
+                          </div>
+                          <span className="text-xs text-muted-foreground/50">
+                            Oculto
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1">
+                          <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5">
+                            <Image
+                              src={`https://media.api-sports.io/football/teams/${activeRoundPick.externalPickedTeamId}.png`}
+                              alt={
+                                activeRoundPick.externalPickedTeamName || "Team"
+                              }
+                              fill
+                              className="object-contain"
+                              sizes="24px"
+                            />
+                          </div>
+                          <span className="max-w-[80px] truncate text-xs font-medium sm:max-w-[120px]">
+                            {activeRoundPick.externalPickedTeamName}
+                          </span>
+                        </div>
+                      )
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        Sin pick
+                      </span>
                     )}
                     {isExpanded ? (
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -339,6 +409,10 @@ export default function SurvivorPickHistory({
                           fixture?.teams.home.id.toString() ===
                           pick.externalPickedTeamId;
 
+                        const shouldHidePick =
+                          !isCurrentUser &&
+                          !(roundHasStarted.get(pick.externalRound) ?? false);
+
                         // Determine pick result
                         let pickResult: "win" | "draw" | "loss" | "pending" =
                           "pending";
@@ -362,13 +436,15 @@ export default function SurvivorPickHistory({
                           <div
                             key={pick.id}
                             className={`rounded-lg bg-background/50 p-3 ${
-                              pickResult === "loss"
-                                ? "ring-1 ring-red-500/30"
-                                : pickResult === "win"
-                                  ? "ring-1 ring-green-500/30"
-                                  : pickResult === "draw"
-                                    ? "ring-1 ring-amber-500/30"
-                                    : ""
+                              shouldHidePick
+                                ? ""
+                                : pickResult === "loss"
+                                  ? "ring-1 ring-red-500/30"
+                                  : pickResult === "win"
+                                    ? "ring-1 ring-green-500/30"
+                                    : pickResult === "draw"
+                                      ? "ring-1 ring-amber-500/30"
+                                      : ""
                             }`}
                           >
                             {/* Round header */}
@@ -379,132 +455,184 @@ export default function SurvivorPickHistory({
                               >
                                 {formatRoundName(pick.externalRound)}
                               </Badge>
-                              {pickResult !== "pending" && (
-                                <Badge
-                                  className={`gap-1 text-xs ${
-                                    pickResult === "win"
-                                      ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-                                      : pickResult === "draw"
-                                        ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
-                                        : "bg-red-500/10 text-red-600 hover:bg-red-500/20"
-                                  }`}
-                                  variant="secondary"
-                                >
-                                  {pickResult === "win" ? (
-                                    <>
-                                      <Check className="h-3 w-3" /> Ganó
-                                    </>
-                                  ) : pickResult === "draw" ? (
-                                    <>
-                                      <Minus className="h-3 w-3" /> Empate
-                                    </>
-                                  ) : (
-                                    <>
-                                      <X className="h-3 w-3" /> Perdió
-                                    </>
+                              {shouldHidePick ? (
+                                <span />
+                              ) : (
+                                <>
+                                  {pickResult !== "pending" && (
+                                    <Badge
+                                      className={`gap-1 text-xs ${
+                                        pickResult === "win"
+                                          ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                          : pickResult === "draw"
+                                            ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                                            : "bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                      }`}
+                                      variant="secondary"
+                                    >
+                                      {pickResult === "win" ? (
+                                        <>
+                                          <Check className="h-3 w-3" /> Ganó
+                                        </>
+                                      ) : pickResult === "draw" ? (
+                                        <>
+                                          <Minus className="h-3 w-3" /> Empate
+                                        </>
+                                      ) : (
+                                        <>
+                                          <X className="h-3 w-3" /> Perdió
+                                        </>
+                                      )}
+                                    </Badge>
                                   )}
-                                </Badge>
-                              )}
-                              {pickResult === "pending" && (
-                                <Badge
-                                  variant="secondary"
-                                  className="gap-1 text-xs"
-                                >
-                                  <Clock className="h-3 w-3" /> Pendiente
-                                </Badge>
+                                  {pickResult === "pending" && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="gap-1 text-xs"
+                                    >
+                                      <Clock className="h-3 w-3" /> Pendiente
+                                    </Badge>
+                                  )}
+                                </>
                               )}
                             </div>
 
-                            {/* Fixture display */}
-                            {fixture ? (
+                            {/* Hidden pick placeholder */}
+                            {shouldHidePick && (
                               <div className="flex items-center justify-center gap-2">
-                                {/* Home team */}
                                 <div className="flex flex-1 justify-end">
-                                  <div
-                                    className={`flex items-center gap-2 ${
-                                      isPickedTeamHome
-                                        ? "rounded-lg bg-primary/10 px-2 py-1"
-                                        : ""
-                                    }`}
-                                  >
-                                    <span
-                                      className={`truncate text-xs sm:text-sm ${
-                                        isPickedTeamHome ? "font-semibold" : ""
-                                      }`}
-                                    >
-                                      {fixture.teams.home.name}
+                                  <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2 py-1">
+                                    <span className="text-xs text-muted-foreground/50 sm:text-sm">
+                                      ???
                                     </span>
-                                    <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
-                                      <Image
-                                        src={fixture.teams.home.logo}
-                                        alt={fixture.teams.home.name}
-                                        fill
-                                        className="object-contain"
-                                        sizes="32px"
-                                      />
+                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-muted/60 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/40" />
                                     </div>
                                   </div>
                                 </div>
-
-                                {/* Score */}
-                                <div className="flex-shrink-0 rounded-lg bg-muted px-2 py-1 text-center">
-                                  {["FT", "AET", "PEN"].includes(
-                                    fixture.fixture.status.short,
-                                  ) ? (
-                                    <span className="text-sm font-bold">
-                                      {fixture.goals.home} - {fixture.goals.away}
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                      vs
-                                    </span>
-                                  )}
+                                <div className="flex flex-shrink-0 flex-col items-center gap-1">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/60">
+                                    <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                  </div>
+                                  <span className="text-[10px] italic text-muted-foreground/50">
+                                    Oculto hasta que inicie la jornada
+                                  </span>
                                 </div>
-
-                                {/* Away team */}
                                 <div className="flex flex-1 justify-start">
-                                  <div
-                                    className={`flex items-center gap-2 ${
-                                      !isPickedTeamHome
-                                        ? "rounded-lg bg-primary/10 px-2 py-1"
-                                        : ""
-                                    }`}
-                                  >
-                                    <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
-                                      <Image
-                                        src={fixture.teams.away.logo}
-                                        alt={fixture.teams.away.name}
-                                        fill
-                                        className="object-contain"
-                                        sizes="32px"
-                                      />
+                                  <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2 py-1">
+                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-muted/60 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/40" />
                                     </div>
-                                    <span
-                                      className={`truncate text-xs sm:text-sm ${
-                                        !isPickedTeamHome ? "font-semibold" : ""
-                                      }`}
-                                    >
-                                      {fixture.teams.away.name}
+                                    <span className="text-xs text-muted-foreground/50 sm:text-sm">
+                                      ???
                                     </span>
                                   </div>
                                 </div>
                               </div>
-                            ) : (
-                              /* Fallback if fixture not found */
-                              <div className="flex items-center gap-3">
-                                <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-black/5">
-                                  <Image
-                                    src={`https://media.api-sports.io/football/teams/${pick.externalPickedTeamId}.png`}
-                                    alt={pick.externalPickedTeamName || "Team"}
-                                    fill
-                                    className="object-contain p-0.5"
-                                    sizes="32px"
-                                  />
-                                </div>
-                                <span className="text-sm font-medium">
-                                  {pick.externalPickedTeamName || "Unknown Team"}
-                                </span>
-                              </div>
+                            )}
+
+                            {/* Fixture display */}
+                            {!shouldHidePick && (
+                              <>
+                                {fixture ? (
+                                  <div className="flex items-center justify-center gap-2">
+                                    {/* Home team */}
+                                    <div className="flex flex-1 justify-end">
+                                      <div
+                                        className={`flex items-center gap-2 ${
+                                          isPickedTeamHome
+                                            ? "rounded-lg bg-primary/10 px-2 py-1"
+                                            : ""
+                                        }`}
+                                      >
+                                        <span
+                                          className={`truncate text-xs sm:text-sm ${
+                                            isPickedTeamHome
+                                              ? "font-semibold"
+                                              : ""
+                                          }`}
+                                        >
+                                          {fixture.teams.home.name}
+                                        </span>
+                                        <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                          <Image
+                                            src={fixture.teams.home.logo}
+                                            alt={fixture.teams.home.name}
+                                            fill
+                                            className="object-contain"
+                                            sizes="32px"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Score */}
+                                    <div className="flex-shrink-0 rounded-lg bg-muted px-2 py-1 text-center">
+                                      {["FT", "AET", "PEN"].includes(
+                                        fixture.fixture.status.short,
+                                      ) ? (
+                                        <span className="text-sm font-bold">
+                                          {fixture.goals.home} -{" "}
+                                          {fixture.goals.away}
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">
+                                          vs
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Away team */}
+                                    <div className="flex flex-1 justify-start">
+                                      <div
+                                        className={`flex items-center gap-2 ${
+                                          !isPickedTeamHome
+                                            ? "rounded-lg bg-primary/10 px-2 py-1"
+                                            : ""
+                                        }`}
+                                      >
+                                        <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5 sm:h-8 sm:w-8">
+                                          <Image
+                                            src={fixture.teams.away.logo}
+                                            alt={fixture.teams.away.name}
+                                            fill
+                                            className="object-contain"
+                                            sizes="32px"
+                                          />
+                                        </div>
+                                        <span
+                                          className={`truncate text-xs sm:text-sm ${
+                                            !isPickedTeamHome
+                                              ? "font-semibold"
+                                              : ""
+                                          }`}
+                                        >
+                                          {fixture.teams.away.name}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* Fallback if fixture not found */
+                                  <div className="flex items-center gap-3">
+                                    <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-black/5">
+                                      <Image
+                                        src={`https://media.api-sports.io/football/teams/${pick.externalPickedTeamId}.png`}
+                                        alt={
+                                          pick.externalPickedTeamName || "Team"
+                                        }
+                                        fill
+                                        className="object-contain p-0.5"
+                                        sizes="32px"
+                                      />
+                                    </div>
+                                    <span className="text-sm font-medium">
+                                      {pick.externalPickedTeamName ||
+                                        "Unknown Team"}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         );
@@ -530,4 +658,3 @@ function formatRoundName(round: string): string {
   }
   return round;
 }
-
