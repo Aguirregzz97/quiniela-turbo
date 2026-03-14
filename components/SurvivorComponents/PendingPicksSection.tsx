@@ -18,8 +18,10 @@ import {
   Users,
   CheckCircle2,
   Skull,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface UserWithPendingPick {
   oderId: string;
@@ -27,6 +29,12 @@ interface UserWithPendingPick {
   userEmail: string | null;
   userImage: string | null;
   isEliminated: boolean;
+}
+
+interface CurrentUserPick {
+  externalPickedTeamId: string;
+  externalPickedTeamName: string;
+  externalRound: string;
 }
 
 interface PendingPicksSectionProps {
@@ -37,6 +45,13 @@ interface PendingPicksSectionProps {
   usersWithPendingPick: UserWithPendingPick[];
   currentUserHasPendingPick: boolean;
   currentUserIsEliminated: boolean;
+  currentUserPick: CurrentUserPick | null;
+}
+
+function formatRoundName(round: string): string {
+  const match = round.match(/(\d+)/);
+  if (match) return `Jornada ${match[1]}`;
+  return round;
 }
 
 function getInitials(name: string | null, email: string | null): string {
@@ -62,6 +77,7 @@ export default function PendingPicksSection({
   usersWithPendingPick,
   currentUserHasPendingPick,
   currentUserIsEliminated,
+  currentUserPick,
 }: PendingPicksSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -72,43 +88,79 @@ export default function PendingPicksSection({
       {/* Section Title */}
       <h2 className="text-lg font-semibold">Seleccionar Equipo</h2>
 
-      {/* Eliminated State */}
       {currentUserIsEliminated ? (
-        <Card className="h-full overflow-hidden border-red-500/30 bg-red-500/5">
-          <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25">
-              <Skull className="h-6 w-6 text-white" />
+        <Card className="overflow-hidden border-red-500/30 bg-red-500/5">
+          <CardContent className="flex items-center gap-4 p-4 sm:p-5">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25">
+              <Skull className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-red-600 dark:text-red-400">
+                <h3 className="text-sm font-semibold text-red-600 dark:text-red-400">
                   Eliminado del Survivor
                 </h3>
-                <Badge variant="destructive" className="gap-1">
-                  <Skull className="h-3 w-3" />
+                <Badge variant="destructive" className="gap-1 text-[10px]">
+                  <Skull className="h-2.5 w-2.5" />
                   Eliminado
                 </Badge>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Has sido eliminado y ya no puedes seleccionar equipos.
               </p>
             </div>
           </CardContent>
         </Card>
+      ) : currentUserPick ? (
+        <Link
+          href={`/survivor/${survivorGameId}/seleccionar-equipo`}
+          className="group block"
+        >
+          <Card className="overflow-hidden border-green-500/20 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
+            <CardContent className="flex items-center gap-4 p-4 sm:p-5">
+              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-white p-1 shadow-md ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
+                <Image
+                  src={`https://media.api-sports.io/football/teams/${currentUserPick.externalPickedTeamId}.png`}
+                  alt={currentUserPick.externalPickedTeamName}
+                  fill
+                  className="object-contain p-0.5"
+                  sizes="56px"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Tu Pick &middot;{" "}
+                  {formatRoundName(currentUserPick.externalRound)}
+                </p>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="truncate font-semibold">
+                    {currentUserPick.externalPickedTeamName}
+                  </p>
+                  <Badge
+                    variant="secondary"
+                    className="flex-shrink-0 gap-1 bg-green-500/10 text-[10px] text-green-600"
+                  >
+                    <Check className="h-2.5 w-2.5" />
+                    Confirmado
+                  </Badge>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
       ) : (
-        /* Main Selection Link */
         <Link
           href={`/survivor/${survivorGameId}/seleccionar-equipo`}
           className="group block"
         >
           <Card
-            className={`h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${
+            className={`overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${
               currentUserHasPendingPick
-                ? "ring-1 ring-amber-500/30 border-amber-500/50"
+                ? "border-amber-500/50 ring-1 ring-amber-500/30"
                 : ""
             }`}
           >
-            <CardContent className="flex items-center gap-4 p-5 sm:p-6">
+            <CardContent className="flex items-center gap-4 p-4 sm:p-5">
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
                 <Swords className="h-6 w-6 text-primary-foreground" />
               </div>
@@ -129,7 +181,7 @@ export default function PendingPicksSection({
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {currentUserHasPendingPick
-                    ? `Elige tu equipo para ${activeRound}`
+                    ? `Elige tu equipo para ${activeRound ? formatRoundName(activeRound) : "esta jornada"}`
                     : "Elige tu equipo para cada jornada"}
                 </p>
               </div>
@@ -278,4 +330,3 @@ export default function PendingPicksSection({
     </div>
   );
 }
-

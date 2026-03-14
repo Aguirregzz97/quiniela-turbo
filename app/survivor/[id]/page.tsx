@@ -9,6 +9,7 @@ import {
   Heart,
   Skull,
   Trophy,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -29,6 +30,12 @@ import DeleteSurvivorDialog from "@/components/SurvivorComponents/DeleteSurvivor
 import PendingPicksSection from "@/components/SurvivorComponents/PendingPicksSection";
 import { calculateSurvivorStatusBatch } from "@/lib/survivor/calculateSurvivorStatus";
 import { getPendingSurvivorPicks } from "../pending-picks-action";
+import { getActiveRound } from "@/lib/rounds";
+
+function formatRoundName(round: string): string {
+  const match = round.match(/(\d+)/);
+  return match ? `Jornada ${match[1]}` : round;
+}
 
 interface SurvivorPageProps {
   params: Promise<{
@@ -113,12 +120,12 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
       externalPickedTeamName: string;
     }[]
   >();
-  
+
   // Initialize all participants with empty picks array
   for (const participant of rawParticipants) {
     picksByUser.set(participant.oderId, []);
   }
-  
+
   // Add actual picks
   for (const pick of allPicks) {
     const existing = picksByUser.get(pick.oderId) || [];
@@ -162,11 +169,38 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
     session.user.id,
     survivorData.externalLeagueId,
     survivorData.externalSeason,
-    (survivorData.roundsSelected || []) as { roundName: string; dates: string[] }[],
-    survivorData.lives
+    (survivorData.roundsSelected || []) as {
+      roundName: string;
+      dates: string[];
+    }[],
+    survivorData.lives,
   );
 
+  // Find the current user's pick for the active round
+  const currentUserActiveRoundPick = pendingPicksData.activeRound
+    ? (allPicks.find(
+        (p) =>
+          p.oderId === session.user.id &&
+          p.externalRound === pendingPicksData.activeRound,
+      ) ?? null)
+    : null;
+
   const isAdmin = session.user.id === survivorData.ownerId;
+
+  const activeRound = getActiveRound(
+    (survivorData.roundsSelected || []) as {
+      roundName: string;
+      dates: string[];
+    }[],
+  );
+  const activeRoundName = activeRound?.roundName ?? null;
+  const activeRoundStarted = (() => {
+    if (!activeRound || activeRound.dates.length === 0) return false;
+    const todayStr = new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/Mexico_City",
+    });
+    return activeRound.dates[0] <= todayStr;
+  })();
 
   return (
     <div className="max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -235,7 +269,10 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
               totalLives={survivorData.lives}
               participants={participants}
             />
-            <SurvivorDetailsDrawer survivorData={survivorData} participantCount={participants.length} />
+            <SurvivorDetailsDrawer
+              survivorData={survivorData}
+              participantCount={participants.length}
+            />
             {session?.user?.id === survivorData.ownerId && (
               <>
                 <Button asChild size="sm">
@@ -264,6 +301,17 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
         usersWithPendingPick={pendingPicksData.usersWithPendingPick}
         currentUserHasPendingPick={pendingPicksData.currentUserHasPendingPick}
         currentUserIsEliminated={pendingPicksData.currentUserIsEliminated}
+        currentUserPick={
+          currentUserActiveRoundPick
+            ? {
+                externalPickedTeamId:
+                  currentUserActiveRoundPick.externalPickedTeamId,
+                externalPickedTeamName:
+                  currentUserActiveRoundPick.externalPickedTeamName,
+                externalRound: currentUserActiveRoundPick.externalRound,
+              }
+            : null
+        }
       />
 
       {/* Historial Link */}
@@ -304,7 +352,9 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
             if (alivePlayers.length === 0) return null;
 
             // Check if there's a winner (1 alive, others eliminated)
-            const eliminatedPlayers = participants.filter((p) => p.isEliminated);
+            const eliminatedPlayers = participants.filter(
+              (p) => p.isEliminated,
+            );
             const hasWinner =
               alivePlayers.length === 1 && eliminatedPlayers.length > 0;
 
@@ -314,7 +364,16 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
                     <Heart className="h-4 w-4 text-green-500" />
                   </div>
-                  <h2 className="text-lg font-semibold">Jugadores Vivos</h2>
+                  <div>
+                    <h2 className="text-lg font-semibold leading-tight">
+                      Jugadores Vivos
+                    </h2>
+                    {activeRoundName && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatRoundName(activeRoundName)}
+                      </p>
+                    )}
+                  </div>
                   <Badge
                     variant="secondary"
                     className="ml-auto bg-green-500/10 text-green-600"
@@ -346,6 +405,15 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                   {alivePlayers.map((participant) => {
                     const isCurrentUser =
                       participant.oderId === session.user.id;
+                    const playerPick = activeRoundName
+                      ? (allPicks.find(
+                          (p) =>
+                            p.oderId === participant.oderId &&
+                            p.externalRound === activeRoundName,
+                        ) ?? null)
+                      : null;
+                    const isPickHidden =
+                      !!playerPick && !isCurrentUser && !activeRoundStarted;
 
                     return (
                       <Card
@@ -355,11 +423,9 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                         }`}
                       >
                         <CardContent className="flex items-center gap-3 p-4">
-                          <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
+                          <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
                             <Image
-                              src={
-                                participant.userImage || "/img/profile.png"
-                              }
+                              src={participant.userImage || "/img/profile.png"}
                               alt={participant.userName || "Participante"}
                               fill
                               className="object-cover"
@@ -396,6 +462,45 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                               ))}
                             </div>
                           </div>
+
+                          {activeRoundName && (
+                            <div className="flex-shrink-0">
+                              {playerPick ? (
+                                isPickHidden ? (
+                                  <div className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2 py-1">
+                                    <div className="flex h-6 w-6 items-center justify-center rounded bg-muted/60 ring-1 ring-black/5">
+                                      <EyeOff className="h-3 w-3 text-muted-foreground/40" />
+                                    </div>
+                                    <span className="text-xs text-muted-foreground/50">
+                                      Oculto
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1">
+                                    <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden rounded bg-white p-0.5 shadow-sm ring-1 ring-black/5">
+                                      <Image
+                                        src={`https://media.api-sports.io/football/teams/${playerPick.externalPickedTeamId}.png`}
+                                        alt={
+                                          playerPick.externalPickedTeamName ||
+                                          "Team"
+                                        }
+                                        fill
+                                        className="object-contain"
+                                        sizes="24px"
+                                      />
+                                    </div>
+                                    <span className="max-w-[60px] truncate text-xs font-medium sm:max-w-[100px]">
+                                      {playerPick.externalPickedTeamName}
+                                    </span>
+                                  </div>
+                                )
+                              ) : (
+                                <span className="rounded-lg bg-muted/30 px-2 py-1 text-xs text-muted-foreground">
+                                  Sin pick
+                                </span>
+                              )}
+                            </div>
+                          )}
 
                           <div className="flex-shrink-0 text-right">
                             <p className="text-lg font-bold text-green-600">
@@ -522,4 +627,3 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
     </div>
   );
 }
-
