@@ -25,6 +25,7 @@ import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderb
 import QuinielaParticipantsDrawer from "@/components/QuinielaComponents/QuinielaParticipantsDrawer";
 import DeleteQuinielaDialog from "@/components/QuinielaComponents/DeleteQuinielaDialog";
 import PendingPredictionsSection from "@/components/QuinielaComponents/PendingPredictionsSection";
+import PrizeBreakdownDrawer from "@/components/QuinielaComponents/PrizeBreakdownDrawer";
 import { getPendingPredictions } from "../pending-predictions-action";
 
 interface QuinielaPageProps {
@@ -170,6 +171,32 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
               participants={participants}
             />
             <QuinielaDetailsDrawer quinielaData={quinielaData} participantCount={participants.length} />
+            <PrizeBreakdownDrawer
+              quiniela={{
+                id: quinielaData.id,
+                name: quinielaData.name,
+                description: quinielaData.description,
+                league: quinielaData.league,
+                externalLeagueId: quinielaData.externalLeagueId,
+                externalSeason: quinielaData.externalSeason,
+                joinCode: quinielaData.joinCode,
+                createdAt: quinielaData.createdAt,
+                updatedAt: quinielaData.updatedAt,
+                ownerId: quinielaData.ownerId,
+                roundsSelected: quinielaData.roundsSelected,
+              }}
+              participants={participants}
+              exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
+              correctResultPoints={
+                quinielaData.pointsForCorrectResultPrediction ?? 1
+              }
+              moneyToEnter={quinielaData.moneyToEnter ?? null}
+              prizeDistribution={quinielaData.prizeDistribution ?? null}
+              moneyPerRoundToEnter={quinielaData.moneyPerRoundToEnter ?? null}
+              prizeDistributionPerRound={
+                quinielaData.prizeDistributionPerRound ?? null
+              }
+            />
             {session?.user?.id === quinielaData.ownerId && (
               <>
                 <Button asChild size="sm">

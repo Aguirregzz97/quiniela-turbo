@@ -7,6 +7,7 @@ import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
 import { computeRoundDateUpdates } from "@/lib/rounds";
 import { syncQuinielaRoundDates } from "@/app/quinielas/sync-round-dates-action";
+import { rankUsers, distributePrizes } from "@/lib/prizes";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
@@ -207,13 +208,6 @@ export default function ResultadosPorUsuario({
 
   // Calculate per-round prize pool
   const roundPrizePool = moneyPerRoundToEnter ? moneyPerRoundToEnter * participantCount : 0;
-  
-  const getPrizeForPosition = (position: number): number | null => {
-    if (!moneyPerRoundToEnter || !prizeDistributionPerRound || roundPrizePool === 0) return null;
-    const prize = prizeDistributionPerRound.find((p) => p.position === position);
-    if (!prize) return null;
-    return (roundPrizePool * prize.percentage) / 100;
-  };
 
   const {
     data: fixturesData,
@@ -431,39 +425,77 @@ export default function ResultadosPorUsuario({
     correctResultPoints,
   ]);
 
-  // Sort users by points (descending)
-  const sortedUsers = useMemo(() => {
-    return [...usersWithPredictions].sort((a, b) => {
-      const aStats = userStats.get(a.id);
-      const bStats = userStats.get(b.id);
-      const aPoints = aStats?.totalPoints || 0;
-      const bPoints = bStats?.totalPoints || 0;
-      return bPoints - aPoints;
-    });
+  // Rank users with standard competition ranking (1, 2, 2, 4, ...) so
+  // ties share a position number. We then split each tied position's
+  // prize equally among the tied users via `distributePrizes`, matching
+  // the rule used by `PrizeBreakdownDrawer` and `lib/prizes.ts`.
+  const rankedUsers = useMemo(() => {
+    const scores = new Map<string, number>();
+    const userDir = new Map<
+      string,
+      {
+        id: string;
+        name: string | null;
+        email: string | null;
+        image: string | null;
+      }
+    >();
+    for (const user of usersWithPredictions) {
+      const points = userStats.get(user.id)?.totalPoints ?? 0;
+      scores.set(user.id, points);
+      userDir.set(user.id, user);
+    }
+    return rankUsers(scores, userDir);
   }, [usersWithPredictions, userStats]);
 
-  // Determine winners (users tied for first place when round is complete)
+  // Render still iterates over a flat array preserving the ranked order,
+  // so we keep the `sortedUsers` name for minimal churn below.
+  const sortedUsers = useMemo(
+    () =>
+      rankedUsers.map((r) => ({
+        id: r.user.id,
+        name: r.user.name,
+        email: r.user.email,
+        image: r.user.image,
+      })),
+    [rankedUsers],
+  );
+
+  // Position number per user (ties share the same number).
+  const positionByUserId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rankedUsers) map.set(r.user.id, r.position);
+    return map;
+  }, [rankedUsers]);
+
+  // Per-user prize amount for THIS round, with tied positions splitting
+  // the prize for that position equally. Only computed once the round is
+  // complete to mirror the previous behavior of only showing money on a
+  // finalized round.
+  const prizeByUserId = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!isRoundComplete) return map;
+    if (!prizeDistributionPerRound || roundPrizePool <= 0) return map;
+    const awards = distributePrizes(
+      rankedUsers,
+      prizeDistributionPerRound,
+      roundPrizePool,
+    );
+    for (const a of awards) map.set(a.user.id, a.amount);
+    return map;
+  }, [isRoundComplete, rankedUsers, prizeDistributionPerRound, roundPrizePool]);
+
+  // Winners = everyone tied at position 1 with non-zero points, but only
+  // surface the badge once the round is complete (same as before).
   const winnerUserIds = useMemo(() => {
-    if (!isRoundComplete || sortedUsers.length === 0) return new Set<string>();
-    
-    const firstUserStats = userStats.get(sortedUsers[0].id);
-    const topPoints = firstUserStats?.totalPoints || 0;
-    
-    // If top points is 0, no winner
-    if (topPoints === 0) return new Set<string>();
-    
-    // Find all users with the same top points
+    if (!isRoundComplete) return new Set<string>();
     const winners = new Set<string>();
-    for (const user of sortedUsers) {
-      const stats = userStats.get(user.id);
-      if (stats?.totalPoints === topPoints) {
-        winners.add(user.id);
-      } else {
-        break; // Since sorted, no need to continue
-      }
+    for (const r of rankedUsers) {
+      if (r.position !== 1) break;
+      if (r.points > 0) winners.add(r.user.id);
     }
     return winners;
-  }, [isRoundComplete, sortedUsers, userStats]);
+  }, [isRoundComplete, rankedUsers]);
 
   // State to manage which cards are open
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({});
@@ -605,8 +637,13 @@ export default function ResultadosPorUsuario({
             const userPredictions = roundPredictions.get(user.id) || [];
             const stats = userStats.get(user.id);
             const isOpen = openCards[user.id] || false;
-            const isTopThree = index < 3;
+            // Use the competition-ranked position (ties share a number)
+            // for badge color/value. Fall back to list index for the
+            // unlikely case the lookup fails.
+            const position = positionByUserId.get(user.id) ?? index + 1;
+            const isTopThree = position <= 3;
             const isWinner = winnerUserIds.has(user.id);
+            const prize = prizeByUserId.get(user.id);
 
             if (!stats) return null;
 
@@ -639,25 +676,25 @@ export default function ResultadosPorUsuario({
                             {/* Position Badge */}
                             <div
                               className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                                index === 0
+                                position === 1
                                   ? "bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm shadow-yellow-500/30"
-                                  : index === 1
+                                  : position === 2
                                     ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 shadow-sm shadow-gray-400/30"
-                                    : index === 2
+                                    : position === 3
                                       ? "bg-gradient-to-br from-amber-500 to-amber-600 text-amber-100 shadow-sm shadow-amber-500/30"
                                       : "bg-muted text-muted-foreground"
                               }`}
                             >
-                              #{index + 1}
+                              #{position}
                             </div>
 
                             <Avatar
                               className={`h-10 w-10 flex-shrink-0 ring-2 ${
-                                index === 0
+                                position === 1
                                   ? "ring-yellow-400/50"
-                                  : index === 1
+                                  : position === 2
                                     ? "ring-gray-400/50"
-                                    : index === 2
+                                    : position === 3
                                       ? "ring-amber-500/50"
                                       : "ring-border/50"
                               }`}
@@ -697,23 +734,23 @@ export default function ResultadosPorUsuario({
                                 <span className="text-xs text-muted-foreground">
                                   pts
                                 </span>
-                                {/* Round Prize - show when round is complete */}
-                                {isRoundComplete && (() => {
-                                  const prize = getPrizeForPosition(index + 1);
-                                  if (prize === null) return null;
-                                  return (
-                                    <Badge
-                                      variant="secondary"
-                                      className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5"
-                                    >
-                                      <DollarSign className="mr-0.5 h-2.5 w-2.5" />
-                                      {prize.toLocaleString("es-MX", {
-                                        minimumFractionDigits: 0,
-                                        maximumFractionDigits: 0,
-                                      })}
-                                    </Badge>
-                                  );
-                                })()}
+                                {/* Round Prize - show when round is complete.
+                                    `prize` already accounts for ties: if
+                                    multiple users share `position`, the
+                                    prize for that position is split
+                                    equally between them. */}
+                                {isRoundComplete && prize !== undefined && prize > 0 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5"
+                                  >
+                                    <DollarSign className="mr-0.5 h-2.5 w-2.5" />
+                                    {prize.toLocaleString("es-MX", {
+                                      minimumFractionDigits: Number.isInteger(prize) ? 0 : 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
