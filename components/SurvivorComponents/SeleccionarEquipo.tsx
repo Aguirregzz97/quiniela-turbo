@@ -9,6 +9,7 @@ import {
 } from "@/lib/tournament";
 import { Last5Games } from "@/components/shared/Last5Games";
 import { TournamentStandingsDrawer } from "@/components/shared/TournamentStandingsDrawer";
+import { getLeagueByExternalId } from "@/lib/leagues";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -1006,6 +1007,7 @@ export default function SeleccionarEquipo({
           <TournamentStandingsDrawer
             tournamentFixtures={tournamentFixtures}
             isLoading={isLoading}
+            league={getLeagueByExternalId(survivorGame.externalLeagueId)}
           />
           <span className="text-sm text-muted-foreground">Jornada:</span>
           <Select value={selectedRound} onValueChange={setSelectedRound}>

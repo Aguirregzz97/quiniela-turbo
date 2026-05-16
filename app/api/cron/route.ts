@@ -39,7 +39,10 @@ export async function GET(request: Request) {
 
   console.log("[Cron] Starting all cron jobs...");
 
-  // Run all jobs (can be run in parallel or sequentially)
+  // Sync round dates first so the reminder jobs see the freshest stored
+  // round metadata when computing each quiniela's active round.
+  await callJob("sync-round-dates", "/api/cron/sync-round-dates");
+
   await Promise.all([
     callJob("predictions-reminder", "/api/cron/send-predictions-reminder"),
     callJob("survivor-reminder", "/api/cron/send-survivor-reminder"),

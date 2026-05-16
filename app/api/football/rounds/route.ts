@@ -6,6 +6,10 @@ import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
 
 type Tournament = "apertura" | "clausura";
 
+// The Apertura/Clausura split is a Liga MX-only concept; for any other league
+// (e.g. Mundial 2026, league id 1) we return the raw rounds untouched.
+const LIGA_MX_LEAGUE_ID = "262";
+
 // Playoff rounds that belong to Apertura (between Apertura regular season and Clausura)
 const APERTURA_PLAYOFF_ROUNDS = [
   "Play-In Semi-finals",
@@ -128,6 +132,12 @@ export async function GET(request: NextRequest) {
       await redis.setex(cacheKey, 3600, JSON.stringify(data));
     }
 
+    // Apertura/Clausura filtering only applies to Liga MX. For other leagues
+    // we return the rounds as-is so the API works for them too.
+    if (leagueId !== LIGA_MX_LEAGUE_ID) {
+      return NextResponse.json(data);
+    }
+
     // Determine which tournament to filter by
     const tournament =
       tournamentParam || detectCurrentTournament(data.response);
@@ -150,6 +160,22 @@ export async function GET(request: NextRequest) {
     try {
       const roundsData = await import("@/utils/sample_data/rounds.json");
       const data = roundsData.default as RoundsApiResponse;
+
+      // The static fallback data is Liga MX; for other leagues just return
+      // an empty response rather than pretending those are their rounds.
+      const { searchParams } = new URL(request.url);
+      const fallbackLeagueId = searchParams.get("league") || "262";
+      if (fallbackLeagueId !== LIGA_MX_LEAGUE_ID) {
+        return NextResponse.json({
+          ...data,
+          parameters: {
+            ...data.parameters,
+            league: fallbackLeagueId,
+          },
+          response: [],
+          results: 0,
+        });
+      }
 
       // Still apply tournament filtering to fallback data
       const tournament = detectCurrentTournament(data.response);

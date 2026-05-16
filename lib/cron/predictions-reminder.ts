@@ -1,9 +1,5 @@
 import { db } from "@/db";
-import {
-  quiniela_participants,
-  quinielas,
-  predictions,
-} from "@/db/schema";
+import { quiniela_participants, quinielas, predictions } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { fetchRoundFixtures } from "@/lib/api-football/fetchRoundFixtures";
 import { getActiveRound } from "@/lib/rounds";
@@ -73,10 +69,7 @@ export async function analyzeUserPredictions(
       roundsSelected: quinielas.roundsSelected,
     })
     .from(quiniela_participants)
-    .innerJoin(
-      quinielas,
-      eq(quiniela_participants.quinielaId, quinielas.id),
-    )
+    .innerJoin(quinielas, eq(quiniela_participants.quinielaId, quinielas.id))
     .where(eq(quiniela_participants.userId, userId));
 
   result.quinielasCount = userParticipations.length;
@@ -376,4 +369,3 @@ export function generatePredictionsEmailHtml(
     </html>
   `;
 }
-

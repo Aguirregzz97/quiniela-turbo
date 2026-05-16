@@ -1,8 +1,85 @@
 import { MEXICO_CITY_TIMEZONE } from "@/lib/constants";
+import type { FixtureData } from "@/types/fixtures";
 
 export interface RoundSelected {
   roundName: string;
   dates: string[];
+}
+
+/**
+ * Lightweight shape of an "any source of round metadata" entry. Both the
+ * api-football /rounds response (`{ round, dates }`) and our stored
+ * `quiniela.roundsSelected` entries (`{ roundName, dates }`) get normalized
+ * through this when callers want to compare them.
+ */
+
+/**
+ * Given a list of fixtures (typically the full season's fixtures from
+ * api-football) and the rounds currently stored on a quiniela, return a new
+ * list of rounds where any round whose stored `dates` is empty gets filled
+ * in from the fixtures' dates (in Mexico City timezone, YYYY-MM-DD,
+ * deduped, sorted ascending).
+ *
+ * Returns `null` when no updates are needed, so callers can skip the DB
+ * write / network call entirely.
+ *
+ * Rounds that already have dates are left untouched: this is intentional
+ * for the first iteration — it covers the "elimination round was not yet
+ * published when the quiniela was created" case (Mundial 2026 Round of 32,
+ * Liga MX Apertura - Quarter-finals, etc.) without risking surprise edits
+ * to existing rounds that may have been rescheduled.
+ */
+export function computeRoundDateUpdates(
+  storedRounds: RoundSelected[],
+  fixtures: FixtureData[],
+): RoundSelected[] | null {
+  if (!storedRounds.length || !fixtures.length) return null;
+
+  const datesByRound = groupFixtureDatesByRound(fixtures);
+
+  let changed = false;
+  const next = storedRounds.map((round) => {
+    if (round.dates.length > 0) return round;
+
+    const fresh = datesByRound.get(round.roundName);
+    if (!fresh || fresh.length === 0) return round;
+
+    changed = true;
+    return { ...round, dates: fresh };
+  });
+
+  return changed ? next : null;
+}
+
+function groupFixtureDatesByRound(
+  fixtures: FixtureData[],
+): Map<string, string[]> {
+  const result = new Map<string, Set<string>>();
+
+  for (const fixture of fixtures) {
+    const roundName = fixture.league.round;
+    if (!roundName) continue;
+
+    const dateStr = toMexicoCityDateString(fixture.fixture.date);
+    if (!dateStr) continue;
+
+    const set = result.get(roundName) ?? new Set<string>();
+    set.add(dateStr);
+    result.set(roundName, set);
+  }
+
+  const sorted = new Map<string, string[]>();
+  for (const [round, set] of result) {
+    sorted.set(round, Array.from(set).sort());
+  }
+  return sorted;
+}
+
+function toMexicoCityDateString(isoDate: string): string | null {
+  if (!isoDate) return null;
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-CA", { timeZone: MEXICO_CITY_TIMEZONE });
 }
 
 /**

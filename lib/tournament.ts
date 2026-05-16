@@ -174,3 +174,83 @@ export function computeStandings(fixtures: FixtureData[]): TeamStanding[] {
 
   return standings;
 }
+
+export interface GroupStandings {
+  name: string;
+  standings: TeamStanding[];
+}
+
+/**
+ * Computes one standings table per group. Fixtures where both teams belong
+ * to the same group are scored against that group; all other fixtures
+ * (knockouts, friendlies, etc.) are ignored so they don't pollute the
+ * group tables.
+ *
+ * Teams that haven't played yet are still included with a zeroed-out row
+ * — their name/logo are pulled from any fixture (played or scheduled) in
+ * which they appear. If we can't find such a fixture (e.g. nothing is
+ * scheduled yet) the team is still listed by id with a placeholder name
+ * and an empty logo so the table shape stays predictable.
+ */
+export function computeGroupedStandings(
+  fixtures: FixtureData[],
+  groups: { name: string; teamIds: number[] }[],
+): GroupStandings[] {
+  const teamMetaById = collectTeamMetadata(fixtures);
+
+  return groups.map((group) => {
+    const teamIdSet = new Set(group.teamIds);
+
+    const groupFixtures = fixtures.filter(
+      (f) =>
+        teamIdSet.has(f.teams.home.id) && teamIdSet.has(f.teams.away.id),
+    );
+
+    const standings = computeStandings(groupFixtures);
+    const presentIds = new Set(standings.map((t) => t.teamId));
+
+    // Pre-seed any team that doesn't have a row yet (no finished games).
+    for (const teamId of group.teamIds) {
+      if (presentIds.has(teamId)) continue;
+
+      const meta = teamMetaById.get(teamId);
+      standings.push({
+        teamId,
+        teamName: meta?.name ?? `Team ${teamId}`,
+        teamLogo: meta?.logo ?? "",
+        played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        points: 0,
+        last5: [null, null, null, null, null],
+      });
+    }
+
+    standings.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference)
+        return b.goalDifference - a.goalDifference;
+      return b.goalsFor - a.goalsFor;
+    });
+
+    return { name: group.name, standings };
+  });
+}
+
+function collectTeamMetadata(
+  fixtures: FixtureData[],
+): Map<number, { name: string; logo: string }> {
+  const map = new Map<number, { name: string; logo: string }>();
+  for (const fixture of fixtures) {
+    for (const team of [fixture.teams.home, fixture.teams.away]) {
+      if (!map.has(team.id)) {
+        map.set(team.id, { name: team.name, logo: team.logo });
+      }
+    }
+  }
+  return map;
+}

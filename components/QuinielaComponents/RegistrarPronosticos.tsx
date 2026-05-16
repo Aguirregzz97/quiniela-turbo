@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import {
   TournamentType,
@@ -57,7 +58,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { LiveBadge } from "@/components/ui/live-badge";
-import { getDefaultActiveRound } from "@/lib/rounds";
+import { getDefaultActiveRound, computeRoundDateUpdates } from "@/lib/rounds";
+import { syncQuinielaRoundDates } from "@/app/quinielas/sync-round-dates-action";
+import { getLeagueByExternalId } from "@/lib/leagues";
 
 interface RegistrarPronosticosProps {
   quiniela: Quiniela;
@@ -382,7 +385,9 @@ function FixtureCard({
                   disabled
                 >
                   <Ban className="h-3.5 w-3.5" />
-                  <span className="hidden text-xs sm:inline">No disponible</span>
+                  <span className="hidden text-xs sm:inline">
+                    No disponible
+                  </span>
                 </Button>
               ) : hasAnyOdds ? (
                 <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
@@ -505,7 +510,9 @@ function FixtureCard({
                                     Sí
                                   </p>
                                   <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.bothTeamsScore.yes)}
+                                    {oddsToPercentage(
+                                      allOdds.bothTeamsScore.yes,
+                                    )}
                                   </p>
                                 </div>
                                 <div className="group rounded-xl border border-border/50 bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center transition-all hover:border-primary/30 hover:shadow-sm">
@@ -513,7 +520,9 @@ function FixtureCard({
                                     No
                                   </p>
                                   <p className="text-xl font-bold tabular-nums text-primary">
-                                    {oddsToPercentage(allOdds.bothTeamsScore.no)}
+                                    {oddsToPercentage(
+                                      allOdds.bothTeamsScore.no,
+                                    )}
                                   </p>
                                 </div>
                               </div>
@@ -623,9 +632,15 @@ function FixtureCard({
                         Tu pronóstico
                       </span>
                       <div className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-1.5 font-mono text-base font-bold shadow-sm ring-1 ring-border/50">
-                        <span>{predictions[fixture.fixture.id.toString()]?.home ?? "0"}</span>
+                        <span>
+                          {predictions[fixture.fixture.id.toString()]?.home ??
+                            "0"}
+                        </span>
                         <span className="text-muted-foreground">-</span>
-                        <span>{predictions[fixture.fixture.id.toString()]?.away ?? "0"}</span>
+                        <span>
+                          {predictions[fixture.fixture.id.toString()]?.away ??
+                            "0"}
+                        </span>
                       </div>
                     </div>
                   ) : (
@@ -675,9 +690,15 @@ function FixtureCard({
                     </span>
                     {hasPrediction ? (
                       <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/30 px-4 py-2 font-mono text-lg font-bold">
-                        <span>{predictions[fixture.fixture.id.toString()]?.home ?? "0"}</span>
+                        <span>
+                          {predictions[fixture.fixture.id.toString()]?.home ??
+                            "0"}
+                        </span>
                         <span className="text-muted-foreground">-</span>
-                        <span>{predictions[fixture.fixture.id.toString()]?.away ?? "0"}</span>
+                        <span>
+                          {predictions[fixture.fixture.id.toString()]?.away ??
+                            "0"}
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-2 text-muted-foreground">
@@ -701,7 +722,9 @@ function FixtureCard({
                   </div>
                   <div className="text-center">
                     <h3 className="font-medium">{fixture.teams.away.name}</h3>
-                    <span className="text-xs text-muted-foreground">Visitante</span>
+                    <span className="text-xs text-muted-foreground">
+                      Visitante
+                    </span>
                   </div>
                 </div>
               </div>
@@ -772,7 +795,8 @@ function FixtureCard({
                     <div className="flex items-center gap-3">
                       <Select
                         value={
-                          predictions[fixture.fixture.id.toString()]?.home ?? "0"
+                          predictions[fixture.fixture.id.toString()]?.home ??
+                          "0"
                         }
                         onValueChange={(value) =>
                           updatePrediction(
@@ -806,7 +830,8 @@ function FixtureCard({
 
                       <Select
                         value={
-                          predictions[fixture.fixture.id.toString()]?.away ?? "0"
+                          predictions[fixture.fixture.id.toString()]?.away ??
+                          "0"
                         }
                         onValueChange={(value) =>
                           updatePrediction(
@@ -862,13 +887,18 @@ function FixtureCard({
                       predictions[fixture.fixture.id.toString()]?.home ?? "0"
                     }
                     onValueChange={(value) =>
-                      updatePrediction(fixture.fixture.id.toString(), "home", value)
+                      updatePrediction(
+                        fixture.fixture.id.toString(),
+                        "home",
+                        value,
+                      )
                     }
                     disabled={matchStarted}
                   >
                     <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
                       <SelectValue>
-                        {predictions[fixture.fixture.id.toString()]?.home ?? "0"}
+                        {predictions[fixture.fixture.id.toString()]?.home ??
+                          "0"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -903,7 +933,9 @@ function FixtureCard({
                   </div>
                   <div className="text-center">
                     <h3 className="font-medium">{fixture.teams.away.name}</h3>
-                    <span className="text-xs text-muted-foreground">Visitante</span>
+                    <span className="text-xs text-muted-foreground">
+                      Visitante
+                    </span>
                   </div>
 
                   {/* Away Team Prediction */}
@@ -912,13 +944,18 @@ function FixtureCard({
                       predictions[fixture.fixture.id.toString()]?.away ?? "0"
                     }
                     onValueChange={(value) =>
-                      updatePrediction(fixture.fixture.id.toString(), "away", value)
+                      updatePrediction(
+                        fixture.fixture.id.toString(),
+                        "away",
+                        value,
+                      )
                     }
                     disabled={matchStarted}
                   >
                     <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
                       <SelectValue>
-                        {predictions[fixture.fixture.id.toString()]?.away ?? "0"}
+                        {predictions[fixture.fixture.id.toString()]?.away ??
+                          "0"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -947,6 +984,7 @@ export default function RegistrarPronosticos({
 }: RegistrarPronosticosProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Get available rounds from quiniela data
   const availableRounds = useMemo(
@@ -954,17 +992,18 @@ export default function RegistrarPronosticos({
     [quiniela.roundsSelected],
   );
 
-  // Determine tournament type (Clausura or Apertura) from the first round
+  // For Liga MX we have to disambiguate Apertura vs Clausura because both
+  // share the same season number and api-football returns them together.
+  // For other leagues (e.g. Mundial 2026) round names don't carry a
+  // tournament prefix, `getTournamentType` returns `null`, and
+  // `useTournamentFixtures` then keeps every fixture — which is what we
+  // want, since a single season already maps to a single tournament.
   const tournamentType = useMemo(() => {
     if (availableRounds.length === 0) return null;
     return getTournamentType(availableRounds[0].roundName);
   }, [availableRounds]);
 
-  const {
-    isLoading,
-    error,
-    tournamentFixtures,
-  } = useTournamentFixtures(
+  const { isLoading, error, tournamentFixtures } = useTournamentFixtures(
     quiniela.externalLeagueId,
     quiniela.externalSeason,
     tournamentType,
@@ -972,9 +1011,95 @@ export default function RegistrarPronosticos({
 
   const { data: existingPredictions = [] } = usePredictions(quiniela.id);
 
+  // Once fixtures arrive, fill in dates for any stored rounds whose dates
+  // were empty when the quiniela was created (e.g. Mundial 2026 Round of 32,
+  // Liga MX Apertura - Quarter-finals). The first participant to load this
+  // page after the bracket is published persists the new dates back to the
+  // DB; subsequent renders are no-ops because the rounds will already have
+  // their dates.
+  const syncAttemptedKeyRef = useRef<string | null>(null);
+  // True from the moment we kick off `syncQuinielaRoundDates` until the
+  // refreshed server props arrive (detected in the effect below by
+  // `computeRoundDateUpdates` returning null on the new `availableRounds`).
+  // While true we show a loader instead of the about-to-be-stale UI that
+  // would otherwise flash the wrong active round (e.g. "Final" before the
+  // group-stage dates land).
+  const [isSyncingRoundDates, setIsSyncingRoundDates] = useState(false);
+  useEffect(() => {
+    if (!tournamentFixtures.length) return;
+    if (!availableRounds.length) return;
+
+    const updated = computeRoundDateUpdates(
+      availableRounds,
+      tournamentFixtures,
+    );
+
+    // No updates needed — either rounds were already populated or the
+    // refreshed server props just arrived. Either way, stop showing the
+    // sync loader.
+    if (!updated) {
+      if (isSyncingRoundDates) setIsSyncingRoundDates(false);
+      return;
+    }
+
+    // Avoid re-firing the sync for the same fixture set.
+    const key = `${tournamentFixtures.length}:${tournamentFixtures
+      .map((f) => f.fixture.id)
+      .join(",")}`;
+    if (syncAttemptedKeyRef.current === key) return;
+    syncAttemptedKeyRef.current = key;
+
+    setIsSyncingRoundDates(true);
+    syncQuinielaRoundDates(quiniela.id, updated).then((result) => {
+      if (result.success && result.updated) {
+        // Re-fetch the server-rendered quiniela so the new dates flow back
+        // through `quiniela.roundsSelected`. The follow-up effect run will
+        // see `computeRoundDateUpdates` return null and clear the loader.
+        router.refresh();
+      } else {
+        if (!result.success) {
+          console.error(
+            "Failed to sync quiniela round dates:",
+            result.message,
+          );
+        }
+        setIsSyncingRoundDates(false);
+      }
+    });
+  }, [
+    tournamentFixtures,
+    availableRounds,
+    quiniela.id,
+    router,
+    isSyncingRoundDates,
+  ]);
+
   // Determine default active round
   const defaultRound = getDefaultActiveRound(availableRounds);
   const [selectedRound, setSelectedRound] = useState<string>(defaultRound);
+
+  // Keep `selectedRound` in sync with the computed default until the
+  // user explicitly picks a round. Two cases this matters for:
+  //   1. The initial server render produced an active round, then a
+  //      router.refresh() (e.g. after the round-date sync below) makes
+  //      `defaultRound` recompute to a different value.
+  //   2. Empty-date rounds caused `getDefaultActiveRound` to fall back
+  //      to the last round; once the sync persists real dates the
+  //      "true" active round becomes available.
+  // Once the user actively chooses something from the Select we stop
+  // overriding their pick.
+  const userPickedRoundRef = useRef(false);
+  useEffect(() => {
+    if (userPickedRoundRef.current) return;
+    if (!defaultRound) return;
+    if (defaultRound === selectedRound) return;
+    setSelectedRound(defaultRound);
+  }, [defaultRound, selectedRound]);
+
+  const handleSelectRound = (value: string) => {
+    userPickedRoundRef.current = true;
+    setSelectedRound(value);
+  };
 
   // State to manage all predictions for the current round
   const [predictions, setPredictions] = useState<
@@ -1203,11 +1328,15 @@ export default function RegistrarPronosticos({
   // Check if we have any predictions to submit
   const hasValidPredictions = Object.keys(predictions).length > 0;
 
-  if (isLoading) {
+  if (isLoading || isSyncingRoundDates) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Cargando partidos...</p>
+        <p className="text-sm text-muted-foreground">
+          {isSyncingRoundDates
+            ? "Actualizando fechas de jornadas..."
+            : "Cargando partidos..."}
+        </p>
       </div>
     );
   }
@@ -1273,9 +1402,10 @@ export default function RegistrarPronosticos({
           <TournamentStandingsDrawer
             tournamentFixtures={tournamentFixtures}
             isLoading={isLoading}
+            league={getLeagueByExternalId(quiniela.externalLeagueId)}
           />
           <span className="text-sm text-muted-foreground">Jornada:</span>
-          <Select value={selectedRound} onValueChange={setSelectedRound}>
+          <Select value={selectedRound} onValueChange={handleSelectRound}>
             <SelectTrigger className="w-44 border-border/50 bg-background">
               <SelectValue placeholder="Seleccionar jornada" />
             </SelectTrigger>
@@ -1339,7 +1469,9 @@ export default function RegistrarPronosticos({
                         <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <span className="font-medium">Partidos finalizados</span>
+                        <span className="font-medium">
+                          Partidos finalizados
+                        </span>
                         <span className="ml-2 text-sm text-muted-foreground">
                           ({finishedFixtures.length})
                         </span>

@@ -35,15 +35,13 @@ import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useRounds } from "@/hooks/api-football/useRounds";
 import Image from "next/image";
-
-const getLigaMXSeason = () => {
-  const now = new Date();
-  const month = now.getMonth();
-  const year = now.getFullYear();
-  return month < 5 ? (year - 1).toString() : year.toString();
-};
-
-const CURRENT_SEASON = getLigaMXSeason();
+import {
+  LEAGUES,
+  type LeagueConfig,
+  getLeagueByExternalId,
+  mergeRoundsWithEliminationRounds,
+} from "@/lib/leagues";
+import type { RoundData } from "@/types/rounds";
 
 // Prize distribution schema (reusable)
 const prizeDistributionSchema = z
@@ -115,10 +113,7 @@ const createQuinielaSchema = z
     // Per-round prize settings (optional based on playByRound)
     moneyPerRoundToEnter: z.number().int().optional().nullable(),
     prizeDistributionPerRound: prizeDistributionSchema.optional().nullable(),
-    externalSeason: z
-      .string()
-      .min(1, "La temporada es requerida")
-      .default(CURRENT_SEASON),
+    externalSeason: z.string().min(1, "La temporada es requerida"),
   })
   .refine(
     (data) => {
@@ -176,24 +171,37 @@ const createQuinielaSchema = z
 export type CreateQuinielaFormData = z.infer<typeof createQuinielaSchema>;
 
 export default function CreateQuinielaForm() {
-  const leagueId = "262";
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
+  const selectedLeague: LeagueConfig | undefined = useMemo(
+    () => getLeagueByExternalId(selectedLeagueId),
+    [selectedLeagueId]
+  );
+
+  // Both leagues fetch from the api-football /rounds endpoint. The endpoint
+  // typically only returns the regular-season rounds (group stage in Mundial,
+  // Apertura/Clausura jornadas in Liga MX); the elimination rounds are
+  // merged in below from the league config so they are selectable from day
+  // one.
+  const apiSeason = selectedLeague?.getDefaultSeason() ?? "";
+  const apiLeagueId = selectedLeague?.externalLeagueId ?? "";
 
   const {
     data: rounds,
     isLoading: roundsLoading,
     error: roundsError,
-  } = useRounds(leagueId, CURRENT_SEASON);
+  } = useRounds(apiLeagueId, apiSeason);
 
   // Filter future rounds only - rounds that haven't started yet
   // Unless NEXT_PUBLIC_ALLOW_ALL_ROUNDS is set to "true"
   const allowAllRounds = process.env.NEXT_PUBLIC_ALLOW_ALL_ROUNDS === "true";
 
-  const futureRounds = useMemo(() => {
-    if (!rounds?.response) return [];
+  const availableRounds: RoundData[] = useMemo(() => {
+    if (!selectedLeague) return [];
 
-    // If allowAllRounds is enabled, return all rounds without filtering
-    if (allowAllRounds) {
-      return rounds.response;
+    const merged = mergeRoundsWithEliminationRounds(selectedLeague, rounds);
+
+    if (allowAllRounds || !selectedLeague.filterFutureRoundsOnly) {
+      return merged;
     }
 
     // Get today's date in Mexico City timezone
@@ -203,29 +211,30 @@ export default function CreateQuinielaForm() {
     }); // Returns YYYY-MM-DD format
     const today = new Date(mexicoCityDate + "T00:00:00");
 
-    return rounds.response.filter((round) => {
+    return merged.filter((round) => {
+      // Synthesized elimination rounds have no dates yet; always show them
+      // so they can be selected ahead of the bracket being published.
+      if (round.dates.length === 0) return true;
+
       // Check if the round hasn't started yet (earliest date is in the future)
       // round.dates are in YYYY-MM-DD format (Mexico City dates from API)
       const sortedDates = [...round.dates].sort();
       const earliestDateStr = sortedDates[0];
-
-      if (!earliestDateStr) return false;
-
       const earliestDate = new Date(earliestDateStr + "T00:00:00");
       return earliestDate >= today;
     });
-  }, [rounds, allowAllRounds]);
+  }, [selectedLeague, rounds, allowAllRounds]);
 
   // Create dynamic schema with rounds validation
   const createQuinielaSchemaWithValidation = useMemo(() => {
     return createQuinielaSchema.refine(
       (data) => {
-        if (!futureRounds.length || !data.desde || !data.hasta) {
+        if (!availableRounds.length || !data.desde || !data.hasta) {
           return true; // Skip validation if data not available
         }
 
-        const desdeIndex = futureRounds.findIndex((r) => r.round === data.desde);
-        const hastaIndex = futureRounds.findIndex((r) => r.round === data.hasta);
+        const desdeIndex = availableRounds.findIndex((r) => r.round === data.desde);
+        const hastaIndex = availableRounds.findIndex((r) => r.round === data.hasta);
 
         return desdeIndex <= hastaIndex;
       },
@@ -235,7 +244,7 @@ export default function CreateQuinielaForm() {
         path: ["hasta"],
       }
     );
-  }, [futureRounds]);
+  }, [availableRounds]);
 
   const form = useForm<CreateQuinielaFormData>({
     resolver: zodResolver(createQuinielaSchemaWithValidation),
@@ -244,6 +253,7 @@ export default function CreateQuinielaForm() {
       description: "",
       league: "",
       externalLeagueId: "",
+      externalSeason: "",
       desde: "",
       hasta: "",
       roundsSelected: [],
@@ -372,24 +382,34 @@ export default function CreateQuinielaForm() {
 
   // Convert desde/hasta selection to roundsSelected format
   useEffect(() => {
-    if (!futureRounds.length || !desde || !hasta) {
+    if (!availableRounds.length || !desde || !hasta) {
       setValue("roundsSelected", []);
       return;
     }
 
-    const desdeIndex = futureRounds.findIndex((r) => r.round === desde);
-    const hastaIndex = futureRounds.findIndex((r) => r.round === hasta);
+    const desdeIndex = availableRounds.findIndex((r) => r.round === desde);
+    const hastaIndex = availableRounds.findIndex((r) => r.round === hasta);
 
     if (desdeIndex === -1 || hastaIndex === -1 || desdeIndex > hastaIndex) {
       setValue("roundsSelected", []);
       return;
     }
 
-    const selectedRoundsData = futureRounds
+    // Test toggle: when set, store the selected rounds with empty `dates`
+    // even if api-football already has them. Lets us exercise the
+    // round-date sync flow (client-side useEffect in
+    // `RegistrarPronosticos` and the cron `syncRoundDatesForAllQuinielas`)
+    // against rounds whose dates we already know — so we can verify the
+    // sync correctly back-fills them. Off by default; opt in locally
+    // with NEXT_PUBLIC_TEST_HARDCODED_ROUND_DATES=true.
+    const forceEmptyDates =
+      process.env.NEXT_PUBLIC_TEST_HARDCODED_ROUND_DATES === "true";
+
+    const selectedRoundsData = availableRounds
       .slice(desdeIndex, hastaIndex + 1)
       .map((round) => ({
         roundName: round.round,
-        dates: round.dates,
+        dates: forceEmptyDates ? [] : round.dates,
       }));
 
     setValue("roundsSelected", selectedRoundsData);
@@ -398,7 +418,7 @@ export default function CreateQuinielaForm() {
     if (desde && hasta) {
       trigger(["desde", "hasta"]);
     }
-  }, [desde, hasta, futureRounds, setValue, trigger]);
+  }, [desde, hasta, availableRounds, setValue, trigger]);
 
   const onSubmit = async (data: CreateQuinielaFormData) => {
     try {
@@ -426,39 +446,54 @@ export default function CreateQuinielaForm() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Selecciona Liga</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div
-              className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
-                watch("league") === "Liga MX"
-                  ? "border-primary bg-primary/5"
-                  : "border-border/50 hover:border-primary/50 hover:bg-muted/30"
-              }`}
-              onClick={() => {
-                setValue("league", "Liga MX");
-                setValue("externalLeagueId", "262");
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
-                  <Image
-                    src="https://media.api-sports.io/football/leagues/262.png"
-                    alt="Liga MX"
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 object-contain"
-                  />
+          <CardContent className="space-y-3">
+            {LEAGUES.map((league) => {
+              const isSelected = watch("league") === league.name;
+              const season = league.getDefaultSeason();
+              return (
+                <div
+                  key={league.id}
+                  className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "border-border/50 hover:border-primary/50 hover:bg-muted/30"
+                  }`}
+                  onClick={() => {
+                    if (isSelected) return;
+                    setSelectedLeagueId(league.externalLeagueId);
+                    setValue("league", league.name);
+                    setValue("externalLeagueId", league.externalLeagueId);
+                    setValue("externalSeason", season);
+                    // Reset round selection so it doesn't carry over from a
+                    // different league with a different round catalog.
+                    setValue("desde", "");
+                    setValue("hasta", "");
+                    setValue("roundsSelected", []);
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
+                      <Image
+                        src={league.imageSrc}
+                        alt={league.imageAlt}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 object-contain"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{league.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {league.seasonLabel(season)}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Liga MX</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Temporada {CURRENT_SEASON}
-                  </p>
-                </div>
-                {watch("league") === "Liga MX" && (
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                )}
-              </div>
-            </div>
+              );
+            })}
             {errors.league && (
               <p className="mt-2 text-sm text-destructive">
                 {errors.league.message}
@@ -510,10 +545,18 @@ export default function CreateQuinielaForm() {
               <div>
                 <h3 className="font-medium">Selección de Jornadas</h3>
                 <p className="text-xs text-muted-foreground">
-                  Solo se muestran jornadas futuras disponibles para predicciones.
+                  {selectedLeague?.filterFutureRoundsOnly
+                    ? "Solo se muestran jornadas futuras disponibles para predicciones."
+                    : "Selecciona el rango de jornadas que incluirá la quiniela."}
                 </p>
               </div>
-              {roundsLoading ? (
+              {!selectedLeague ? (
+                <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Selecciona una liga para ver las jornadas disponibles.
+                  </p>
+                </div>
+              ) : roundsLoading ? (
                 <div className="flex items-center justify-center rounded-lg border border-border/50 p-4">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">
@@ -532,12 +575,16 @@ export default function CreateQuinielaForm() {
                     <Label htmlFor="desde" className="text-sm">
                       Desde *
                     </Label>
-                    <Select onValueChange={(value) => setValue("desde", value)}>
+                    <Select
+                      key={`desde-${selectedLeague.id}`}
+                      value={watch("desde") || undefined}
+                      onValueChange={(value) => setValue("desde", value)}
+                    >
                       <SelectTrigger className="border-border/50">
                         <SelectValue placeholder="Jornada inicial" />
                       </SelectTrigger>
                       <SelectContent>
-                        {futureRounds.map((round) => (
+                        {availableRounds.map((round) => (
                           <SelectItem key={round.round} value={round.round}>
                             {round.round}
                           </SelectItem>
@@ -555,12 +602,16 @@ export default function CreateQuinielaForm() {
                     <Label htmlFor="hasta" className="text-sm">
                       Hasta *
                     </Label>
-                    <Select onValueChange={(value) => setValue("hasta", value)}>
+                    <Select
+                      key={`hasta-${selectedLeague.id}`}
+                      value={watch("hasta") || undefined}
+                      onValueChange={(value) => setValue("hasta", value)}
+                    >
                       <SelectTrigger className="border-border/50">
                         <SelectValue placeholder="Jornada final" />
                       </SelectTrigger>
                       <SelectContent>
-                        {futureRounds.map((round) => (
+                        {availableRounds.map((round) => (
                           <SelectItem key={round.round} value={round.round}>
                             {round.round}
                           </SelectItem>

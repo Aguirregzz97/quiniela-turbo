@@ -1,6 +1,11 @@
 /**
- * Extracts the date range from quiniela roundsSelected data
- * Returns the first date from the first round and the last date from the last round
+ * Extracts the date range from quiniela roundsSelected data.
+ * Returns the earliest date among the first rounds with dates, and the
+ * latest date among the last rounds with dates.
+ *
+ * Rounds with an empty `dates` array (e.g. elimination rounds whose
+ * bracket hasn't been published yet) are skipped from both ends so they
+ * don't collapse the range to `null` and force a full-season fetch.
  */
 export function getDateRangeFromRounds(
   roundsSelected: { roundName: string; dates: string[] }[],
@@ -9,24 +14,26 @@ export function getDateRangeFromRounds(
     return { fromDate: null, toDate: null };
   }
 
-  // Get the first date from the first round
-  const firstRound = roundsSelected[0];
-  const firstDate =
-    firstRound.dates && firstRound.dates.length > 0
-      ? firstRound.dates[0]
-      : null;
+  // First round (in order) that has at least one date.
+  let fromDate: string | null = null;
+  for (const round of roundsSelected) {
+    if (round.dates && round.dates.length > 0) {
+      fromDate = round.dates[0];
+      break;
+    }
+  }
 
-  // Get the last date from the last round
-  const lastRound = roundsSelected[roundsSelected.length - 1];
-  const lastDate =
-    lastRound.dates && lastRound.dates.length > 0
-      ? lastRound.dates[lastRound.dates.length - 1]
-      : null;
+  // Last round (in reverse order) that has at least one date.
+  let toDate: string | null = null;
+  for (let i = roundsSelected.length - 1; i >= 0; i--) {
+    const round = roundsSelected[i];
+    if (round.dates && round.dates.length > 0) {
+      toDate = round.dates[round.dates.length - 1];
+      break;
+    }
+  }
 
-  return {
-    fromDate: firstDate,
-    toDate: lastDate,
-  };
+  return { fromDate, toDate };
 }
 
 /**

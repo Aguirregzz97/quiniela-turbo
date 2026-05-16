@@ -31,6 +31,7 @@ export function useRounds(leagueId: string, season: string) {
   return useQuery({
     queryKey: ["rounds", leagueId, season],
     queryFn: () => fetchRounds(leagueId, season),
+    enabled: Boolean(leagueId) && Boolean(season),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
     retry: 2, // Retry failed requests twice
