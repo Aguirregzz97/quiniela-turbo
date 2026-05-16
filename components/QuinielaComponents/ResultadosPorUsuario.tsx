@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useFixtures } from "@/hooks/api-football/useFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
 import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+import { computeRoundDateUpdates } from "@/lib/rounds";
+import { syncQuinielaRoundDates } from "@/app/quinielas/sync-round-dates-action";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
@@ -229,12 +232,79 @@ export default function ResultadosPorUsuario({
     error: predictionsError,
   } = useAllPredictions(quiniela.id);
 
+  const router = useRouter();
+
   // Get available rounds from quiniela data
-  const availableRounds = quiniela.roundsSelected || [];
+  const availableRounds = useMemo(
+    () => quiniela.roundsSelected || [],
+    [quiniela.roundsSelected],
+  );
+
+  // Once fixtures arrive, fill in dates for any stored rounds whose dates
+  // were empty when the quiniela was created (e.g. Mundial 2026 Round of
+  // 32). Mirrors the logic in `RegistrarPronosticos` so a user landing
+  // straight on the results page also triggers the back-fill, and
+  // `isSyncingRoundDates` keeps the UI from flashing the wrong default
+  // round before `router.refresh()` lands.
+  const syncAttemptedKeyRef = useRef<string | null>(null);
+  const [isSyncingRoundDates, setIsSyncingRoundDates] = useState(false);
+  useEffect(() => {
+    const fixtures = fixturesData?.response;
+    if (!fixtures || !fixtures.length) return;
+    if (!availableRounds.length) return;
+
+    const updated = computeRoundDateUpdates(availableRounds, fixtures);
+    if (!updated) {
+      if (isSyncingRoundDates) setIsSyncingRoundDates(false);
+      return;
+    }
+
+    const key = `${fixtures.length}:${fixtures
+      .map((f) => f.fixture.id)
+      .join(",")}`;
+    if (syncAttemptedKeyRef.current === key) return;
+    syncAttemptedKeyRef.current = key;
+
+    setIsSyncingRoundDates(true);
+    syncQuinielaRoundDates(quiniela.id, updated).then((result) => {
+      if (result.success && result.updated) {
+        router.refresh();
+      } else {
+        if (!result.success) {
+          console.error(
+            "Failed to sync quiniela round dates:",
+            result.message,
+          );
+        }
+        setIsSyncingRoundDates(false);
+      }
+    });
+  }, [
+    fixturesData?.response,
+    availableRounds,
+    quiniela.id,
+    router,
+    isSyncingRoundDates,
+  ]);
 
   // Determine default active round
   const defaultRound = getDefaultActiveRound(availableRounds);
   const [selectedRound, setSelectedRound] = useState<string>(defaultRound);
+
+  // Reconcile `selectedRound` with `defaultRound` until the user
+  // explicitly picks one (handles `router.refresh()` after the sync).
+  const userPickedRoundRef = useRef(false);
+  useEffect(() => {
+    if (userPickedRoundRef.current) return;
+    if (!defaultRound) return;
+    if (defaultRound === selectedRound) return;
+    setSelectedRound(defaultRound);
+  }, [defaultRound, selectedRound]);
+
+  const handleSelectRound = (value: string) => {
+    userPickedRoundRef.current = true;
+    setSelectedRound(value);
+  };
 
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
@@ -398,12 +468,14 @@ export default function ResultadosPorUsuario({
   // State to manage which cards are open
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({});
 
-  if (fixturesLoading || predictionsLoading) {
+  if (fixturesLoading || predictionsLoading || isSyncingRoundDates) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="mt-3 text-sm text-muted-foreground">
-          Cargando pronósticos...
+          {isSyncingRoundDates
+            ? "Actualizando fechas de jornadas..."
+            : "Cargando pronósticos..."}
         </p>
       </div>
     );
@@ -457,7 +529,7 @@ export default function ResultadosPorUsuario({
             )}
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Jornada:</span>
-              <Select value={selectedRound} onValueChange={setSelectedRound}>
+              <Select value={selectedRound} onValueChange={handleSelectRound}>
                 <SelectTrigger className="w-40 border-border/50">
                   <SelectValue placeholder="Seleccionar jornada" />
                 </SelectTrigger>
