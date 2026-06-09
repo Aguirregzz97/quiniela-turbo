@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { db } from "@/db";
+import { getLeagueImageSrc } from "@/lib/leagues";
 import { quinielas, quiniela_participants } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -110,7 +111,7 @@ export default async function QuinielasPage() {
                   <div className="absolute -right-6 -top-6 h-32 w-32 opacity-[0.07] transition-transform duration-500 group-hover:scale-110">
                     {quiniela.externalLeagueId ? (
                       <Image
-                        src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                        src={getLeagueImageSrc(quiniela.externalLeagueId)}
                         alt=""
                         fill
                         className="object-contain"
@@ -126,11 +127,11 @@ export default async function QuinielasPage() {
                       <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-md ring-1 ring-black/5 sm:h-12 sm:w-12 sm:rounded-xl">
                         {quiniela.externalLeagueId ? (
                           <Image
-                            src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                            src={getLeagueImageSrc(quiniela.externalLeagueId)}
                             alt={quiniela.league || "Liga"}
-                            width={40}
-                            height={40}
-                            className="h-7 w-7 object-contain sm:h-9 sm:w-9"
+                            width={48}
+                            height={48}
+                            className="h-9 w-9 object-contain sm:h-11 sm:w-11"
                           />
                         ) : (
                           <Trophy className="h-5 w-5 text-primary sm:h-6 sm:w-6" />

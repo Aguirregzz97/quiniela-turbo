@@ -31,6 +31,7 @@ import PendingPicksSection from "@/components/SurvivorComponents/PendingPicksSec
 import { calculateSurvivorStatusBatch } from "@/lib/survivor/calculateSurvivorStatus";
 import { getPendingSurvivorPicks } from "../pending-picks-action";
 import { getActiveRound } from "@/lib/rounds";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 function formatRoundName(round: string): string {
   const match = round.match(/(\d+)/);
@@ -219,7 +220,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
         <div className="absolute -right-8 -top-8 h-40 w-40 opacity-[0.05] sm:h-56 sm:w-56">
           {survivorData.externalLeagueId ? (
             <Image
-              src={`https://media.api-sports.io/football/leagues/${survivorData.externalLeagueId}.png`}
+              src={getLeagueImageSrc(survivorData.externalLeagueId)}
               alt=""
               fill
               className="object-contain"
@@ -235,11 +236,11 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
               {survivorData.externalLeagueId ? (
                 <Image
-                  src={`https://media.api-sports.io/football/leagues/${survivorData.externalLeagueId}.png`}
+                  src={getLeagueImageSrc(survivorData.externalLeagueId)}
                   alt={survivorData.league || "Liga"}
-                  width={56}
-                  height={56}
-                  className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+                  width={64}
+                  height={64}
+                  className="h-12 w-12 object-contain sm:h-14 sm:w-14"
                 />
               ) : (
                 <Swords className="h-7 w-7 text-primary sm:h-8 sm:w-8" />

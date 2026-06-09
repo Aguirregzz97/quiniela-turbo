@@ -27,6 +27,7 @@ import DeleteQuinielaDialog from "@/components/QuinielaComponents/DeleteQuiniela
 import PendingPredictionsSection from "@/components/QuinielaComponents/PendingPredictionsSection";
 import PrizeBreakdownDrawer from "@/components/QuinielaComponents/PrizeBreakdownDrawer";
 import { getPendingPredictions } from "../pending-predictions-action";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 interface QuinielaPageProps {
   params: Promise<{
@@ -121,7 +122,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         <div className="absolute -right-8 -top-8 h-40 w-40 opacity-[0.05] sm:h-56 sm:w-56">
           {quinielaData.externalLeagueId ? (
             <Image
-              src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+              src={getLeagueImageSrc(quinielaData.externalLeagueId)}
               alt=""
               fill
               className="object-contain"
@@ -137,11 +138,11 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
               {quinielaData.externalLeagueId ? (
                 <Image
-                  src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                  src={getLeagueImageSrc(quinielaData.externalLeagueId)}
                   alt={quinielaData.league || "Liga"}
-                  width={56}
-                  height={56}
-                  className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+                  width={64}
+                  height={64}
+                  className="h-12 w-12 object-contain sm:h-14 sm:w-14"
                 />
               ) : (
                 <Award className="h-7 w-7 text-primary sm:h-8 sm:w-8" />

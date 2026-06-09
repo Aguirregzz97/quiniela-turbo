@@ -13,6 +13,7 @@ import { Info, X, DollarSign, Target, CheckCircle, XCircle, Trophy, Calendar } f
 import Image from "next/image";
 import ClickableJoinCode from "./ClickableJoinCode";
 import CopyJoinLinkButton from "./CopyJoinLinkButton";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 interface PrizePosition {
   position: number;
@@ -313,11 +314,11 @@ export default function QuinielaDetailsDrawer({
                   {quinielaData.externalLeagueId ? (
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-sm">
                       <Image
-                        src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                        src={getLeagueImageSrc(quinielaData.externalLeagueId)}
                         alt={quinielaData.league || "Liga"}
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 object-contain"
+                        width={40}
+                        height={40}
+                        className="h-9 w-9 object-contain"
                       />
                     </div>
                   ) : (

@@ -2,6 +2,32 @@ import type { RoundData, RoundsApiResponse } from "@/types/rounds";
 
 export type LeagueId = "liga-mx" | "mundial-2026";
 
+/**
+ * Some api-football league logos are generic/low-quality (the Mundial
+ * 2026 one is a flat blue placeholder). For those, we override with a
+ * locally-hosted asset. Keyed by externalLeagueId so the mapping is
+ * easy to extend.
+ */
+export const LEAGUE_IMAGE_OVERRIDES: Record<string, string> = {
+  "1": "/img/world_cup_2026.png",
+};
+
+/**
+ * Single source of truth for the image to render for a given league.
+ * Returns the local override when one exists, otherwise falls back to
+ * the api-football CDN URL. Use this everywhere you'd otherwise inline
+ * `https://media.api-sports.io/football/leagues/${id}.png` so a future
+ * override can be added in one place.
+ */
+export function getLeagueImageSrc(
+  externalLeagueId: string | null | undefined,
+): string {
+  if (!externalLeagueId) return "";
+  const override = LEAGUE_IMAGE_OVERRIDES[externalLeagueId];
+  if (override) return override;
+  return `https://media.api-sports.io/football/leagues/${externalLeagueId}.png`;
+}
+
 export interface StandingsGroup {
   /** Display name shown in the standings drawer (e.g. "Group A"). */
   name: string;
@@ -119,7 +145,7 @@ export const LEAGUES: LeagueConfig[] = [
     id: "mundial-2026",
     name: "Mundial 2026",
     externalLeagueId: "1",
-    imageSrc: "https://media.api-sports.io/football/leagues/1.png",
+    imageSrc: LEAGUE_IMAGE_OVERRIDES["1"],
     imageAlt: "Mundial 2026",
     seasonLabel: () => "Copa del Mundo 2026",
     getDefaultSeason: () => "2026",

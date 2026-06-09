@@ -7,6 +7,7 @@ import Image from "next/image";
 import ClasificacionesChart from "@/components/QuinielaComponents/ClasificacionesChart";
 import SurvivorPuntuaciones from "@/components/SurvivorComponents/SurvivorPuntuaciones";
 import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 interface Quiniela {
   id: string;
@@ -90,7 +91,7 @@ export default function PuntuacionesTabs({
                     <div className="absolute -right-8 -top-8 h-32 w-32 opacity-[0.05]">
                       {quiniela.externalLeagueId ? (
                         <Image
-                          src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                          src={getLeagueImageSrc(quiniela.externalLeagueId)}
                           alt=""
                           fill
                           className="object-contain"
@@ -105,11 +106,11 @@ export default function PuntuacionesTabs({
                       <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-black/5 sm:h-14 sm:w-14">
                         {quiniela.externalLeagueId ? (
                           <Image
-                            src={`https://media.api-sports.io/football/leagues/${quiniela.externalLeagueId}.png`}
+                            src={getLeagueImageSrc(quiniela.externalLeagueId)}
                             alt={quiniela.league || "Liga"}
                             width={48}
                             height={48}
-                            className="h-9 w-9 object-contain sm:h-10 sm:w-10"
+                            className="h-11 w-11 object-contain sm:h-[52px] sm:w-[52px]"
                           />
                         ) : (
                           <Trophy className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
@@ -191,7 +192,7 @@ export default function PuntuacionesTabs({
                     <div className="absolute -right-8 -top-8 h-32 w-32 opacity-[0.05]">
                       {game.externalLeagueId ? (
                         <Image
-                          src={`https://media.api-sports.io/football/leagues/${game.externalLeagueId}.png`}
+                          src={getLeagueImageSrc(game.externalLeagueId)}
                           alt=""
                           fill
                           className="object-contain"
@@ -206,11 +207,11 @@ export default function PuntuacionesTabs({
                       <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-black/5 sm:h-14 sm:w-14">
                         {game.externalLeagueId ? (
                           <Image
-                            src={`https://media.api-sports.io/football/leagues/${game.externalLeagueId}.png`}
+                            src={getLeagueImageSrc(game.externalLeagueId)}
                             alt={game.league || "Liga"}
                             width={48}
                             height={48}
-                            className="h-9 w-9 object-contain sm:h-10 sm:w-10"
+                            className="h-11 w-11 object-contain sm:h-[52px] sm:w-[52px]"
                           />
                         ) : (
                           <Swords className="h-6 w-6 text-rose-600 sm:h-7 sm:w-7" />

@@ -13,6 +13,7 @@ import { Info, X, Heart, DollarSign, Trophy } from "lucide-react";
 import Image from "next/image";
 import ClickableJoinCode from "@/components/QuinielaComponents/ClickableJoinCode";
 import CopySurvivorJoinLinkButton from "./CopySurvivorJoinLinkButton";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 interface PrizePosition {
   position: number;
@@ -216,11 +217,11 @@ export default function SurvivorDetailsDrawer({
                   {survivorData.externalLeagueId ? (
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-sm">
                       <Image
-                        src={`https://media.api-sports.io/football/leagues/${survivorData.externalLeagueId}.png`}
+                        src={getLeagueImageSrc(survivorData.externalLeagueId)}
                         alt={survivorData.league || "Liga"}
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 object-contain"
+                        width={40}
+                        height={40}
+                        className="h-9 w-9 object-contain"
                       />
                     </div>
                   ) : (

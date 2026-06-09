@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/collapsible";
 import ClickableJoinCode from "./ClickableJoinCode";
 import CopyJoinLinkButton from "./CopyJoinLinkButton";
+import { getLeagueImageSrc } from "@/lib/leagues";
 
 interface QuinielaDetailsCardProps {
   quinielaData: {
@@ -108,11 +109,11 @@ export default function QuinielaDetailsCard({
                   {quinielaData.externalLeagueId ? (
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-black/5">
                       <Image
-                        src={`https://media.api-sports.io/football/leagues/${quinielaData.externalLeagueId}.png`}
+                        src={getLeagueImageSrc(quinielaData.externalLeagueId)}
                         alt={quinielaData.league || "Liga"}
-                        width={28}
-                        height={28}
-                        className="h-7 w-7 object-contain"
+                        width={40}
+                        height={40}
+                        className="h-9 w-9 object-contain"
                       />
                     </div>
                   ) : (
