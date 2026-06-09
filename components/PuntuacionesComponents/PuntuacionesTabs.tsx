@@ -6,6 +6,7 @@ import { Award, Swords, Trophy } from "lucide-react";
 import Image from "next/image";
 import ClasificacionesChart from "@/components/QuinielaComponents/ClasificacionesChart";
 import SurvivorPuntuaciones from "@/components/SurvivorComponents/SurvivorPuntuaciones";
+import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
 
 interface Quiniela {
   id: string;
@@ -58,18 +59,20 @@ export default function PuntuacionesTabs({
             </span>
           )}
         </TabsTrigger>
-        <TabsTrigger
-          value="survivor"
-          className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
-        >
-          <Swords className="h-4 w-4" />
-          <span>Survivor</span>
-          {hasSurvivorGames && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">
-              {survivorGames.length}
-            </span>
-          )}
-        </TabsTrigger>
+        {SURVIVOR_ENABLED && (
+          <TabsTrigger
+            value="survivor"
+            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
+          >
+            <Swords className="h-4 w-4" />
+            <span>Survivor</span>
+            {hasSurvivorGames && (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+                {survivorGames.length}
+              </span>
+            )}
+          </TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="quinielas" className="mt-0">
@@ -172,6 +175,7 @@ export default function PuntuacionesTabs({
         )}
       </TabsContent>
 
+      {SURVIVOR_ENABLED && (
       <TabsContent value="survivor" className="mt-0">
         {hasSurvivorGames ? (
           <div className="space-y-4">
@@ -258,6 +262,7 @@ export default function PuntuacionesTabs({
           </Card>
         )}
       </TabsContent>
+      )}
     </Tabs>
   );
 }

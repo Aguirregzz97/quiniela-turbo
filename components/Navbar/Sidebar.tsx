@@ -29,6 +29,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
+import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
 
 const COLLAPSE_BREAKPOINT = 1200;
 
@@ -86,11 +87,15 @@ const Sidebar = () => {
       label: "Quinielas",
       icon: Award,
     },
-    {
-      href: "/survivor",
-      label: "Survivor",
-      icon: Swords,
-    },
+    ...(SURVIVOR_ENABLED
+      ? [
+          {
+            href: "/survivor",
+            label: "Survivor",
+            icon: Swords,
+          },
+        ]
+      : []),
   ];
 
   const globalRoutes = [

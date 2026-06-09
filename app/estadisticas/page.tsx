@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserStatistics from "@/components/StatisticsComponents/UserStatistics";
 import SurvivorStatistics from "@/components/StatisticsComponents/SurvivorStatistics";
+import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
 
 export default async function EstadisticasPage() {
   const session = await auth();
@@ -29,7 +30,9 @@ export default async function EstadisticasPage() {
         </div>
       </div>
 
-      {/* Tabs for different game types */}
+      {/* Tabs for different game types. When Survivor is disabled the
+          tab list collapses to just Quinielas, but we keep the Tabs
+          wrapper so the visual styling stays consistent. */}
       <Tabs defaultValue="quinielas" className="w-full">
         <TabsList className="mb-6 h-auto w-full gap-1 bg-muted/50 p-1 sm:w-auto">
           <TabsTrigger
@@ -39,22 +42,26 @@ export default async function EstadisticasPage() {
             <Award className="h-4 w-4" />
             <span>Quinielas</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="survivor"
-            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
-          >
-            <Swords className="h-4 w-4" />
-            <span>Survivor</span>
-          </TabsTrigger>
+          {SURVIVOR_ENABLED && (
+            <TabsTrigger
+              value="survivor"
+              className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
+            >
+              <Swords className="h-4 w-4" />
+              <span>Survivor</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="quinielas" className="mt-0">
           <UserStatistics />
         </TabsContent>
 
-        <TabsContent value="survivor" className="mt-0">
-          <SurvivorStatistics />
-        </TabsContent>
+        {SURVIVOR_ENABLED && (
+          <TabsContent value="survivor" className="mt-0">
+            <SurvivorStatistics />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
