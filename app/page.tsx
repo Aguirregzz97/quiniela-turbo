@@ -12,6 +12,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
+import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
 
 export default async function Home() {
   const session = await auth();
@@ -37,22 +38,26 @@ export default async function Home() {
       bgGradient: "from-amber-500/10 via-orange-500/5 to-transparent",
       iconBg: "bg-gradient-to-br from-amber-500 to-orange-600",
     },
-    {
-      href: "/survivor",
-      icon: Swords,
-      title: "Survivor",
-      subtitle: "Último en pie",
-      description:
-        "Elige un equipo diferente cada jornada. Si tu equipo pierde, pierdes una vida. El último jugador con vidas gana. No puedes repetir equipos.",
-      features: [
-        { icon: Swords, text: "Elige un equipo" },
-        { icon: Skull, text: "Pierde = vida menos" },
-        { icon: Trophy, text: "Sobrevive hasta el final" },
-      ],
-      gradient: "from-rose-500 to-red-600",
-      bgGradient: "from-rose-500/10 via-red-500/5 to-transparent",
-      iconBg: "bg-gradient-to-br from-rose-500 to-red-600",
-    },
+    ...(SURVIVOR_ENABLED
+      ? [
+          {
+            href: "/survivor",
+            icon: Swords,
+            title: "Survivor",
+            subtitle: "Último en pie",
+            description:
+              "Elige un equipo diferente cada jornada. Si tu equipo pierde, pierdes una vida. El último jugador con vidas gana. No puedes repetir equipos.",
+            features: [
+              { icon: Swords, text: "Elige un equipo" },
+              { icon: Skull, text: "Pierde = vida menos" },
+              { icon: Trophy, text: "Sobrevive hasta el final" },
+            ],
+            gradient: "from-rose-500 to-red-600",
+            bgGradient: "from-rose-500/10 via-red-500/5 to-transparent",
+            iconBg: "bg-gradient-to-br from-rose-500 to-red-600",
+          },
+        ]
+      : []),
   ];
 
   const stats = [
@@ -115,7 +120,11 @@ export default async function Home() {
             </h2>
           </div>
 
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+          <div
+            className={`grid gap-4 sm:gap-6 ${
+              games.length > 1 ? "lg:grid-cols-2" : ""
+            }`}
+          >
             {games.map((game) => (
               <Link key={game.href} href={game.href} className="group">
                 <div
