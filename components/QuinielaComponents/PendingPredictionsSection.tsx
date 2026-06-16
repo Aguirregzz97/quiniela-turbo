@@ -115,8 +115,9 @@ export default function PendingPredictionsSection({
         </Card>
       </Link>
 
-      {/* Admin View: Collapsible list of users with pending predictions */}
-      {isAdmin && activeRound && totalFixtures > 0 && (
+      {/* Admin View: Collapsible list of users with pending predictions.
+          Hidden entirely when everyone is done — no need for a "todo listo" banner. */}
+      {isAdmin && activeRound && totalFixtures > 0 && !allUsersComplete && (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <button

@@ -41,6 +41,9 @@ interface PrizeBreakdownDrawerProps {
   prizeDistribution: PrizeDistribution[] | null;
   moneyPerRoundToEnter: number | null;
   prizeDistributionPerRound: PrizeDistribution[] | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideDefaultTrigger?: boolean;
 }
 
 function formatMoney(amount: number): string {
@@ -284,6 +287,9 @@ export default function PrizeBreakdownDrawer({
   prizeDistribution,
   moneyPerRoundToEnter,
   prizeDistributionPerRound,
+  open,
+  onOpenChange,
+  hideDefaultTrigger = false,
 }: PrizeBreakdownDrawerProps) {
   const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
 
@@ -349,18 +355,25 @@ export default function PrizeBreakdownDrawer({
   const isLoading = fixturesLoading || predictionsLoading;
   const error = fixturesError || predictionsError;
 
+  const isControlled = open !== undefined;
+
   return (
-    <Drawer direction="right">
-      <DrawerTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 gap-2 border-emerald-500/30 bg-emerald-500/5 text-xs hover:bg-emerald-500/10"
-        >
-          <DollarSign className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span className="hidden sm:inline">Premios</span>
-        </Button>
-      </DrawerTrigger>
+    <Drawer
+      direction="right"
+      {...(isControlled ? { open, onOpenChange } : {})}
+    >
+      {!hideDefaultTrigger && (
+        <DrawerTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-2 border-emerald-500/30 bg-emerald-500/5 text-xs hover:bg-emerald-500/10"
+          >
+            <DollarSign className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">Premios</span>
+          </Button>
+        </DrawerTrigger>
+      )}
       <DrawerContent className="data-[vaul-drawer-direction=right]:w-[92%] data-[vaul-drawer-direction=right]:sm:max-w-md">
         <DrawerHeader className="border-b border-border/50 px-4">
           <DrawerTitle className="flex items-center gap-2.5">

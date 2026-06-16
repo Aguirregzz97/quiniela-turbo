@@ -38,11 +38,19 @@ interface QuinielaDetailsDrawerProps {
     pointsForCorrectResultPrediction?: number | null;
   };
   participantCount?: number;
+  // When provided, the drawer is controlled by the parent and the default
+  // trigger button is hidden. Useful when triggering from a menu.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideDefaultTrigger?: boolean;
 }
 
 export default function QuinielaDetailsDrawer({
   quinielaData,
   participantCount = 0,
+  open,
+  onOpenChange,
+  hideDefaultTrigger = false,
 }: QuinielaDetailsDrawerProps) {
   // Tournament prizes
   const moneyToEnter = quinielaData.moneyToEnter ?? 0;
@@ -61,14 +69,20 @@ export default function QuinielaDetailsDrawer({
   const hasTournamentPrize = moneyToEnter > 0 && prizeDistribution.length > 0;
   const hasRoundPrize = moneyPerRoundToEnter > 0 && prizeDistributionPerRound.length > 0;
 
+  const isControlled = open !== undefined;
+
   return (
-    <Drawer>
-      <DrawerTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Info className="h-4 w-4" />
-          Detalles
-        </Button>
-      </DrawerTrigger>
+    <Drawer
+      {...(isControlled ? { open, onOpenChange } : {})}
+    >
+      {!hideDefaultTrigger && (
+        <DrawerTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Info className="h-4 w-4" />
+            Detalles
+          </Button>
+        </DrawerTrigger>
+      )}
       <DrawerContent className="max-h-[85vh]">
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">

@@ -22,14 +22,29 @@ import { deleteQuiniela } from "@/app/quinielas/delete-action";
 interface DeleteQuinielaDialogProps {
   quinielaId: string;
   quinielaName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideDefaultTrigger?: boolean;
 }
 
 export default function DeleteQuinielaDialog({
   quinielaId,
   quinielaName,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideDefaultTrigger = false,
 }: DeleteQuinielaDialogProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (isControlled) {
+      controlledOnOpenChange?.(next);
+    } else {
+      setInternalOpen(next);
+    }
+  };
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -87,12 +102,14 @@ export default function DeleteQuinielaDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Eliminar</span>
-        </Button>
-      </AlertDialogTrigger>
+      {!hideDefaultTrigger && (
+        <AlertDialogTrigger asChild>
+          <Button variant="destructive" size="sm">
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Eliminar</span>
+          </Button>
+        </AlertDialogTrigger>
+      )}
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">

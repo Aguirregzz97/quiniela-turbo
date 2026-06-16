@@ -39,6 +39,9 @@ interface QuinielaParticipantsDrawerProps {
   ownerId: string;
   currentUserId: string;
   participants: Participant[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideDefaultTrigger?: boolean;
 }
 
 export default function QuinielaParticipantsDrawer({
@@ -46,6 +49,9 @@ export default function QuinielaParticipantsDrawer({
   ownerId,
   currentUserId,
   participants,
+  open,
+  onOpenChange,
+  hideDefaultTrigger = false,
 }: QuinielaParticipantsDrawerProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -85,16 +91,23 @@ export default function QuinielaParticipantsDrawer({
     });
   };
 
+  const isControlled = open !== undefined;
+
   return (
     <>
-      <Drawer direction="right">
-        <DrawerTrigger asChild>
-          <Button variant="outline" size="sm">
-            <Users className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Participantes</span>
-            <span className="ml-1">({participants.length})</span>
-          </Button>
-        </DrawerTrigger>
+      <Drawer
+        direction="right"
+        {...(isControlled ? { open, onOpenChange } : {})}
+      >
+        {!hideDefaultTrigger && (
+          <DrawerTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Users className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Participantes</span>
+              <span className="ml-1">({participants.length})</span>
+            </Button>
+          </DrawerTrigger>
+        )}
         <DrawerContent>
           <DrawerHeader className="border-b">
             <div className="flex items-center justify-between">

@@ -1,13 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Award,
-  ArrowLeft,
-  Edit,
-  Users,
-  Trophy,
-  ChevronRight,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Award, ArrowLeft, Users, DollarSign } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
@@ -20,12 +11,9 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
-import QuinielaDetailsDrawer from "@/components/QuinielaComponents/QuinielaDetailsDrawer";
-import QuinielaLeaderboard from "@/components/QuinielaComponents/QuinielaLeaderboard";
-import QuinielaParticipantsDrawer from "@/components/QuinielaComponents/QuinielaParticipantsDrawer";
-import DeleteQuinielaDialog from "@/components/QuinielaComponents/DeleteQuinielaDialog";
+import QuinielaHeaderMenu from "@/components/QuinielaComponents/QuinielaHeaderMenu";
+import QuinielaResultsTabs from "@/components/QuinielaComponents/QuinielaResultsTabs";
 import PendingPredictionsSection from "@/components/QuinielaComponents/PendingPredictionsSection";
-import PrizeBreakdownDrawer from "@/components/QuinielaComponents/PrizeBreakdownDrawer";
 import { getPendingPredictions } from "../pending-predictions-action";
 import { getLeagueImageSrc } from "@/lib/leagues";
 
@@ -79,7 +67,6 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
   const quinielaData = quinielaWithOwnerAndSettings[0];
 
-  // Fetch participants
   const participants = await db
     .select({
       id: quiniela_participants.id,
@@ -94,7 +81,6 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
     .where(eq(quiniela_participants.quinielaId, id))
     .orderBy(quiniela_participants.createdAt);
 
-  // Fetch pending predictions data
   const pendingPredictionsData = await getPendingPredictions(
     quinielaData.id,
     session.user.id,
@@ -105,9 +91,28 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
 
   const isAdmin = session.user.id === quinielaData.ownerId;
 
+  // Header stat chips
+  const tournamentPool =
+    (quinielaData.moneyToEnter ?? 0) > 0
+      ? (quinielaData.moneyToEnter as number) * participants.length
+      : 0;
+
+  const quinielaForChildren = {
+    id: quinielaData.id,
+    name: quinielaData.name,
+    description: quinielaData.description,
+    league: quinielaData.league,
+    externalLeagueId: quinielaData.externalLeagueId,
+    externalSeason: quinielaData.externalSeason,
+    joinCode: quinielaData.joinCode,
+    createdAt: quinielaData.createdAt,
+    updatedAt: quinielaData.updatedAt,
+    ownerId: quinielaData.ownerId,
+    roundsSelected: quinielaData.roundsSelected,
+  };
+
   return (
     <div className="max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-      {/* Back Button */}
       <Link
         href="/quinielas"
         className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -116,9 +121,8 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         Volver a Quinielas
       </Link>
 
-      {/* Hero Header */}
-      <div className="relative mb-8 overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 sm:p-8">
-        {/* Background decoration */}
+      {/* Slimmed Hero: identity + stat chips + single overflow menu */}
+      <div className="relative mb-6 overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-5 sm:p-7">
         <div className="absolute -right-8 -top-8 h-40 w-40 opacity-[0.05] sm:h-56 sm:w-56">
           {quinielaData.externalLeagueId ? (
             <Image
@@ -132,92 +136,97 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
           )}
         </div>
 
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          {/* Left: Logo + Info */}
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
-              {quinielaData.externalLeagueId ? (
-                <Image
-                  src={getLeagueImageSrc(quinielaData.externalLeagueId)}
-                  alt={quinielaData.league || "Liga"}
-                  width={64}
-                  height={64}
-                  className="h-12 w-12 object-contain sm:h-14 sm:w-14"
-                />
-              ) : (
-                <Award className="h-7 w-7 text-primary sm:h-8 sm:w-8" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h1 className="mb-1 text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
-                {quinielaData.name}
-              </h1>
-              <p className="text-sm text-muted-foreground sm:text-base">
-                {quinielaData.league}
-              </p>
-              {quinielaData.description && (
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground/80">
-                  {quinielaData.description}
-                </p>
-              )}
-            </div>
+        <div className="relative flex items-start gap-4">
+          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
+            {quinielaData.externalLeagueId ? (
+              <Image
+                src={getLeagueImageSrc(quinielaData.externalLeagueId)}
+                alt={quinielaData.league || "Liga"}
+                width={64}
+                height={64}
+                className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+              />
+            ) : (
+              <Award className="h-7 w-7 text-primary sm:h-8 sm:w-8" />
+            )}
           </div>
 
-          {/* Right: Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            <QuinielaParticipantsDrawer
-              quinielaId={quinielaData.id}
-              ownerId={quinielaData.ownerId}
-              currentUserId={session.user.id}
-              participants={participants}
-            />
-            <QuinielaDetailsDrawer quinielaData={quinielaData} participantCount={participants.length} />
-            <PrizeBreakdownDrawer
-              quiniela={{
-                id: quinielaData.id,
-                name: quinielaData.name,
-                description: quinielaData.description,
-                league: quinielaData.league,
-                externalLeagueId: quinielaData.externalLeagueId,
-                externalSeason: quinielaData.externalSeason,
-                joinCode: quinielaData.joinCode,
-                createdAt: quinielaData.createdAt,
-                updatedAt: quinielaData.updatedAt,
-                ownerId: quinielaData.ownerId,
-                roundsSelected: quinielaData.roundsSelected,
-              }}
-              participants={participants}
-              exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
-              correctResultPoints={
-                quinielaData.pointsForCorrectResultPrediction ?? 1
-              }
-              moneyToEnter={quinielaData.moneyToEnter ?? null}
-              prizeDistribution={quinielaData.prizeDistribution ?? null}
-              moneyPerRoundToEnter={quinielaData.moneyPerRoundToEnter ?? null}
-              prizeDistributionPerRound={
-                quinielaData.prizeDistributionPerRound ?? null
-              }
-            />
-            {session?.user?.id === quinielaData.ownerId && (
-              <>
-                <Button asChild size="sm">
-                  <Link href={`/quinielas/${quinielaData.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Editar Quiniela</span>
-                    <span className="sm:hidden">Editar</span>
-                  </Link>
-                </Button>
-                <DeleteQuinielaDialog
-                  quinielaId={quinielaData.id}
-                  quinielaName={quinielaData.name}
+          <div className="min-w-0 flex-1">
+            {/* Title row: name + overflow menu pinned right (consistent on mobile + desktop) */}
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="min-w-0 truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+                {quinielaData.name}
+              </h1>
+              <div className="flex-shrink-0">
+                <QuinielaHeaderMenu
+                  quiniela={quinielaForChildren}
+                  detailsData={{
+                    name: quinielaData.name,
+                    description: quinielaData.description,
+                    league: quinielaData.league,
+                    externalLeagueId: quinielaData.externalLeagueId,
+                    joinCode: quinielaData.joinCode,
+                    createdAt: quinielaData.createdAt,
+                    ownerName: quinielaData.ownerName,
+                    ownerEmail: quinielaData.ownerEmail,
+                    moneyToEnter: quinielaData.moneyToEnter,
+                    prizeDistribution: quinielaData.prizeDistribution,
+                    moneyPerRoundToEnter: quinielaData.moneyPerRoundToEnter,
+                    prizeDistributionPerRound:
+                      quinielaData.prizeDistributionPerRound,
+                    pointsForExactResultPrediction:
+                      quinielaData.pointsForExactResultPrediction,
+                    pointsForCorrectResultPrediction:
+                      quinielaData.pointsForCorrectResultPrediction,
+                  }}
+                  participants={participants}
+                  currentUserId={session.user.id}
+                  isAdmin={isAdmin}
+                  exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
+                  correctResultPoints={
+                    quinielaData.pointsForCorrectResultPrediction ?? 1
+                  }
+                  moneyToEnter={quinielaData.moneyToEnter ?? null}
+                  prizeDistribution={quinielaData.prizeDistribution ?? null}
+                  moneyPerRoundToEnter={
+                    quinielaData.moneyPerRoundToEnter ?? null
+                  }
+                  prizeDistributionPerRound={
+                    quinielaData.prizeDistributionPerRound ?? null
+                  }
                 />
-              </>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground sm:text-base">
+              {quinielaData.league}
+            </p>
+            {quinielaData.description && (
+              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground/80">
+                {quinielaData.description}
+              </p>
             )}
+
+            {/* Stat chips - hidden on mobile to keep the hero compact;
+                same info is available via the overflow menu (Detalles / Premios). */}
+            <div className="mt-3 hidden flex-wrap items-center gap-2 sm:flex">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                {participants.length} participante
+                {participants.length === 1 ? "" : "s"}
+              </span>
+              {tournamentPool > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  {tournamentPool.toLocaleString("es-MX")} en juego
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Registrar Pronósticos Section */}
+      {/* Primary action: pending predictions */}
       <PendingPredictionsSection
         quinielaId={quinielaData.id}
         isAdmin={isAdmin}
@@ -228,73 +237,9 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
         currentUserPendingCount={pendingPredictionsData.currentUserPendingCount}
       />
 
-      {/* Resultados Section */}
-      <div className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold">
-          Resultados de Pronósticos por jornada
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Link
-            href={`/quinielas/${quinielaData.id}/resultados-por-usuario`}
-            className="group"
-          >
-            <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
-              <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                  <Users className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold transition-colors group-hover:text-primary">
-                    Resultados Por Usuario
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Ve los resultados de las predicciones de cada usuario por jornada
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link
-            href={`/quinielas/${quinielaData.id}/resultados-por-partido`}
-            className="group"
-          >
-            <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
-              <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                  <Trophy className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold transition-colors group-hover:text-primary">
-                    Resultados Por Partido
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Ve los resultados de las predicciones de cada partido por jornada
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </div>
-
-      {/* Leaderboard */}
-      <QuinielaLeaderboard
-        quiniela={{
-          id: quinielaData.id,
-          name: quinielaData.name,
-          description: quinielaData.description,
-          league: quinielaData.league,
-          externalLeagueId: quinielaData.externalLeagueId,
-          externalSeason: quinielaData.externalSeason,
-          joinCode: quinielaData.joinCode,
-          createdAt: quinielaData.createdAt,
-          updatedAt: quinielaData.updatedAt,
-          ownerId: quinielaData.ownerId,
-          roundsSelected: quinielaData.roundsSelected,
-        }}
+      {/* Unified results section: tabs make the two views explicit */}
+      <QuinielaResultsTabs
+        quiniela={quinielaForChildren}
         exactPoints={quinielaData.pointsForExactResultPrediction ?? 2}
         correctResultPoints={quinielaData.pointsForCorrectResultPrediction ?? 1}
         moneyToEnter={quinielaData.moneyToEnter ?? undefined}
