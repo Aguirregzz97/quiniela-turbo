@@ -50,6 +50,9 @@ function ResultDot({ result }: { result: "win" | "draw" | "loss" | null }) {
 }
 
 function StandingsTable({ standings }: { standings: TeamStanding[] }) {
+  // Mobile keeps the original compact set of columns to stay legible:
+  // # / Club / PJ / Pts / Últimos 5. The new GF/GC/DG columns and the
+  // detailed G/E/P breakdown only appear at sm+ where there's room.
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -61,6 +64,9 @@ function StandingsTable({ standings }: { standings: TeamStanding[] }) {
             <th className="w-8 py-2.5 text-center font-medium">G</th>
             <th className="w-8 py-2.5 text-center font-medium">E</th>
             <th className="w-8 py-2.5 text-center font-medium">P</th>
+            <th className="hidden w-9 py-2.5 text-center font-medium sm:table-cell">GF</th>
+            <th className="hidden w-9 py-2.5 text-center font-medium sm:table-cell">GC</th>
+            <th className="hidden w-9 py-2.5 text-center font-medium sm:table-cell">DG</th>
             <th className="w-9 py-2.5 text-center font-medium">Pts</th>
             <th className="py-2.5 pr-3 text-center font-medium">Últimos 5</th>
           </tr>
@@ -103,6 +109,15 @@ function StandingsTable({ standings }: { standings: TeamStanding[] }) {
               </td>
               <td className="py-2.5 text-center text-xs tabular-nums">
                 {team.losses}
+              </td>
+              <td className="hidden py-2.5 text-center text-xs tabular-nums sm:table-cell">
+                {team.goalsFor}
+              </td>
+              <td className="hidden py-2.5 text-center text-xs tabular-nums sm:table-cell">
+                {team.goalsAgainst}
+              </td>
+              <td className="hidden py-2.5 text-center text-xs tabular-nums sm:table-cell">
+                {team.goalDifference > 0 ? `+${team.goalDifference}` : team.goalDifference}
               </td>
               <td className="py-2.5 text-center text-xs font-bold tabular-nums text-primary">
                 {team.points}

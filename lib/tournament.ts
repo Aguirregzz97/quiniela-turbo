@@ -165,14 +165,119 @@ export function computeStandings(fixtures: FixtureData[]): TeamStanding[] {
     }),
   );
 
-  standings.sort((a, b) => {
+  return sortStandingsWithFifaTiebreakers(standings, finishedFixtures);
+}
+
+/**
+ * Sort standings using the FIFA World Cup tiebreaker chain:
+ *
+ *   1. Points in all group matches
+ *   2. Goal difference in all group matches
+ *   3. Goals for in all group matches
+ *   4. Points among the tied teams only (head-to-head)
+ *   5. Goal difference among the tied teams only
+ *   6. Goals for among the tied teams only
+ *   7. (FIFA next steps — fair play points, drawing of lots — not applied)
+ *
+ * Steps 1–3 are a single pass. Steps 4–6 only apply when 2+ teams are
+ * still tied after that pass, so we re-sort just those subgroups using
+ * mini-standings computed exclusively from the matches between them.
+ */
+function sortStandingsWithFifaTiebreakers(
+  standings: TeamStanding[],
+  finishedFixtures: FixtureData[],
+): TeamStanding[] {
+  const overallCmp = (a: TeamStanding, b: TeamStanding) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.goalDifference !== a.goalDifference)
       return b.goalDifference - a.goalDifference;
     return b.goalsFor - a.goalsFor;
-  });
+  };
 
-  return standings;
+  standings.sort(overallCmp);
+
+  // Walk the sorted array and find runs of teams that are tied after the
+  // overall criteria. Each such run gets re-sorted in place using H2H.
+  const result: TeamStanding[] = [];
+  let i = 0;
+  while (i < standings.length) {
+    let j = i + 1;
+    while (j < standings.length && overallCmp(standings[i], standings[j]) === 0) {
+      j++;
+    }
+
+    if (j - i > 1) {
+      const tiedGroup = standings.slice(i, j);
+      result.push(...applyHeadToHeadTiebreakers(tiedGroup, finishedFixtures));
+    } else {
+      result.push(standings[i]);
+    }
+
+    i = j;
+  }
+
+  return result;
+}
+
+/**
+ * Re-orders a set of teams that are already tied on overall points/GD/GF
+ * by re-running the same point/GD/GF comparison restricted to matches
+ * played *only* between members of this subset.
+ */
+function applyHeadToHeadTiebreakers(
+  tied: TeamStanding[],
+  finishedFixtures: FixtureData[],
+): TeamStanding[] {
+  const tiedIds = new Set(tied.map((t) => t.teamId));
+
+  const h2hFixtures = finishedFixtures.filter(
+    (f) => tiedIds.has(f.teams.home.id) && tiedIds.has(f.teams.away.id),
+  );
+
+  const h2hStats = new Map<
+    number,
+    { points: number; goalsFor: number; goalsAgainst: number }
+  >();
+  for (const id of tiedIds) {
+    h2hStats.set(id, { points: 0, goalsFor: 0, goalsAgainst: 0 });
+  }
+
+  for (const fixture of h2hFixtures) {
+    const home = h2hStats.get(fixture.teams.home.id)!;
+    const away = h2hStats.get(fixture.teams.away.id)!;
+    const homeGoals = fixture.goals.home ?? 0;
+    const awayGoals = fixture.goals.away ?? 0;
+
+    home.goalsFor += homeGoals;
+    home.goalsAgainst += awayGoals;
+    away.goalsFor += awayGoals;
+    away.goalsAgainst += homeGoals;
+
+    if (homeGoals > awayGoals) {
+      home.points += 3;
+    } else if (homeGoals < awayGoals) {
+      away.points += 3;
+    } else {
+      home.points += 1;
+      away.points += 1;
+    }
+  }
+
+  return [...tied].sort((a, b) => {
+    const sa = h2hStats.get(a.teamId)!;
+    const sb = h2hStats.get(b.teamId)!;
+
+    if (sb.points !== sa.points) return sb.points - sa.points;
+
+    const gdA = sa.goalsFor - sa.goalsAgainst;
+    const gdB = sb.goalsFor - sb.goalsAgainst;
+    if (gdB !== gdA) return gdB - gdA;
+
+    if (sb.goalsFor !== sa.goalsFor) return sb.goalsFor - sa.goalsFor;
+
+    // Still tied — stable fallback so output is deterministic across renders.
+    return a.teamId - b.teamId;
+  });
 }
 
 export interface GroupStandings {
@@ -230,14 +335,19 @@ export function computeGroupedStandings(
       });
     }
 
-    standings.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDifference !== a.goalDifference)
-        return b.goalDifference - a.goalDifference;
-      return b.goalsFor - a.goalsFor;
-    });
-
-    return { name: group.name, standings };
+    // Re-apply FIFA tiebreakers now that zero-row teams are included, so
+    // the seeded teams sit in the right position relative to teams that
+    // also have 0 points.
+    const finishedGroupFixtures = groupFixtures.filter((f) =>
+      isMatchFinished(f.fixture.status.short),
+    );
+    return {
+      name: group.name,
+      standings: sortStandingsWithFifaTiebreakers(
+        standings,
+        finishedGroupFixtures,
+      ),
+    };
   });
 }
 
