@@ -16,18 +16,26 @@ export interface RoundSelected {
 /**
  * Given a list of fixtures (typically the full season's fixtures from
  * api-football) and the rounds currently stored on a quiniela, return a new
- * list of rounds where any round whose stored `dates` is empty gets filled
- * in from the fixtures' dates (in Mexico City timezone, YYYY-MM-DD,
- * deduped, sorted ascending).
+ * list of rounds whose `dates` is the union of the stored dates and the
+ * fixture-derived dates (in Mexico City timezone, YYYY-MM-DD, deduped,
+ * sorted ascending).
  *
  * Returns `null` when no updates are needed, so callers can skip the DB
  * write / network call entirely.
  *
- * Rounds that already have dates are left untouched: this is intentional
- * for the first iteration — it covers the "elimination round was not yet
- * published when the quiniela was created" case (Mundial 2026 Round of 32,
- * Liga MX Apertura - Quarter-finals, etc.) without risking surprise edits
- * to existing rounds that may have been rescheduled.
+ * Why union and not replace:
+ *   - We need to backfill rounds that started life empty (e.g. World Cup
+ *     Round of 16 / Quarter-finals before the bracket is published).
+ *   - We also need to *top up* rounds that were partially populated when
+ *     api-football only had some fixtures published, then later got more.
+ *     A real case: Round of 32 stored as `[2026-06-28]` because that's all
+ *     api-football knew at quiniela creation; later the rest of the
+ *     bracket arrives and we want to extend the round, not leave it
+ *     stuck on one day.
+ *   - We never remove a stored date here. If a match was rescheduled
+ *     away from a date, that date stays in the round (harmless: it just
+ *     widens the range a touch and never points to a real fixture).
+ *     Reschedules are the rare case; backfills are the common one.
  */
 export function computeRoundDateUpdates(
   storedRounds: RoundSelected[],
@@ -39,16 +47,31 @@ export function computeRoundDateUpdates(
 
   let changed = false;
   const next = storedRounds.map((round) => {
-    if (round.dates.length > 0) return round;
-
     const fresh = datesByRound.get(round.roundName);
     if (!fresh || fresh.length === 0) return round;
 
+    const merged = unionSorted(round.dates, fresh);
+    if (merged.length === round.dates.length) {
+      // No new dates discovered for this round.
+      return round;
+    }
+
     changed = true;
-    return { ...round, dates: fresh };
+    return { ...round, dates: merged };
   });
 
   return changed ? next : null;
+}
+
+/**
+ * Returns the sorted union of two YYYY-MM-DD string arrays. Both inputs
+ * are assumed to be already sorted ascending, but we don't rely on it —
+ * we just dedupe through a Set and re-sort.
+ */
+function unionSorted(a: string[], b: string[]): string[] {
+  const set = new Set<string>(a);
+  for (const v of b) set.add(v);
+  return Array.from(set).sort();
 }
 
 function groupFixtureDatesByRound(
@@ -92,7 +115,13 @@ function toMexicoCityDateString(isoDate: string): string | null {
  *      This handles postponed matches that push a round's end date far
  *      into the future: if the next round is already underway we skip
  *      the "artificially extended" round.
- *   3. If every round's end date is in the past, return the last round.
+ *   3. If every dated round has ended, return the first round we know
+ *      exists but have no dates for yet (e.g. World Cup Round of 16
+ *      after Round of 32 finished but before the bracket is published).
+ *      Defaulting to that "next upcoming" round is more useful than
+ *      jumping all the way to the last round (Final) just because the
+ *      intermediate rounds happen to be missing dates.
+ *   4. As a last resort, return the last round.
  *
  * All date comparisons use the Mexico City timezone.
  */
@@ -103,9 +132,15 @@ export function getActiveRound(
 
   const today = getTodayInMexicoCity();
 
+  // Index of the last dated round we examined. Anything after this with
+  // empty dates is a candidate for the "next upcoming" fallback below.
+  let lastDatedIndex = -1;
+
   for (let i = 0; i < rounds.length; i++) {
     const round = rounds[i];
     if (round.dates.length === 0) continue;
+
+    lastDatedIndex = i;
 
     // End date of this round (match days are in YYYY-MM-DD format)
     const roundEndDate = round.dates[round.dates.length - 1];
@@ -130,7 +165,14 @@ export function getActiveRound(
     }
   }
 
-  // All rounds have ended — return the last round
+  // Every dated round has ended. Prefer the first *undated* round that
+  // comes after the last dated one — that's the next round on the
+  // bracket whose match dates haven't been published yet. Only fall
+  // through to "the very last round" when there's no such candidate.
+  for (let i = lastDatedIndex + 1; i < rounds.length; i++) {
+    if (rounds[i].dates.length === 0) return rounds[i];
+  }
+
   return rounds[rounds.length - 1];
 }
 

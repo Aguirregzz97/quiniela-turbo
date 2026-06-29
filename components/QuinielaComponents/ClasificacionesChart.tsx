@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFixtures } from "@/hooks/api-football/useFixtures";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+import { getTournamentType } from "@/lib/tournament";
 import { Bar, BarChart, XAxis, YAxis, Cell, LabelList } from "recharts";
 import {
   ChartContainer,
@@ -179,21 +179,28 @@ export default function ClasificacionesChart({
   exactPoints = 2,
   correctResultPoints = 1,
 }: ClasificacionesChartProps) {
-  const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
+  // Fetch the whole tournament (no date window) so the chart also
+  // reflects knockout-round points even before those rounds get real
+  // dates in `quiniela.roundsSelected`.
+  const tournamentType = useMemo(() => {
+    const rounds = quiniela.roundsSelected || [];
+    if (rounds.length === 0) return null;
+    return getTournamentType(rounds[0].roundName);
+  }, [quiniela.roundsSelected]);
 
-  const { data: fixturesData, isLoading: fixturesLoading } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
-  );
+  const { tournamentFixtures, isLoading: fixturesLoading } =
+    useTournamentFixtures(
+      quiniela.externalLeagueId,
+      quiniela.externalSeason,
+      tournamentType,
+    );
 
   const { data: allPredictions = [], isLoading: predictionsLoading } =
     useAllPredictions(quiniela.id);
 
   // Calculate user statistics
   const { chartData, chartConfig } = useMemo(() => {
-    if (!fixturesData?.response || !allPredictions.length) {
+    if (!tournamentFixtures.length || !allPredictions.length) {
       return { chartData: [], chartConfig: {} as ChartConfig };
     }
 
@@ -217,7 +224,7 @@ export default function ClasificacionesChart({
       const user = userPredictions[0];
       let totalPoints = 0;
 
-      fixturesData.response.forEach((fixture: FixtureData) => {
+      tournamentFixtures.forEach((fixture: FixtureData) => {
         const matchFinished =
           fixture.fixture.status.short === "FT" ||
           fixture.fixture.status.short === "AET" ||
@@ -294,7 +301,7 @@ export default function ClasificacionesChart({
 
     return { chartData: sortedUsers, chartConfig: config };
   }, [
-    fixturesData?.response,
+    tournamentFixtures,
     allPredictions,
     exactPoints,
     correctResultPoints,

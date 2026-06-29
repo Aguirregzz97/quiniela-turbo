@@ -11,9 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DollarSign, Crown, Trophy, Coins, AlertCircle } from "lucide-react";
-import { useFixtures } from "@/hooks/api-football/useFixtures";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+import { getTournamentType } from "@/lib/tournament";
 import type { Quiniela } from "@/db/schema";
 import {
   computePrizeBreakdown,
@@ -291,17 +291,22 @@ export default function PrizeBreakdownDrawer({
   onOpenChange,
   hideDefaultTrigger = false,
 }: PrizeBreakdownDrawerProps) {
-  const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
+  // Fetch the whole tournament (no date window) so prize calculations
+  // include knockout rounds whose dates haven't been published yet.
+  const tournamentType = useMemo(() => {
+    const rounds = quiniela.roundsSelected || [];
+    if (rounds.length === 0) return null;
+    return getTournamentType(rounds[0].roundName);
+  }, [quiniela.roundsSelected]);
 
   const {
-    data: fixturesData,
+    tournamentFixtures,
     isLoading: fixturesLoading,
     error: fixturesError,
-  } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
+  } = useTournamentFixtures(
+    quiniela.externalLeagueId,
+    quiniela.externalSeason,
+    tournamentType,
   );
 
   const {
@@ -317,9 +322,9 @@ export default function PrizeBreakdownDrawer({
   }, [quiniela.roundsSelected]);
 
   const breakdown = useMemo(() => {
-    if (!fixturesData?.response) return null;
+    if (!tournamentFixtures.length) return null;
     return computePrizeBreakdown({
-      fixtures: fixturesData.response,
+      fixtures: tournamentFixtures,
       predictions: allPredictions,
       selectedRoundNames,
       participantCount: participants.length,
@@ -337,7 +342,7 @@ export default function PrizeBreakdownDrawer({
       })),
     });
   }, [
-    fixturesData?.response,
+    tournamentFixtures,
     allPredictions,
     selectedRoundNames,
     participants,

@@ -2,9 +2,9 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useFixtures } from "@/hooks/api-football/useFixtures";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+import { getTournamentType } from "@/lib/tournament";
 import { computeRoundDateUpdates } from "@/lib/rounds";
 import { syncQuinielaRoundDates } from "@/app/quinielas/sync-round-dates-action";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -189,17 +189,24 @@ export default function ResultadosPorPartido({
   exactPoints = 2,
   correctResultPoints = 1,
 }: ResultadosPorPartidoProps) {
-  const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
+  // Fetch the whole tournament (no date window) so rounds whose dates
+  // haven't been published yet (e.g. World Cup Round of 32 before the
+  // bracket is set) still show up here. Matches what
+  // `RegistrarPronosticos` does.
+  const tournamentType = useMemo(() => {
+    const rounds = quiniela.roundsSelected || [];
+    if (rounds.length === 0) return null;
+    return getTournamentType(rounds[0].roundName);
+  }, [quiniela.roundsSelected]);
 
   const {
-    data: fixturesData,
+    tournamentFixtures,
     isLoading: fixturesLoading,
     error: fixturesError,
-  } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
+  } = useTournamentFixtures(
+    quiniela.externalLeagueId,
+    quiniela.externalSeason,
+    tournamentType,
   );
 
   const {
@@ -225,7 +232,7 @@ export default function ResultadosPorPartido({
   const syncAttemptedKeyRef = useRef<string | null>(null);
   const [isSyncingRoundDates, setIsSyncingRoundDates] = useState(false);
   useEffect(() => {
-    const fixtures = fixturesData?.response;
+    const fixtures = tournamentFixtures;
     if (!fixtures || !fixtures.length) return;
     if (!availableRounds.length) return;
 
@@ -256,7 +263,7 @@ export default function ResultadosPorPartido({
       }
     });
   }, [
-    fixturesData?.response,
+    tournamentFixtures,
     availableRounds,
     quiniela.id,
     router,
@@ -284,8 +291,8 @@ export default function ResultadosPorPartido({
 
   // Filter fixtures by selected round
   const roundFixtures = useMemo(() => {
-    return filterFixturesByRound(fixturesData?.response, selectedRound);
-  }, [fixturesData?.response, selectedRound]);
+    return filterFixturesByRound(tournamentFixtures, selectedRound);
+  }, [tournamentFixtures, selectedRound]);
 
   // Filter predictions by selected round and group by fixture
   const fixturePredictions = useMemo(() => {

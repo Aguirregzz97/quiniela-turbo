@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFixtures } from "@/hooks/api-football/useFixtures";
+import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
-import { getFixturesParamsFromQuiniela } from "@/utils/quinielaHelpers";
+import { getTournamentType } from "@/lib/tournament";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { Trophy, Users, Crown, Medal, Award, DollarSign } from "lucide-react";
@@ -135,17 +135,25 @@ export default function QuinielaLeaderboard({
     if (!prize) return null;
     return (totalPrizePool * prize.percentage) / 100;
   };
-  const fixturesParams = getFixturesParamsFromQuiniela(quiniela);
+  // Fetching the whole tournament (no date window) and filtering client-side
+  // by tournament type. The previous date-window approach silently dropped
+  // fixtures from rounds whose dates hadn't been published yet (e.g. World
+  // Cup Round of 32/16 before the bracket is set), making knockout points
+  // invisible until quiniela.roundsSelected got synced with real dates.
+  const tournamentType = useMemo(() => {
+    const rounds = quiniela.roundsSelected || [];
+    if (rounds.length === 0) return null;
+    return getTournamentType(rounds[0].roundName);
+  }, [quiniela.roundsSelected]);
 
   const {
-    data: fixturesData,
+    tournamentFixtures,
     isLoading: fixturesLoading,
     error: fixturesError,
-  } = useFixtures(
-    fixturesParams.leagueId,
-    fixturesParams.season,
-    fixturesParams.fromDate,
-    fixturesParams.toDate,
+  } = useTournamentFixtures(
+    quiniela.externalLeagueId,
+    quiniela.externalSeason,
+    tournamentType,
   );
 
   const {
@@ -156,15 +164,15 @@ export default function QuinielaLeaderboard({
 
   // Check if there are any live matches
   const hasLiveMatches = useMemo(() => {
-    if (!fixturesData?.response) return false;
-    return fixturesData.response.some((fixture: FixtureData) =>
+    if (!tournamentFixtures.length) return false;
+    return tournamentFixtures.some((fixture: FixtureData) =>
       isMatchLive(fixture.fixture.status.short),
     );
-  }, [fixturesData?.response]);
+  }, [tournamentFixtures]);
 
   // Calculate user statistics across all rounds
   const userStats = useMemo(() => {
-    if (!fixturesData?.response || !allPredictions.length) return [];
+    if (!tournamentFixtures.length || !allPredictions.length) return [];
 
     const userStatsMap = new Map<string, UserStats>();
 
@@ -186,7 +194,7 @@ export default function QuinielaLeaderboard({
       let miss = 0;
 
       // Check each finished fixture
-      fixturesData.response.forEach((fixture: FixtureData) => {
+      tournamentFixtures.forEach((fixture: FixtureData) => {
         const matchFinished =
           isMatchFinished(fixture.fixture.status.short);
 
@@ -260,7 +268,7 @@ export default function QuinielaLeaderboard({
 
     return sortedUsers;
   }, [
-    fixturesData?.response,
+    tournamentFixtures,
     allPredictions,
     exactPoints,
     correctResultPoints,

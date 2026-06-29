@@ -85,17 +85,26 @@ export async function syncQuinielaRoundDates(
       };
     }
 
-    // Merge: keep stored entry untouched unless its dates are empty AND the
-    // incoming entry has dates. Mirrors `computeRoundDateUpdates`'s policy
-    // so two clients racing to sync produce the same result.
+    // Merge by taking the sorted union of stored + incoming dates. Mirrors
+    // `computeRoundDateUpdates`'s policy in `lib/rounds.ts` so two clients
+    // racing to sync produce the same result, and a partially-populated
+    // round (e.g. Round of 32 stored as a single day at quiniela creation)
+    // gets topped up once api-football publishes the rest of its matches.
     let changed = false;
     const merged: RoundSelected[] = stored.map((round, i) => {
-      if (round.dates.length > 0) return round;
       const incoming = updatedRounds[i];
       if (!incoming.dates.length) return round;
 
+      const union = new Set<string>(round.dates);
+      for (const d of incoming.dates) union.add(d);
+
+      if (union.size === round.dates.length) return round;
+
       changed = true;
-      return { roundName: round.roundName, dates: [...incoming.dates] };
+      return {
+        roundName: round.roundName,
+        dates: Array.from(union).sort(),
+      };
     });
 
     if (!changed) {
@@ -107,7 +116,13 @@ export async function syncQuinielaRoundDates(
       .set({ roundsSelected: merged, updatedAt: new Date() })
       .where(eq(quinielas.id, quinielaId));
 
+    // Revalidate every page that reads `roundsSelected` server-side so a
+    // `router.refresh()` from any of them sees the new dates, not just
+    // whichever page triggered the sync.
     revalidatePath(`/quinielas/${quinielaId}`);
+    revalidatePath(`/quinielas/${quinielaId}/resultados-por-usuario`);
+    revalidatePath(`/quinielas/${quinielaId}/resultados-por-partido`);
+    revalidatePath(`/quinielas/${quinielaId}/registrar-pronosticos`);
 
     return { success: true, updated: true };
   } catch (error) {
