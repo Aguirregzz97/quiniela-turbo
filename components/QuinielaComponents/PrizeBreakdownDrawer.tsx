@@ -19,6 +19,8 @@ import {
   ArrowLeftRight,
   ArrowRight,
   Info,
+  Users,
+  CalendarDays,
 } from "lucide-react";
 import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
@@ -95,11 +97,11 @@ function UserPill({
 function PositionBadge({ position }: { position: number }) {
   const styles =
     position === 1
-      ? "bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-900"
+      ? "bg-gradient-to-br from-gold to-gold/85 text-gold-foreground"
       : position === 2
-        ? "bg-gradient-to-br from-slate-300 to-slate-400 text-slate-800"
+        ? "bg-gradient-to-br from-silver to-silver/85 text-silver-foreground"
         : position === 3
-          ? "bg-gradient-to-br from-amber-500 to-amber-700 text-amber-100"
+          ? "bg-gradient-to-br from-bronze to-bronze/85 text-bronze-foreground"
           : "bg-muted text-muted-foreground";
   return (
     <div
@@ -112,11 +114,11 @@ function PositionBadge({ position }: { position: number }) {
 
 function StatusPill({ finalized }: { finalized: boolean }) {
   return finalized ? (
-    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+    <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-success">
       Final
     </span>
   ) : (
-    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+    <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-warning">
       Proyección
     </span>
   );
@@ -130,7 +132,7 @@ function AwardRow({ award }: { award: UserPrizeAward }) {
         <UserPill user={award.user} size="sm" />
       </div>
       <div className="flex flex-shrink-0 flex-col items-end leading-tight">
-        <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+        <span className="text-sm font-bold tabular-nums text-success">
           {formatMoney(award.amount)}
         </span>
         <span className="text-[10px] text-muted-foreground">
@@ -247,9 +249,9 @@ function TournamentCard({
 function TotalsCard({ totals }: { totals: UserTotalAward[] }) {
   if (!totals.length) return null;
   return (
-    <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent p-3 sm:p-4">
+    <div className="rounded-xl border border-success/20 bg-gradient-to-br from-success/5 to-transparent p-3 sm:p-4">
       <div className="mb-3 flex items-center gap-2">
-        <Coins className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <Coins className="h-4 w-4 text-success" />
         <h4 className="text-sm font-semibold">Totales por participante</h4>
       </div>
       <div className="space-y-1.5">
@@ -268,7 +270,7 @@ function TotalsCard({ totals }: { totals: UserTotalAward[] }) {
             >
               <UserPill user={t.user} size="sm" />
               <div className="flex flex-shrink-0 flex-col items-end leading-tight">
-                <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                <span className="text-sm font-bold tabular-nums text-success">
                   {formatMoney(t.total)}
                 </span>
                 {lines.length > 0 && (
@@ -398,9 +400,9 @@ export default function PrizeBreakdownDrawer({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 gap-2 border-emerald-500/30 bg-emerald-500/5 text-xs hover:bg-emerald-500/10"
+            className="h-8 gap-2 border-success/30 bg-success/5 text-xs hover:bg-success/10"
           >
-            <DollarSign className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <DollarSign className="h-3.5 w-3.5 text-success" />
             <span className="hidden sm:inline">Premios</span>
           </Button>
         </DrawerTrigger>
@@ -408,8 +410,8 @@ export default function PrizeBreakdownDrawer({
       <DrawerContent className="data-[vaul-drawer-direction=right]:w-[92%] data-[vaul-drawer-direction=right]:sm:max-w-md">
         <DrawerHeader className="border-b border-border/50 px-4">
           <DrawerTitle className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/25">
-              <DollarSign className="h-4 w-4 text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-success to-success/85 shadow-md shadow-success/25">
+              <DollarSign className="h-4 w-4 text-success-foreground" />
             </div>
             <span className="text-lg">Premios</span>
           </DrawerTitle>
@@ -538,23 +540,23 @@ function SettlementsCard({
   }
 
   return (
-    <div className="rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/5 to-transparent p-3 sm:p-4">
+    <div className="rounded-xl border border-info/20 bg-gradient-to-br from-info/5 to-transparent p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <ArrowLeftRight className="h-4 w-4 text-indigo-500" />
+          <ArrowLeftRight className="h-4 w-4 text-info" />
           <h4 className="text-sm font-semibold">¿Quién le paga a quién?</h4>
         </div>
         {totalRoundsWithPrize > 0 && (
-          <span className="flex-shrink-0 rounded-full bg-indigo-500/15 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">
+          <span className="flex-shrink-0 rounded-full bg-info/15 px-2 py-0.5 text-[10px] font-semibold text-info">
             {finalizedRounds}/{totalRoundsWithPrize} jornadas
           </span>
         )}
       </div>
 
       {scopeLines.length > 0 && (
-        <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2">
-          <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-          <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-200">
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-2">
+          <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-warning" />
+          <p className="text-[11px] leading-relaxed text-warning">
             Solo se cuentan resultados ya cerrados:{" "}
             <span className="font-semibold">{scopeLines.join("; ")}</span>. Los
             montos crecerán conforme terminen más jornadas.
@@ -574,7 +576,7 @@ function SettlementsCard({
                 <ArrowRight className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                 <UserPill user={s.to} size="sm" />
               </div>
-              <span className="flex-shrink-0 text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              <span className="flex-shrink-0 text-sm font-bold tabular-nums text-success">
                 {formatMoney(s.amount)}
               </span>
             </div>
@@ -630,47 +632,114 @@ function SummaryBanner({
   const totalAcrossRounds = roundPool * roundsCount;
   const grandTotal = tournamentPool + totalAcrossRounds;
 
+  // Per-player buy-in: what a single participant pays over the whole
+  // quiniela (tournament entry + one entry per jornada).
+  const perPlayerRounds = moneyPerRoundToEnter * roundsCount;
+  const perPlayerTotal = moneyToEnter + perPlayerRounds;
+
   return (
     <div className="rounded-xl border border-border/50 bg-muted/20 p-3 sm:p-4">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        Resumen de bolsa
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        {tournamentPool > 0 && (
-          <div>
-            <p className="text-[10px] text-muted-foreground">Torneo</p>
-            <p className="text-sm font-bold tabular-nums">
-              {formatMoney(tournamentPool)}
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              {formatMoney(moneyToEnter)} × {participantCount}
-            </p>
-          </div>
-        )}
-        {roundPool > 0 && (
-          <div>
-            <p className="text-[10px] text-muted-foreground">
-              Por jornada × {roundsCount}
-            </p>
-            <p className="text-sm font-bold tabular-nums">
-              {formatMoney(totalAcrossRounds)}
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              {formatMoney(roundPool)} cada una
-            </p>
-          </div>
-        )}
-      </div>
-      {grandTotal > 0 && (
-        <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            Total a repartir
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Resumen de bolsa
+        </p>
+        <div className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            <Users className="h-3 w-3" />
+            {participantCount}{" "}
+            {participantCount === 1 ? "jugador" : "jugadores"}
           </span>
-          <span className="text-base font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-            {formatMoney(grandTotal)}
-          </span>
+          {roundsCount > 0 && moneyPerRoundToEnter > 0 && (
+            <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              <CalendarDays className="h-3 w-3" />
+              {roundsCount} {roundsCount === 1 ? "jornada" : "jornadas"}
+            </span>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* What each player pays */}
+      <div className="mb-3 rounded-lg border border-border/40 bg-card/60 p-2.5">
+        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Cada jugador aporta
+        </p>
+        <div className="space-y-1">
+          {moneyToEnter > 0 && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                Entrada al torneo
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {formatMoney(moneyToEnter)}
+              </span>
+            </div>
+          )}
+          {moneyPerRoundToEnter > 0 && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                Por jornada{" "}
+                <span className="text-[10px]">
+                  ({formatMoney(moneyPerRoundToEnter)} × {roundsCount})
+                </span>
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {formatMoney(perPlayerRounds)}
+              </span>
+            </div>
+          )}
+          {moneyToEnter > 0 && moneyPerRoundToEnter > 0 && (
+            <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-1">
+              <span className="text-xs font-medium">Total por jugador</span>
+              <span className="text-sm font-bold tabular-nums">
+                {formatMoney(perPlayerTotal)}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Total pot broken down by source */}
+      <div className="rounded-lg border border-border/40 bg-card/60 p-2.5">
+        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Bolsa total
+        </p>
+        <div className="space-y-1">
+          {tournamentPool > 0 && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                Torneo{" "}
+                <span className="text-[10px]">
+                  ({formatMoney(moneyToEnter)} × {participantCount} jugadores)
+                </span>
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {formatMoney(tournamentPool)}
+              </span>
+            </div>
+          )}
+          {roundPool > 0 && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                Jornadas{" "}
+                <span className="text-[10px]">
+                  ({formatMoney(roundPool)} × {roundsCount} jornadas)
+                </span>
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {formatMoney(totalAcrossRounds)}
+              </span>
+            </div>
+          )}
+          {grandTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-1">
+              <span className="text-xs font-medium">Total a repartir</span>
+              <span className="text-base font-bold tabular-nums text-success">
+                {formatMoney(grandTotal)}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

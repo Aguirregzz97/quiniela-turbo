@@ -158,27 +158,27 @@ export default function PrizeDistributionForm({
       </div>
 
       {totalPercentage !== 100 && (
-        <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-950/20">
-          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-          <span className="text-sm text-yellow-800 dark:text-yellow-200">
+        <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <span className="text-sm text-warning">
             El total debe ser 100%. Actual: {totalPercentage}%
           </span>
         </div>
       )}
 
       {hasZeroPercentages && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/20">
-          <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <span className="text-sm text-red-800 dark:text-red-200">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/15 p-3">
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+          <span className="text-sm text-destructive">
             Todas las posiciones deben tener un porcentaje mayor a 0%
           </span>
         </div>
       )}
 
       {hasInvalidPercentages && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/20">
-          <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <span className="text-sm text-red-800 dark:text-red-200">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/15 p-3">
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+          <span className="text-sm text-destructive">
             Los porcentajes deben estar entre 1% y 100%
           </span>
         </div>

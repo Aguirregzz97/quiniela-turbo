@@ -49,11 +49,11 @@ export function Last5Games({
           key={i}
           className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
             result === "win"
-              ? "bg-emerald-500 text-white"
+              ? "bg-success text-success-foreground"
               : result === "loss"
-                ? "bg-red-500 text-white"
+                ? "bg-destructive text-destructive-foreground"
                 : result === "draw"
-                  ? "bg-amber-500 text-white"
+                  ? "bg-warning text-warning-foreground"
                   : "bg-muted/50 text-muted-foreground"
           }`}
         >

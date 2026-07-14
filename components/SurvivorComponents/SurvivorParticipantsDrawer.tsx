@@ -134,7 +134,7 @@ export default function SurvivorParticipantsDrawer({
             </div>
             {/* Stats */}
             <div className="mt-3 flex gap-4 text-sm">
-              <span className="flex items-center gap-1.5 text-green-600">
+              <span className="flex items-center gap-1.5 text-success">
                 <Heart className="h-4 w-4" />
                 {activeCount} activos
               </span>
@@ -186,7 +186,7 @@ export default function SurvivorParticipantsDrawer({
                             className={`flex items-center gap-1 text-xs ${
                               participant.isEliminated
                                 ? "text-destructive"
-                                : "text-green-600"
+                                : "text-success"
                             }`}
                           >
                             {participant.isEliminated ? (
@@ -206,7 +206,7 @@ export default function SurvivorParticipantsDrawer({
                     </div>
 
                     {isParticipantOwner && (
-                      <Crown className="absolute right-3 top-3 h-4 w-4 text-yellow-500" />
+                      <Crown className="absolute right-3 top-3 h-4 w-4 text-gold" />
                     )}
 
                     {isOwner && !isParticipantOwner && (

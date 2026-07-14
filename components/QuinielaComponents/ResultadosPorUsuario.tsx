@@ -130,8 +130,8 @@ function evaluatePrediction(
   if (predictedHome === actualHome && predictedAway === actualAway) {
     return {
       type: "exact",
-      bgColor: "bg-green-500",
-      textColor: "text-white",
+      bgColor: "bg-success",
+      textColor: "text-success-foreground",
       points: exactPoints,
     };
   }
@@ -153,8 +153,8 @@ function evaluatePrediction(
   if (predictedWinner === actualWinner) {
     return {
       type: "correct-result",
-      bgColor: "bg-green-300",
-      textColor: "text-green-900",
+      bgColor: "bg-success-subtle",
+      textColor: "text-success-subtle-foreground",
       points: correctResultPoints,
     };
   }
@@ -162,8 +162,8 @@ function evaluatePrediction(
   // Miss
   return {
     type: "miss",
-    bgColor: "bg-red-300",
-    textColor: "text-red-900",
+    bgColor: "bg-destructive/20",
+    textColor: "text-destructive",
     points: 0,
   };
 }
@@ -557,9 +557,9 @@ export default function ResultadosPorUsuario({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {roundPrizePool > 0 && (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1">
-                  <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-1 rounded-lg bg-success/10 px-2 py-1">
+                  <DollarSign className="h-3 w-3 text-success" />
+                  <span className="text-xs font-medium text-success">
                     ${roundPrizePool.toLocaleString("es-MX")}
                   </span>
                 </div>
@@ -596,22 +596,22 @@ export default function ResultadosPorUsuario({
             </span>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500">
-                  <Trophy className="h-3.5 w-3.5 text-white" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success">
+                  <Trophy className="h-3.5 w-3.5 text-success-foreground" />
                 </div>
                 <span className="text-xs">Exacto ({exactPoints} pts)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-300">
-                  <Check className="h-3.5 w-3.5 text-green-900" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success-subtle">
+                  <Check className="h-3.5 w-3.5 text-success-subtle-foreground" />
                 </div>
                 <span className="text-xs">
                   Resultado ({correctResultPoints} pt)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-300">
-                  <X className="h-3.5 w-3.5 text-red-900" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/20">
+                  <X className="h-3.5 w-3.5 text-destructive" />
                 </div>
                 <span className="text-xs">Incorrecto</span>
               </div>
@@ -665,7 +665,7 @@ export default function ResultadosPorUsuario({
                 <Card
                   className={`transition-all duration-200 ${
                     isWinner
-                      ? "border-amber-500/50 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 ring-1 ring-amber-500/30"
+                      ? "border-warning/50 bg-gradient-to-r from-warning/10 via-warning/5 to-warning/10 ring-1 ring-warning/30"
                       : isOpen
                         ? "border-border/50 ring-1 ring-primary/20"
                         : "border-border/50 hover:border-border"
@@ -684,11 +684,11 @@ export default function ResultadosPorUsuario({
                             <div
                               className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                                 position === 1
-                                  ? "bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm shadow-yellow-500/30"
+                                  ? "bg-gradient-to-br from-gold to-gold/85 text-gold-foreground shadow-sm shadow-gold/30"
                                   : position === 2
-                                    ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 shadow-sm shadow-gray-400/30"
+                                    ? "bg-gradient-to-br from-silver to-silver/85 text-silver-foreground shadow-sm shadow-silver/30"
                                     : position === 3
-                                      ? "bg-gradient-to-br from-amber-500 to-amber-600 text-amber-100 shadow-sm shadow-amber-500/30"
+                                      ? "bg-gradient-to-br from-bronze to-bronze/85 text-bronze-foreground shadow-sm shadow-bronze/30"
                                       : "bg-muted text-muted-foreground"
                               }`}
                             >
@@ -698,11 +698,11 @@ export default function ResultadosPorUsuario({
                             <Avatar
                               className={`h-10 w-10 flex-shrink-0 ring-2 ${
                                 position === 1
-                                  ? "ring-yellow-400/50"
+                                  ? "ring-gold/50"
                                   : position === 2
-                                    ? "ring-gray-400/50"
+                                    ? "ring-silver/50"
                                     : position === 3
-                                      ? "ring-amber-500/50"
+                                      ? "ring-bronze/50"
                                       : "ring-border/50"
                               }`}
                             >
@@ -725,7 +725,7 @@ export default function ResultadosPorUsuario({
                                 {isWinner && (
                                   <Badge
                                     variant="secondary"
-                                    className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] px-1.5 py-0.5"
+                                    className="bg-gradient-to-r from-warning/20 to-warning/20 text-warning border border-warning/30 text-[10px] px-1.5 py-0.5"
                                   >
                                     <Crown className="mr-0.5 h-2.5 w-2.5" />
                                     Ganador
@@ -734,7 +734,7 @@ export default function ResultadosPorUsuario({
                               </div>
                               <div className="mt-1 flex items-center gap-1.5">
                                 <span
-                                  className={`text-lg font-bold tabular-nums ${isWinner ? "text-amber-600 dark:text-amber-400" : isTopThree ? "text-primary" : "text-foreground"}`}
+                                  className={`text-lg font-bold tabular-nums ${isWinner ? "text-warning" : isTopThree ? "text-primary" : "text-foreground"}`}
                                 >
                                   {stats.totalPoints}
                                 </span>
@@ -749,7 +749,7 @@ export default function ResultadosPorUsuario({
                                 {isRoundComplete && prize !== undefined && prize > 0 && (
                                   <Badge
                                     variant="secondary"
-                                    className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] px-1.5 py-0.5"
+                                    className="bg-success/10 text-success text-[10px] px-1.5 py-0.5"
                                   >
                                     <DollarSign className="mr-0.5 h-2.5 w-2.5" />
                                     {prize.toLocaleString("es-MX", {
@@ -765,25 +765,25 @@ export default function ResultadosPorUsuario({
                           {/* Stats Summary - Desktop */}
                           <div className="hidden items-center gap-2 sm:flex">
                             {stats.exact > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
-                                <Trophy className="h-3.5 w-3.5 text-green-600" />
-                                <span className="text-xs font-semibold text-green-600">
+                              <div className="flex items-center gap-1 rounded-md bg-success/10 px-2 py-1">
+                                <Trophy className="h-3.5 w-3.5 text-success" />
+                                <span className="text-xs font-semibold text-success">
                                   {stats.exact}
                                 </span>
                               </div>
                             )}
                             {stats.correctResult > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
-                                <Check className="h-3.5 w-3.5 text-green-700" />
-                                <span className="text-xs font-semibold text-green-700">
+                              <div className="flex items-center gap-1 rounded-md bg-success-subtle/20 px-2 py-1">
+                                <Check className="h-3.5 w-3.5 text-success" />
+                                <span className="text-xs font-semibold text-success">
                                   {stats.correctResult}
                                 </span>
                               </div>
                             )}
                             {stats.miss > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
-                                <X className="h-3.5 w-3.5 text-red-600" />
-                                <span className="text-xs font-semibold text-red-600">
+                              <div className="flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1">
+                                <X className="h-3.5 w-3.5 text-destructive" />
+                                <span className="text-xs font-semibold text-destructive">
                                   {stats.miss}
                                 </span>
                               </div>
@@ -818,25 +818,25 @@ export default function ResultadosPorUsuario({
                         {/* Mobile Stats Summary */}
                         <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3 sm:hidden">
                           {stats.exact > 0 && (
-                            <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
-                              <Trophy className="h-3.5 w-3.5 text-green-600" />
-                              <span className="text-xs font-semibold text-green-600">
+                            <div className="flex items-center gap-1 rounded-md bg-success/10 px-2 py-1">
+                              <Trophy className="h-3.5 w-3.5 text-success" />
+                              <span className="text-xs font-semibold text-success">
                                 {stats.exact}
                               </span>
                             </div>
                           )}
                           {stats.correctResult > 0 && (
-                            <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
-                              <Check className="h-3.5 w-3.5 text-green-700" />
-                              <span className="text-xs font-semibold text-green-700">
+                            <div className="flex items-center gap-1 rounded-md bg-success-subtle/20 px-2 py-1">
+                              <Check className="h-3.5 w-3.5 text-success" />
+                              <span className="text-xs font-semibold text-success">
                                 {stats.correctResult}
                               </span>
                             </div>
                           )}
                           {stats.miss > 0 && (
-                            <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
-                              <X className="h-3.5 w-3.5 text-red-600" />
-                              <span className="text-xs font-semibold text-red-600">
+                            <div className="flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1">
+                              <X className="h-3.5 w-3.5 text-destructive" />
+                              <span className="text-xs font-semibold text-destructive">
                                 {stats.miss}
                               </span>
                             </div>
@@ -976,11 +976,11 @@ export default function ResultadosPorUsuario({
                               key={fixture.fixture.id}
                               className={`overflow-hidden rounded-xl border ${
                                 evaluation.type === "exact"
-                                  ? "border-green-500/30 bg-gradient-to-b from-green-500/20 to-green-500/10"
+                                  ? "border-success/30 bg-gradient-to-b from-success/20 to-success/10"
                                   : evaluation.type === "correct-result"
-                                    ? "border-green-400/30 bg-gradient-to-b from-green-300/20 to-green-300/10"
+                                    ? "border-success-subtle/40 bg-gradient-to-b from-success-subtle/20 to-success-subtle/10"
                                     : evaluation.type === "miss"
-                                      ? "border-red-400/30 bg-gradient-to-b from-red-300/20 to-red-300/10"
+                                      ? "border-destructive/30 bg-gradient-to-b from-destructive/20 to-destructive/10"
                                       : "border-border/50 bg-muted/30"
                               }`}
                             >
@@ -1026,11 +1026,11 @@ export default function ResultadosPorUsuario({
                               <div
                                 className={`px-3 py-2 text-center ${
                                   evaluation.type === "exact"
-                                    ? "bg-green-500/10"
+                                    ? "bg-success/10"
                                     : evaluation.type === "correct-result"
-                                      ? "bg-green-300/10"
+                                      ? "bg-success-subtle/10"
                                       : evaluation.type === "miss"
-                                        ? "bg-red-300/10"
+                                        ? "bg-destructive/10"
                                         : "bg-muted/30"
                                 }`}
                               >
@@ -1040,11 +1040,11 @@ export default function ResultadosPorUsuario({
                                 <p
                                   className={`text-base font-bold tabular-nums ${
                                     evaluation.type === "exact"
-                                      ? "text-green-600"
+                                      ? "text-success"
                                       : evaluation.type === "correct-result"
-                                        ? "text-green-700"
+                                        ? "text-success"
                                         : evaluation.type === "miss"
-                                          ? "text-red-600"
+                                          ? "text-destructive"
                                           : "text-muted-foreground"
                                   }`}
                                 >

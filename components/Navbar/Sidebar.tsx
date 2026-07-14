@@ -307,7 +307,7 @@ const Sidebar = () => {
                 />
               </div>
               <div
-                className={`absolute rounded-full border-2 border-background bg-green-500 ${
+                className={`absolute rounded-full border-2 border-background bg-success ${
                   isCollapsed
                     ? "-bottom-0.5 -right-0.5 h-3 w-3"
                     : "-bottom-1 -right-1 h-3.5 w-3.5"
@@ -389,7 +389,7 @@ const Sidebar = () => {
                             sizes="56px"
                           />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background bg-green-500" />
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background bg-success" />
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-foreground transition-colors group-hover:text-primary">

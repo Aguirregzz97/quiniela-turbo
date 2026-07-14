@@ -24,8 +24,8 @@ export function LiveBadge({ className, size = "md" }: LiveBadgeProps) {
 
   return (
     <div className={cn("flex items-center", className)}>
-      <Play className={cn("animate-pulse text-red-600", classes.icon)} />
-      <span className={cn("font-medium text-red-600", classes.text, classes.gap)}>
+      <Play className={cn("animate-pulse text-destructive", classes.icon)} />
+      <span className={cn("font-medium text-destructive", classes.text, classes.gap)}>
         EN VIVO
       </span>
     </div>

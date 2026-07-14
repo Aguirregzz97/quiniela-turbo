@@ -499,10 +499,10 @@ export default function EditQuinielaForm({
 
                     {/* Tournament Prize Example */}
                     {tournamentPrizeExample && (
-                      <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                      <div className="rounded-lg border border-success/30 bg-success/5 p-4">
                         <div className="mb-3 flex items-center gap-2">
-                          <Users className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                          <Users className="h-4 w-4 text-success" />
+                          <span className="text-sm font-medium text-success">
                             {participantCount > 0
                               ? `Con ${examplePlayers} participantes actuales`
                               : `Ejemplo con ${examplePlayers} jugadores`}
@@ -515,7 +515,7 @@ export default function EditQuinielaForm({
                             </span>
                             <Badge
                               variant="secondary"
-                              className="bg-green-500/10 text-green-700 dark:text-green-400"
+                              className="bg-success/10 text-success"
                             >
                               ${tournamentPrizeExample.totalPool.toLocaleString()}
                             </Badge>
@@ -610,10 +610,10 @@ export default function EditQuinielaForm({
 
                     {/* Round Prize Example */}
                     {roundPrizeExample && (
-                      <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                      <div className="rounded-lg border border-success/30 bg-success/5 p-4">
                         <div className="mb-3 flex items-center gap-2">
-                          <Users className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                          <Users className="h-4 w-4 text-success" />
+                          <span className="text-sm font-medium text-success">
                             {participantCount > 0
                               ? `Con ${examplePlayers} participantes actuales`
                               : `Ejemplo con ${examplePlayers} jugadores`}
@@ -626,7 +626,7 @@ export default function EditQuinielaForm({
                             </span>
                             <Badge
                               variant="secondary"
-                              className="bg-green-500/10 text-green-700 dark:text-green-400"
+                              className="bg-success/10 text-success"
                             >
                               ${roundPrizeExample.totalPoolPerRound.toLocaleString()}
                             </Badge>
@@ -638,7 +638,7 @@ export default function EditQuinielaForm({
                               </span>
                               <Badge
                                 variant="secondary"
-                                className="bg-green-500/10 text-green-700 dark:text-green-400"
+                                className="bg-success/10 text-success"
                               >
                                 ${roundPrizeExample.totalAllRounds.toLocaleString()}
                               </Badge>

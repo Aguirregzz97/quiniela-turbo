@@ -133,8 +133,8 @@ export default function DeleteSurvivorDialog({
               >
                 {copied ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-green-500" />
-                    <span className="text-xs text-green-500">Copiado</span>
+                    <Check className="h-3.5 w-3.5 text-success" />
+                    <span className="text-xs text-success">Copiado</span>
                   </>
                 ) : (
                   <>
@@ -156,7 +156,7 @@ export default function DeleteSurvivorDialog({
                 confirmationText && !isConfirmed
                   ? "border-destructive focus-visible:ring-destructive"
                   : isConfirmed
-                    ? "border-green-500 focus-visible:ring-green-500"
+                    ? "border-success focus-visible:ring-success"
                     : ""
               }
             />

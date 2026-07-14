@@ -34,9 +34,9 @@ export default async function Home() {
         { icon: Trophy, text: "Acumula puntos" },
         { icon: Zap, text: "Compite por jornada" },
       ],
-      gradient: "from-amber-500 to-orange-600",
-      bgGradient: "from-amber-500/10 via-orange-500/5 to-transparent",
-      iconBg: "bg-gradient-to-br from-amber-500 to-orange-600",
+      gradient: "from-warning to-warning/85",
+      bgGradient: "from-warning/10 via-warning/5 to-transparent",
+      iconBg: "bg-gradient-to-br from-warning to-warning/85",
     },
     ...(SURVIVOR_ENABLED
       ? [
@@ -52,9 +52,9 @@ export default async function Home() {
               { icon: Skull, text: "Pierde = vida menos" },
               { icon: Trophy, text: "Sobrevive hasta el final" },
             ],
-            gradient: "from-rose-500 to-red-600",
-            bgGradient: "from-rose-500/10 via-red-500/5 to-transparent",
-            iconBg: "bg-gradient-to-br from-rose-500 to-red-600",
+            gradient: "from-destructive to-destructive/85",
+            bgGradient: "from-destructive/10 via-destructive/5 to-transparent",
+            iconBg: "bg-gradient-to-br from-destructive to-destructive/85",
           },
         ]
       : []),
@@ -67,8 +67,8 @@ export default async function Home() {
       title: "Puntuaciones",
       description:
         "Consulta las clasificaciones y posiciones de todos los participantes en tus quinielas.",
-      gradient: "from-blue-500 to-cyan-600",
-      iconBg: "bg-gradient-to-br from-blue-500 to-cyan-600",
+      gradient: "from-info to-info/85",
+      iconBg: "bg-gradient-to-br from-info to-info/85",
     },
     {
       href: "/estadisticas",
@@ -76,8 +76,8 @@ export default async function Home() {
       title: "Estadísticas",
       description:
         "Analiza tu rendimiento histórico, tendencias de aciertos y comparativas con otros jugadores.",
-      gradient: "from-violet-500 to-purple-600",
-      iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
+      gradient: "from-primary to-primary/85",
+      iconBg: "bg-gradient-to-br from-primary to-primary/85",
     },
   ];
 

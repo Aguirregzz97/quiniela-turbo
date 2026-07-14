@@ -177,7 +177,7 @@ function TeamSelectionCard({
             ) : matchStarted ? (
               <Badge
                 variant="secondary"
-                className="gap-1 bg-red-500/10 text-xs text-red-600"
+                className="gap-1 bg-destructive/10 text-xs text-destructive"
               >
                 <Play className="h-3 w-3" />
                 En vivo
@@ -235,7 +235,7 @@ function TeamSelectionCard({
                 : isHomeSelected
                   ? "bg-primary/10 ring-2 ring-inset ring-primary"
                   : homeTeamIsCurrentPick
-                    ? "bg-green-500/10 ring-2 ring-inset ring-green-500"
+                    ? "bg-success/10 ring-2 ring-inset ring-success"
                     : matchStarted || isFinished
                       ? "cursor-not-allowed"
                       : "cursor-pointer hover:bg-muted/50"
@@ -257,7 +257,7 @@ function TeamSelectionCard({
             {/* Current pick indicator */}
             {homeTeamIsCurrentPick && !isHomeSelected && (
               <div className="absolute right-2 top-2">
-                <Badge className="gap-1 bg-green-500 text-[10px]">
+                <Badge className="gap-1 bg-success text-[10px] text-success-foreground">
                   <Check className="h-2.5 w-2.5" />
                   Tu pick
                 </Badge>
@@ -325,7 +325,7 @@ function TeamSelectionCard({
                 : isAwaySelected
                   ? "bg-primary/10 ring-2 ring-inset ring-primary"
                   : awayTeamIsCurrentPick
-                    ? "bg-green-500/10 ring-2 ring-inset ring-green-500"
+                    ? "bg-success/10 ring-2 ring-inset ring-success"
                     : matchStarted || isFinished
                       ? "cursor-not-allowed"
                       : "cursor-pointer hover:bg-muted/50"
@@ -347,7 +347,7 @@ function TeamSelectionCard({
             {/* Current pick indicator */}
             {awayTeamIsCurrentPick && !isAwaySelected && (
               <div className="absolute left-2 top-2">
-                <Badge className="gap-1 bg-green-500 text-[10px]">
+                <Badge className="gap-1 bg-success text-[10px] text-success-foreground">
                   <Check className="h-2.5 w-2.5" />
                   Tu pick
                 </Badge>
@@ -608,7 +608,7 @@ export default function SeleccionarEquipo({
           </p>
           {currentRoundPick && (
             <div className="mt-2 flex items-center gap-2">
-              <Badge className="gap-1.5 bg-green-500">
+              <Badge className="gap-1.5 bg-success text-success-foreground">
                 <Shield className="h-3 w-3" />
                 Pick actual: {currentRoundPick.externalPickedTeamName}
               </Badge>
@@ -642,13 +642,13 @@ export default function SeleccionarEquipo({
 
       {/* Round Locked Warning */}
       {isRoundLocked && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10">
-              <Lock className="h-4 w-4 text-red-600" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10">
+              <Lock className="h-4 w-4 text-destructive" />
             </div>
             <div>
-              <p className="text-sm font-medium text-red-600 dark:text-red-500">
+              <p className="text-sm font-medium text-destructive">
                 Jornada bloqueada
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">

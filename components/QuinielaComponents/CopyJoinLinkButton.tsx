@@ -44,7 +44,7 @@ export default function CopyJoinLinkButton({
     >
       {copied ? (
         <>
-          <Check className="mr-2 h-4 w-4 text-green-600" />
+          <Check className="mr-2 h-4 w-4 text-success" />
           Copiado
         </>
       ) : (

@@ -155,7 +155,7 @@ export default function QuinielaParticipantsDrawer({
                     </div>
 
                     {isParticipantOwner && (
-                      <Crown className="absolute right-3 top-3 h-4 w-4 text-yellow-500" />
+                      <Crown className="absolute right-3 top-3 h-4 w-4 text-gold" />
                     )}
 
                     {isOwner && !isParticipantOwner && (

@@ -263,19 +263,19 @@ export default function OddsDrawer({
                 </p>
               </div>
             ) : isRateLimit ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/5 py-6 text-center">
-                <Hourglass className="mb-3 h-8 w-8 text-amber-600" />
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-500">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-warning/30 bg-warning/5 py-6 text-center">
+                <Hourglass className="mb-3 h-8 w-8 text-warning" />
+                <p className="text-sm font-medium text-warning">
                   Límite de solicitudes alcanzado
                 </p>
-                <p className="mt-1 max-w-xs text-xs text-amber-700/70 dark:text-amber-500/70">
+                <p className="mt-1 max-w-xs text-xs text-warning/70">
                   Estamos consultando muchas probabilidades a la vez. Inténtalo
                   de nuevo en un momento.
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-4 h-8 border-amber-500/40 bg-amber-500/10 text-xs hover:bg-amber-500/20"
+                  className="mt-4 h-8 border-warning/40 bg-warning/10 text-xs hover:bg-warning/20"
                   onClick={() => refetch()}
                 >
                   Reintentar

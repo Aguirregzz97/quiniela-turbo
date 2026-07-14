@@ -100,8 +100,8 @@ export default function SurvivorDetailsDrawer({
               <div className="space-y-2">
                 <h3 className="font-semibold text-foreground">Vidas</h3>
                 <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
-                    <Heart className="h-5 w-5 text-red-500" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                    <Heart className="h-5 w-5 text-destructive" />
                   </div>
                   <div>
                     <p className="font-medium">{survivorData.lives} vida(s)</p>
@@ -135,12 +135,12 @@ export default function SurvivorDetailsDrawer({
                   {/* Total Prize */}
                   <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-                        <DollarSign className="h-5 w-5 text-green-500" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                        <DollarSign className="h-5 w-5 text-success" />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Pozo Total</p>
-                        <p className="text-xl font-bold text-green-600">
+                        <p className="text-xl font-bold text-success">
                           ${totalPrize.toLocaleString()}
                         </p>
                       </div>
@@ -171,11 +171,11 @@ export default function SurvivorDetailsDrawer({
                                   <div
                                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                                       prize.position === 1
-                                        ? "bg-yellow-500/20 text-yellow-600"
+                                        ? "bg-gold/20 text-gold-foreground"
                                         : prize.position === 2
-                                          ? "bg-gray-300/30 text-gray-500"
+                                          ? "bg-silver/30 text-silver-foreground"
                                           : prize.position === 3
-                                            ? "bg-orange-500/20 text-orange-600"
+                                            ? "bg-bronze/20 text-bronze-foreground"
                                             : "bg-muted text-muted-foreground"
                                     }`}
                                   >

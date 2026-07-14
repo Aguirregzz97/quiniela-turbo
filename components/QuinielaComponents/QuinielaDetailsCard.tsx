@@ -131,8 +131,8 @@ export default function QuinielaDetailsCard({
 
                 {/* Admin */}
                 <div className="flex items-center gap-3 rounded-lg border border-border/50 p-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/10">
-                    <User className="h-5 w-5 text-blue-600" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-info/20 to-info/10">
+                    <User className="h-5 w-5 text-info" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">Admin</p>
@@ -144,8 +144,8 @@ export default function QuinielaDetailsCard({
 
                 {/* Description */}
                 <div className="flex items-start gap-3 rounded-lg border border-border/50 p-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-500/10">
-                    <FileText className="h-5 w-5 text-purple-600" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent/20 to-accent/10">
+                    <FileText className="h-5 w-5 text-accent-foreground" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">Descripción</p>
@@ -157,8 +157,8 @@ export default function QuinielaDetailsCard({
 
                 {/* Created Date */}
                 <div className="flex items-center gap-3 rounded-lg border border-border/50 p-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/10">
-                    <Calendar className="h-5 w-5 text-amber-600" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-warning/20 to-warning/10">
+                    <Calendar className="h-5 w-5 text-warning" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">

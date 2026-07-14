@@ -120,10 +120,10 @@ export default function SurvivorPuntuaciones({
     <div className="space-y-4">
       {/* Winner Banner */}
       {hasWinner && (
-        <div className="flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 p-4">
-          <Trophy className="h-6 w-6 text-amber-500" />
+        <div className="flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-gold/20 via-gold/10 to-gold/20 p-4">
+          <Trophy className="h-6 w-6 text-gold" />
           <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-amber-500/50">
+            <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-gold/50">
               <Image
                 src={activeParticipants[0]?.userImage || "/img/profile.png"}
                 alt={activeParticipants[0]?.userName || "Ganador"}
@@ -132,25 +132,25 @@ export default function SurvivorPuntuaciones({
                 sizes="32px"
               />
             </div>
-            <span className="font-semibold text-amber-600 dark:text-amber-400">
+            <span className="font-semibold text-gold">
               {activeParticipants[0]?.userName || "Sin nombre"} ganó!
             </span>
           </div>
-          <Trophy className="h-6 w-6 text-amber-500" />
+          <Trophy className="h-6 w-6 text-gold" />
         </div>
       )}
 
       {/* Quick Stats */}
       <div className="flex items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-1.5">
-          <Heart className="h-4 w-4 fill-green-500 text-green-500" />
-          <span className="font-medium text-green-600">{aliveCount}</span>
+          <Heart className="h-4 w-4 fill-success text-success" />
+          <span className="font-medium text-success">{aliveCount}</span>
           <span className="text-muted-foreground">vivos</span>
         </div>
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-1.5">
-          <Skull className="h-4 w-4 text-red-500" />
-          <span className="font-medium text-red-600">{eliminatedCount}</span>
+          <Skull className="h-4 w-4 text-destructive" />
+          <span className="font-medium text-destructive">{eliminatedCount}</span>
           <span className="text-muted-foreground">eliminados</span>
         </div>
       </div>
@@ -173,11 +173,11 @@ export default function SurvivorPuntuaciones({
               <div
                 className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   index === 0
-                    ? "bg-amber-500 text-white"
+                    ? "bg-gold text-gold-foreground"
                     : index === 1
-                      ? "bg-slate-400 text-white"
+                      ? "bg-silver text-silver-foreground"
                       : index === 2
-                        ? "bg-amber-700 text-white"
+                        ? "bg-bronze text-bronze-foreground"
                         : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -186,7 +186,7 @@ export default function SurvivorPuntuaciones({
 
               {/* Avatar */}
               <div className="relative">
-                <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
+                <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted ring-2 ring-success/30">
                   <Image
                     src={participant.userImage || "/img/profile.png"}
                     alt={participant.userName || "Participante"}
@@ -196,8 +196,8 @@ export default function SurvivorPuntuaciones({
                   />
                 </div>
                 {isOwner && (
-                  <div className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500">
-                    <Crown className="h-2 w-2 text-white" />
+                  <div className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gold">
+                    <Crown className="h-2 w-2 text-gold-foreground" />
                   </div>
                 )}
               </div>
@@ -223,7 +223,7 @@ export default function SurvivorPuntuaciones({
                     key={i}
                     className={`h-3.5 w-3.5 ${
                       i < participant.livesRemaining
-                        ? "fill-red-500 text-red-500"
+                        ? "fill-destructive text-destructive"
                         : "text-muted-foreground/30"
                     }`}
                   />
@@ -246,13 +246,13 @@ export default function SurvivorPuntuaciones({
               }`}
             >
               {/* Skull icon instead of rank */}
-              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10">
-                <Skull className="h-3.5 w-3.5 text-red-500" />
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                <Skull className="h-3.5 w-3.5 text-destructive" />
               </div>
 
               {/* Avatar */}
               <div className="relative">
-                <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted ring-2 ring-red-500/20">
+                <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted ring-2 ring-destructive/20">
                   <Image
                     src={participant.userImage || "/img/profile.png"}
                     alt={participant.userName || "Participante"}
@@ -262,8 +262,8 @@ export default function SurvivorPuntuaciones({
                   />
                 </div>
                 {isOwner && (
-                  <div className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500/50">
-                    <Crown className="h-2 w-2 text-white" />
+                  <div className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gold/50">
+                    <Crown className="h-2 w-2 text-gold-foreground" />
                   </div>
                 )}
               </div>

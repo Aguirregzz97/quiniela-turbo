@@ -89,14 +89,14 @@ export default function PendingPicksSection({
       <h2 className="text-lg font-semibold">Seleccionar Equipo</h2>
 
       {currentUserIsEliminated ? (
-        <Card className="overflow-hidden border-red-500/30 bg-red-500/5">
+        <Card className="overflow-hidden border-destructive/30 bg-destructive/5">
           <CardContent className="flex items-center gap-4 p-4 sm:p-5">
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25">
-              <Skull className="h-5 w-5 text-white" />
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-destructive to-destructive/85 shadow-lg shadow-destructive/25">
+              <Skull className="h-5 w-5 text-destructive-foreground" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-red-600 dark:text-red-400">
+                <h3 className="text-sm font-semibold text-destructive">
                   Eliminado del Survivor
                 </h3>
                 <Badge variant="destructive" className="gap-1 text-[10px]">
@@ -115,7 +115,7 @@ export default function PendingPicksSection({
           href={`/survivor/${survivorGameId}/seleccionar-equipo`}
           className="group block"
         >
-          <Card className="overflow-hidden border-green-500/20 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
+          <Card className="overflow-hidden border-success/20 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
             <CardContent className="flex items-center gap-4 p-4 sm:p-5">
               <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-white p-1 shadow-md ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
                 <Image
@@ -137,7 +137,7 @@ export default function PendingPicksSection({
                   </p>
                   <Badge
                     variant="secondary"
-                    className="flex-shrink-0 gap-1 bg-green-500/10 text-[10px] text-green-600"
+                    className="flex-shrink-0 gap-1 bg-success/10 text-[10px] text-success"
                   >
                     <Check className="h-2.5 w-2.5" />
                     Confirmado
@@ -156,7 +156,7 @@ export default function PendingPicksSection({
           <Card
             className={`overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${
               currentUserHasPendingPick
-                ? "border-amber-500/50 ring-1 ring-amber-500/30"
+                ? "border-warning/50 ring-1 ring-warning/30"
                 : ""
             }`}
           >
@@ -172,7 +172,7 @@ export default function PendingPicksSection({
                   {currentUserHasPendingPick && (
                     <Badge
                       variant="secondary"
-                      className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-500"
+                      className="gap-1 bg-warning/10 text-warning"
                     >
                       <AlertCircle className="h-3 w-3" />
                       Pendiente
@@ -198,20 +198,20 @@ export default function PendingPicksSection({
             <button
               className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${
                 allUsersComplete
-                  ? "border-green-500/30 bg-green-500/5 hover:bg-green-500/10"
-                  : "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10"
+                  ? "border-success/30 bg-success/5 hover:bg-success/10"
+                  : "border-warning/30 bg-warning/5 hover:bg-warning/10"
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                    allUsersComplete ? "bg-green-500/20" : "bg-amber-500/20"
+                    allUsersComplete ? "bg-success/20" : "bg-warning/20"
                   }`}
                 >
                   {allUsersComplete ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                   ) : (
-                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                    <Clock className="h-4 w-4 text-warning" />
                   )}
                 </div>
                 <div>
@@ -222,7 +222,7 @@ export default function PendingPicksSection({
                   </span>
                   <span className="ml-2 text-sm text-muted-foreground">
                     {allUsersComplete ? (
-                      <span className="text-green-600 dark:text-green-500">
+                      <span className="text-success">
                         ✓ {activeRound}
                       </span>
                     ) : (
@@ -260,10 +260,10 @@ export default function PendingPicksSection({
 
                 {allUsersComplete ? (
                   <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
-                      <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-500" />
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                      <CheckCircle2 className="h-6 w-6 text-success" />
                     </div>
-                    <p className="font-medium text-green-600 dark:text-green-500">
+                    <p className="font-medium text-success">
                       ¡Excelente!
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -274,9 +274,9 @@ export default function PendingPicksSection({
                 ) : (
                   <div className="space-y-3">
                     {/* Reminder message for admin */}
-                    <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 px-3 py-2.5 text-sm">
-                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-500" />
-                      <p className="text-amber-700 dark:text-amber-400">
+                    <div className="flex items-start gap-2 rounded-lg bg-warning/10 px-3 py-2.5 text-sm">
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
+                      <p className="text-warning">
                         <span className="font-medium">¡Recuérdales!</span> Los
                         siguientes jugadores aún no han seleccionado su equipo.
                         Avísales antes de que comiencen los partidos.
@@ -312,7 +312,7 @@ export default function PendingPicksSection({
                           </div>
                           <Badge
                             variant="secondary"
-                            className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-500"
+                            className="gap-1 bg-warning/10 text-warning"
                           >
                             <Clock className="h-3 w-3" />
                             Sin pick

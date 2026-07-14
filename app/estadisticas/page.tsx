@@ -37,7 +37,7 @@ export default async function EstadisticasPage() {
         <TabsList className="mb-6 h-auto w-full gap-1 bg-muted/50 p-1 sm:w-auto">
           <TabsTrigger
             value="quinielas"
-            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-600 data-[state=active]:shadow-sm sm:flex-none"
+            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-warning/10 data-[state=active]:text-warning data-[state=active]:shadow-sm sm:flex-none"
           >
             <Award className="h-4 w-4" />
             <span>Quinielas</span>
@@ -45,7 +45,7 @@ export default async function EstadisticasPage() {
           {SURVIVOR_ENABLED && (
             <TabsTrigger
               value="survivor"
-              className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
+              className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive data-[state=active]:shadow-sm sm:flex-none"
             >
               <Swords className="h-4 w-4" />
               <span>Survivor</span>

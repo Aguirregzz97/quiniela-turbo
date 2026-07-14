@@ -68,11 +68,11 @@ export default function SurvivorStandings({
 
         <Card className="border-border/50">
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10">
-              <Heart className="h-5 w-5 text-green-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10">
+              <Heart className="h-5 w-5 text-success" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{aliveCount}</p>
+              <p className="text-2xl font-bold text-success">{aliveCount}</p>
               <p className="text-xs text-muted-foreground">Vivos</p>
             </div>
           </CardContent>
@@ -80,11 +80,11 @@ export default function SurvivorStandings({
 
         <Card className="border-border/50">
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
-              <Skull className="h-5 w-5 text-red-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10">
+              <Skull className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-destructive">
                 {eliminatedCount}
               </p>
               <p className="text-xs text-muted-foreground">Eliminados</p>
@@ -94,11 +94,11 @@ export default function SurvivorStandings({
 
         <Card className="border-border/50">
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-              <Trophy className="h-5 w-5 text-amber-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10">
+              <Trophy className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-amber-600">
+              <p className="text-2xl font-bold text-warning">
                 {survivalRate}%
               </p>
               <p className="text-xs text-muted-foreground">Supervivencia</p>
@@ -111,13 +111,13 @@ export default function SurvivorStandings({
       {activeParticipants.length > 0 && (
         <div>
           <div className="mb-3 flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500/10">
-              <Heart className="h-3.5 w-3.5 text-green-500" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success/10">
+              <Heart className="h-3.5 w-3.5 text-success" />
             </div>
             <h3 className="font-semibold">Jugadores Activos</h3>
             <Badge
               variant="secondary"
-              className="ml-auto bg-green-500/10 text-green-600"
+              className="ml-auto bg-success/10 text-success"
             >
               {aliveCount} vivos
             </Badge>
@@ -140,10 +140,10 @@ export default function SurvivorStandings({
                     <div
                       className={`absolute left-0 top-0 h-full w-1 ${
                         index === 0
-                          ? "bg-amber-500"
+                          ? "bg-gold"
                           : index === 1
-                            ? "bg-slate-400"
-                            : "bg-amber-700"
+                            ? "bg-silver"
+                            : "bg-bronze"
                       }`}
                     />
                   )}
@@ -151,7 +151,7 @@ export default function SurvivorStandings({
                   <CardContent className="flex items-center gap-3 p-3">
                     {/* Avatar */}
                     <div className="relative">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
+                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ring-success/30">
                         <Image
                           src={participant.userImage || "/img/profile.png"}
                           alt={participant.userName || "Participante"}
@@ -161,8 +161,8 @@ export default function SurvivorStandings({
                         />
                       </div>
                       {isOwner && (
-                        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500">
-                          <Crown className="h-2.5 w-2.5 text-white" />
+                        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold">
+                          <Crown className="h-2.5 w-2.5 text-gold-foreground" />
                         </div>
                       )}
                     </div>
@@ -189,7 +189,7 @@ export default function SurvivorStandings({
                             key={i}
                             className={`h-3 w-3 ${
                               i < participant.livesRemaining
-                                ? "fill-red-500 text-red-500"
+                                ? "fill-destructive text-destructive"
                                 : "text-muted-foreground/30"
                             }`}
                           />
@@ -199,7 +199,7 @@ export default function SurvivorStandings({
 
                     {/* Lives count */}
                     <div className="flex-shrink-0 text-right">
-                      <p className="text-lg font-bold text-green-600">
+                      <p className="text-lg font-bold text-success">
                         {participant.livesRemaining}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
@@ -218,13 +218,13 @@ export default function SurvivorStandings({
       {eliminatedParticipants.length > 0 && (
         <div>
           <div className="mb-3 flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-500/10">
-              <Skull className="h-3.5 w-3.5 text-red-500" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/10">
+              <Skull className="h-3.5 w-3.5 text-destructive" />
             </div>
             <h3 className="font-semibold text-muted-foreground">Eliminados</h3>
             <Badge
               variant="secondary"
-              className="ml-auto bg-red-500/10 text-red-600"
+              className="ml-auto bg-destructive/10 text-destructive"
             >
               {eliminatedCount} eliminados
             </Badge>
@@ -245,7 +245,7 @@ export default function SurvivorStandings({
                   <CardContent className="flex items-center gap-3 p-3">
                     {/* Avatar */}
                     <div className="relative">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ring-red-500/20">
+                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ring-destructive/20">
                         <Image
                           src={participant.userImage || "/img/profile.png"}
                           alt={participant.userName || "Participante"}
@@ -258,8 +258,8 @@ export default function SurvivorStandings({
                         </div>
                       </div>
                       {isOwner && (
-                        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/50">
-                          <Crown className="h-2.5 w-2.5 text-white" />
+                        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold/50">
+                          <Crown className="h-2.5 w-2.5 text-gold-foreground" />
                         </div>
                       )}
                     </div>
@@ -320,16 +320,16 @@ export default function SurvivorStandings({
 
       {/* Winner state when only 1 player remains */}
       {aliveCount === 1 && eliminatedCount > 0 && (
-        <Card className="overflow-hidden border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+        <Card className="overflow-hidden border-gold/50 bg-gradient-to-br from-gold/10 to-gold/5">
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30">
-              <Trophy className="h-10 w-10 text-white" />
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold/85 shadow-lg shadow-gold/30">
+              <Trophy className="h-10 w-10 text-gold-foreground" />
             </div>
-            <h3 className="mb-1 text-xl font-bold text-amber-600">
+            <h3 className="mb-1 text-xl font-bold text-gold">
               ¡Tenemos un ganador!
             </h3>
             <div className="flex items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-full ring-4 ring-amber-500/30">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full ring-4 ring-gold/30">
                 <Image
                   src={activeParticipants[0]?.userImage || "/img/profile.png"}
                   alt={activeParticipants[0]?.userName || "Ganador"}

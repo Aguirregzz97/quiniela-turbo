@@ -50,7 +50,7 @@ export default function PuntuacionesTabs({
       <TabsList className="mb-6 h-auto w-full gap-1 bg-muted/50 p-1 sm:w-auto">
         <TabsTrigger
           value="quinielas"
-          className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-600 data-[state=active]:shadow-sm sm:flex-none"
+          className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-warning/10 data-[state=active]:text-warning data-[state=active]:shadow-sm sm:flex-none"
         >
           <Award className="h-4 w-4" />
           <span>Quinielas</span>
@@ -63,7 +63,7 @@ export default function PuntuacionesTabs({
         {SURVIVOR_ENABLED && (
           <TabsTrigger
             value="survivor"
-            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-600 data-[state=active]:shadow-sm sm:flex-none"
+            className="flex-1 gap-2 px-4 py-2.5 data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive data-[state=active]:shadow-sm sm:flex-none"
           >
             <Swords className="h-4 w-4" />
             <span>Survivor</span>
@@ -86,7 +86,7 @@ export default function PuntuacionesTabs({
               >
                 <CardContent className="p-0">
                   {/* Card Header */}
-                  <div className="relative border-b border-border/50 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-6">
+                  <div className="relative border-b border-border/50 bg-gradient-to-r from-warning/10 via-warning/5 to-transparent p-4 sm:p-6">
                     {/* Background decoration */}
                     <div className="absolute -right-8 -top-8 h-32 w-32 opacity-[0.05]">
                       {quiniela.externalLeagueId ? (
@@ -128,7 +128,7 @@ export default function PuntuacionesTabs({
                       </div>
 
                       {/* Join Code */}
-                      <span className="hidden rounded-lg bg-amber-500/10 px-3 py-1.5 font-mono text-xs font-semibold text-amber-600 sm:inline-flex">
+                      <span className="hidden rounded-lg bg-warning/10 px-3 py-1.5 font-mono text-xs font-semibold text-warning sm:inline-flex">
                         {quiniela.joinCode}
                       </span>
                     </div>
@@ -161,8 +161,8 @@ export default function PuntuacionesTabs({
         ) : (
           <Card className="border-border/50">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10">
-                <Award className="h-8 w-8 text-amber-500" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-warning/10">
+                <Award className="h-8 w-8 text-warning" />
               </div>
               <h2 className="mb-2 text-xl font-semibold">
                 Sin quinielas aún
@@ -187,7 +187,7 @@ export default function PuntuacionesTabs({
               >
                 <CardContent className="p-0">
                   {/* Card Header */}
-                  <div className="relative border-b border-border/50 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent p-4 sm:p-6">
+                  <div className="relative border-b border-border/50 bg-gradient-to-r from-destructive/10 via-destructive/5 to-transparent p-4 sm:p-6">
                     {/* Background decoration */}
                     <div className="absolute -right-8 -top-8 h-32 w-32 opacity-[0.05]">
                       {game.externalLeagueId ? (
@@ -214,7 +214,7 @@ export default function PuntuacionesTabs({
                             className="h-11 w-11 object-contain sm:h-[52px] sm:w-[52px]"
                           />
                         ) : (
-                          <Swords className="h-6 w-6 text-rose-600 sm:h-7 sm:w-7" />
+                          <Swords className="h-6 w-6 text-destructive sm:h-7 sm:w-7" />
                         )}
                       </div>
 
@@ -229,7 +229,7 @@ export default function PuntuacionesTabs({
                       </div>
 
                       {/* Join Code */}
-                      <span className="hidden rounded-lg bg-rose-500/10 px-3 py-1.5 font-mono text-xs font-semibold text-rose-600 sm:inline-flex">
+                      <span className="hidden rounded-lg bg-destructive/10 px-3 py-1.5 font-mono text-xs font-semibold text-destructive sm:inline-flex">
                         {game.joinCode}
                       </span>
                     </div>
@@ -249,8 +249,8 @@ export default function PuntuacionesTabs({
         ) : (
           <Card className="border-border/50">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10">
-                <Swords className="h-8 w-8 text-rose-500" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10">
+                <Swords className="h-8 w-8 text-destructive" />
               </div>
               <h2 className="mb-2 text-xl font-semibold">
                 Sin juegos de Survivor aún

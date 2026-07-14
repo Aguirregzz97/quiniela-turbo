@@ -53,7 +53,7 @@ export default async function ProfilePage() {
                 />
               </div>
               {/* Online indicator */}
-              <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-4 border-background bg-green-500 sm:h-6 sm:w-6" />
+              <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-4 border-background bg-success sm:h-6 sm:w-6" />
             </div>
           </div>
 
@@ -91,14 +91,14 @@ export default async function ProfilePage() {
         {/* Account Status Card */}
         <Card className="border-border/50">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/10">
-              <Shield className="h-5 w-5 text-green-600" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-success/20 to-success/10">
+              <Shield className="h-5 w-5 text-success" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Estado de cuenta
               </p>
-              <p className="text-sm font-medium text-green-600">Activa</p>
+              <p className="text-sm font-medium text-success">Activa</p>
             </div>
           </CardContent>
         </Card>
@@ -106,8 +106,8 @@ export default async function ProfilePage() {
         {/* Member Since Card */}
         <Card className="border-border/50 sm:col-span-2">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/10">
-              <Calendar className="h-5 w-5 text-amber-600" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-warning/20 to-warning/10">
+              <Calendar className="h-5 w-5 text-warning" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

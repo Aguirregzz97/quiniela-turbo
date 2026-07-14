@@ -80,7 +80,7 @@ export default function PendingPredictionsSection({
         <Card
           className={`h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${
             currentUserHasPending
-              ? "ring-1 ring-amber-500/30 border-amber-500/50"
+              ? "ring-1 ring-warning/30 border-warning/50"
               : ""
           }`}
         >
@@ -96,7 +96,7 @@ export default function PendingPredictionsSection({
                 {currentUserHasPending && (
                   <Badge
                     variant="secondary"
-                    className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-500"
+                    className="gap-1 bg-warning/10 text-warning"
                   >
                     <AlertCircle className="h-3 w-3" />
                     {currentUserPendingCount} pendiente
@@ -123,20 +123,20 @@ export default function PendingPredictionsSection({
             <button
               className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${
                 allUsersComplete
-                  ? "border-green-500/30 bg-green-500/5 hover:bg-green-500/10"
-                  : "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10"
+                  ? "border-success/30 bg-success/5 hover:bg-success/10"
+                  : "border-warning/30 bg-warning/5 hover:bg-warning/10"
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                    allUsersComplete ? "bg-green-500/20" : "bg-amber-500/20"
+                    allUsersComplete ? "bg-success/20" : "bg-warning/20"
                   }`}
                 >
                   {allUsersComplete ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                   ) : (
-                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                    <Clock className="h-4 w-4 text-warning" />
                   )}
                 </div>
                 <div>
@@ -147,7 +147,7 @@ export default function PendingPredictionsSection({
                   </span>
                   <span className="ml-2 text-sm text-muted-foreground">
                     {allUsersComplete ? (
-                      <span className="text-green-600 dark:text-green-500">
+                      <span className="text-success">
                         ✓ {activeRound}
                       </span>
                     ) : (
@@ -185,10 +185,10 @@ export default function PendingPredictionsSection({
 
                 {allUsersComplete ? (
                   <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
-                      <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-500" />
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                      <CheckCircle2 className="h-6 w-6 text-success" />
                     </div>
-                    <p className="font-medium text-green-600 dark:text-green-500">
+                    <p className="font-medium text-success">
                       ¡Excelente!
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -199,9 +199,9 @@ export default function PendingPredictionsSection({
                 ) : (
                   <div className="space-y-3">
                     {/* Reminder message for admin */}
-                    <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 px-3 py-2.5 text-sm">
-                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-500" />
-                      <p className="text-amber-700 dark:text-amber-400">
+                    <div className="flex items-start gap-2 rounded-lg bg-warning/10 px-3 py-2.5 text-sm">
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
+                      <p className="text-warning">
                         <span className="font-medium">¡Recuérdales!</span> Los siguientes usuarios aún no han registrado sus pronósticos. Avísales antes de que comiencen los partidos.
                       </p>
                     </div>
@@ -235,7 +235,7 @@ export default function PendingPredictionsSection({
                         </div>
                         <Badge
                           variant="secondary"
-                          className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-500"
+                          className="gap-1 bg-warning/10 text-warning"
                         >
                           <Clock className="h-3 w-3" />
                           {user.pendingCount}/{user.totalFixtures}

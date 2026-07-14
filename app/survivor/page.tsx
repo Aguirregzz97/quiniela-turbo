@@ -211,7 +211,7 @@ export default async function SurvivorPage() {
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs ${
                           isOwner
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            ? "bg-warning/10 text-warning"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
@@ -228,7 +228,7 @@ export default async function SurvivorPage() {
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs ${
                           game.isEliminated
                             ? "bg-destructive/10 text-destructive"
-                            : "bg-green-500/10 text-green-600 dark:text-green-400"
+                            : "bg-success/10 text-success"
                         }`}
                       >
                         {game.isEliminated ? (

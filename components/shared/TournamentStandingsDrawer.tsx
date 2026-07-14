@@ -36,11 +36,11 @@ function ResultDot({ result }: { result: "win" | "draw" | "loss" | null }) {
     <div
       className={`flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold ${
         result === "win"
-          ? "bg-emerald-500 text-white"
+          ? "bg-success text-success-foreground"
           : result === "loss"
-            ? "bg-red-500 text-white"
+            ? "bg-destructive text-destructive-foreground"
             : result === "draw"
-              ? "bg-amber-500 text-white"
+              ? "bg-warning text-warning-foreground"
               : "bg-muted/50 text-muted-foreground"
       }`}
     >
@@ -177,17 +177,17 @@ export function TournamentStandingsDrawer({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-2 border-amber-500/30 bg-amber-500/5 text-xs hover:bg-amber-500/10"
+          className="h-8 gap-2 border-warning/30 bg-warning/5 text-xs hover:bg-warning/10"
         >
-          <Trophy className="h-3.5 w-3.5 text-amber-600" />
+          <Trophy className="h-3.5 w-3.5 text-warning" />
           <span className="hidden sm:inline">Posiciones</span>
         </Button>
       </DrawerTrigger>
       <DrawerContent className="data-[vaul-drawer-direction=right]:w-[92%] data-[vaul-drawer-direction=right]:sm:max-w-md">
         <DrawerHeader className="border-b border-border/50 px-4">
           <DrawerTitle className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md shadow-amber-500/25">
-              <Trophy className="h-4 w-4 text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-warning to-warning/85 shadow-md shadow-warning/25">
+              <Trophy className="h-4 w-4 text-warning-foreground" />
             </div>
             <span className="text-lg">Posiciones</span>
           </DrawerTitle>

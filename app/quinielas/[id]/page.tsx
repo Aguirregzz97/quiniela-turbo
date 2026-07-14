@@ -216,7 +216,7 @@ export default async function QuinielaPage({ params }: QuinielaPageProps) {
                 {participants.length === 1 ? "" : "s"}
               </span>
               {tournamentPool > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
                   <DollarSign className="h-3.5 w-3.5" />
                   {tournamentPool.toLocaleString("es-MX")} en juego
                 </span>

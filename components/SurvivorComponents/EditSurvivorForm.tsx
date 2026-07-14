@@ -179,7 +179,7 @@ export default function EditSurvivorForm({
               {/* Lives Configuration */}
               <div className="space-y-2">
                 <Label htmlFor="lives" className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-red-500" />
+                  <Heart className="h-4 w-4 text-destructive" />
                   Número de Vidas *
                 </Label>
                 <p className="text-xs text-muted-foreground">

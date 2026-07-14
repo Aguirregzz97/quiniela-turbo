@@ -169,7 +169,7 @@ function FixtureCard({
             ? "border-destructive/30 bg-destructive/[0.02] ring-1 ring-destructive/20"
             : hasPrediction
               ? "border-primary/30 bg-primary/[0.02] ring-1 ring-primary/20"
-              : "border-amber-500/50 ring-1 ring-amber-500/30"
+              : "border-warning/50 ring-1 ring-warning/30"
       }`}
     >
       <CardContent className="p-0">
@@ -205,7 +205,7 @@ function FixtureCard({
             <span>Pronóstico guardado</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
+          <div className="flex items-center gap-1.5 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning">
             <Clock className="h-3.5 w-3.5" />
             <span>Pendiente de pronóstico</span>
           </div>
@@ -1053,7 +1053,7 @@ export default function RegistrarPronosticos({
                     {pendingCount > 0 && (
                       <Badge
                         variant="secondary"
-                        className="gap-1 bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 dark:text-amber-500"
+                        className="gap-1 bg-warning/10 text-warning hover:bg-warning/10"
                       >
                         <Clock className="h-3 w-3" />
                         {pendingCount} pendientes

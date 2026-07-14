@@ -161,7 +161,7 @@ export default async function QuinielasPage() {
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs ${
                           isOwner
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            ? "bg-warning/10 text-warning"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >

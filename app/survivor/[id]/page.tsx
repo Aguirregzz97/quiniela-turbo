@@ -324,7 +324,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
         >
           <Card className="h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
             <CardContent className="flex items-center gap-4 p-5 sm:p-6">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/25 transition-transform duration-300 group-hover:scale-110">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-warning/85 shadow-lg shadow-warning/25 transition-transform duration-300 group-hover:scale-110">
                 <History className="h-6 w-6 text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -362,8 +362,8 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
             return (
               <div>
                 <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
-                    <Heart className="h-4 w-4 text-green-500" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10">
+                    <Heart className="h-4 w-4 text-success" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold leading-tight">
@@ -377,20 +377,20 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                   </div>
                   <Badge
                     variant="secondary"
-                    className="ml-auto bg-green-500/10 text-green-600"
+                    className="ml-auto bg-success/10 text-success"
                   >
                     {alivePlayers.length}
                   </Badge>
                 </div>
 
                 {hasWinner && (
-                  <Card className="mb-4 overflow-hidden border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+                  <Card className="mb-4 overflow-hidden border-gold/50 bg-gradient-to-br from-gold/10 to-gold/5">
                     <CardContent className="flex items-center gap-4 p-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30">
-                        <Trophy className="h-7 w-7 text-white" />
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold/85 shadow-lg shadow-gold/30">
+                        <Trophy className="h-7 w-7 text-gold-foreground" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-amber-600">
+                        <h3 className="text-lg font-bold text-gold-foreground">
                           ¡Tenemos un ganador!
                         </h3>
                         <p className="text-sm text-muted-foreground">
@@ -424,7 +424,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                         }`}
                       >
                         <CardContent className="flex items-center gap-3 p-4">
-                          <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-full bg-muted ring-2 ring-green-500/30">
+                          <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-full bg-muted ring-2 ring-success/30">
                             <Image
                               src={participant.userImage || "/img/profile.png"}
                               alt={participant.userName || "Participante"}
@@ -456,7 +456,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                                   key={i}
                                   className={`h-3 w-3 ${
                                     i < participant.livesRemaining
-                                      ? "fill-red-500 text-red-500"
+                                      ? "fill-destructive text-destructive"
                                       : "text-muted-foreground/30"
                                   }`}
                                 />
@@ -504,7 +504,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                           )}
 
                           <div className="flex-shrink-0 text-right">
-                            <p className="text-lg font-bold text-green-600">
+                            <p className="text-lg font-bold text-success">
                               {participant.livesRemaining}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
@@ -535,15 +535,15 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
             return (
               <div>
                 <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10">
-                    <Skull className="h-4 w-4 text-red-500" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10">
+                    <Skull className="h-4 w-4 text-destructive" />
                   </div>
                   <h2 className="text-lg font-semibold text-muted-foreground">
                     Eliminados
                   </h2>
                   <Badge
                     variant="secondary"
-                    className="ml-auto bg-red-500/10 text-red-600"
+                    className="ml-auto bg-destructive/10 text-destructive"
                   >
                     {eliminatedPlayers.length}
                   </Badge>
@@ -552,7 +552,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                 {eliminatedPlayers.length === 0 ? (
                   <Card className="overflow-hidden border-border/30 bg-muted/10">
                     <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
                         <span className="text-2xl">😅</span>
                       </div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -574,7 +574,7 @@ export default async function SurvivorPage({ params }: SurvivorPageProps) {
                           }`}
                         >
                           <CardContent className="flex items-center gap-3 p-4">
-                            <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-red-500/20">
+                            <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted ring-2 ring-destructive/20">
                               <Image
                                 src={
                                   participant.userImage || "/img/profile.png"

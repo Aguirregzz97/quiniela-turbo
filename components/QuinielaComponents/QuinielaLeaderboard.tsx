@@ -294,23 +294,23 @@ export default function QuinielaLeaderboard({
       case 1:
         return {
           badge:
-            "bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-900 shadow-lg shadow-yellow-500/25",
-          ring: "ring-yellow-400/50",
-          glow: "shadow-yellow-500/20",
+            "bg-gradient-to-br from-gold to-gold/85 text-gold-foreground shadow-lg shadow-gold/25",
+          ring: "ring-gold/50",
+          glow: "shadow-gold/20",
         };
       case 2:
         return {
           badge:
-            "bg-gradient-to-br from-slate-300 to-slate-400 text-slate-800 shadow-lg shadow-slate-400/25",
-          ring: "ring-slate-300/50",
-          glow: "shadow-slate-400/20",
+            "bg-gradient-to-br from-silver to-silver/85 text-silver-foreground shadow-lg shadow-silver/25",
+          ring: "ring-silver/50",
+          glow: "shadow-silver/20",
         };
       case 3:
         return {
           badge:
-            "bg-gradient-to-br from-amber-500 to-amber-700 text-amber-100 shadow-lg shadow-amber-600/25",
-          ring: "ring-amber-500/50",
-          glow: "shadow-amber-500/20",
+            "bg-gradient-to-br from-bronze to-bronze/85 text-bronze-foreground shadow-lg shadow-bronze/25",
+          ring: "ring-bronze/50",
+          glow: "shadow-bronze/20",
         };
       default:
         return {
@@ -392,9 +392,9 @@ export default function QuinielaLeaderboard({
             </div>
             {totalPrizePool > 0 && (
               <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
-                <div className="flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
-                  <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400 sm:h-4 sm:w-4" />
-                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:text-sm">
+                <div className="flex items-center gap-1 rounded-lg bg-success/10 px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
+                  <DollarSign className="h-3 w-3 text-success sm:h-4 sm:w-4" />
+                  <span className="text-xs font-medium text-success sm:text-sm">
                     ${totalPrizePool.toLocaleString("es-MX")}
                   </span>
                 </div>
@@ -440,17 +440,17 @@ export default function QuinielaLeaderboard({
                     <p className="truncate font-medium">{user.name}</p>
                     {/* Stats Pills - Mobile: 2 cols, Desktop: inline */}
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-600 dark:text-blue-400">
+                      <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info">
                         {user.pp} jugados
                       </span>
-                      <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                      <span className="inline-flex items-center rounded-md bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
                         {user.rea} exactos
                       </span>
-                      <span className="inline-flex items-center rounded-md bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                      <span className="inline-flex items-center rounded-md bg-success-subtle/10 px-2 py-0.5 text-[10px] font-medium text-success">
                         {user.ra} acertados
                       </span>
                       {user.ri > 0 && (
-                        <span className="inline-flex items-center rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">
+                        <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
                           {user.ri} fallados
                         </span>
                       )}
@@ -476,7 +476,7 @@ export default function QuinielaLeaderboard({
                       const prize = getPrizeForPosition(index + 1);
                       if (prize === null) return null;
                       return (
-                        <div className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
+                        <div className="flex items-center gap-0.5 text-success">
                           <DollarSign className="h-3 w-3" />
                           <span className="text-xs font-medium tabular-nums">
                             {prize.toLocaleString("es-MX", {

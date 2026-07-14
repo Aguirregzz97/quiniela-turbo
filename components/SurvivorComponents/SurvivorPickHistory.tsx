@@ -299,8 +299,8 @@ export default function SurvivorPickHistory({
                     <div
                       className={`relative h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ${
                         participant.isEliminated
-                          ? "ring-red-500/30"
-                          : "ring-green-500/30"
+                          ? "ring-destructive/30"
+                          : "ring-success/30"
                       }`}
                     >
                       <Image
@@ -317,8 +317,8 @@ export default function SurvivorPickHistory({
                       )}
                     </div>
                     {isOwner && (
-                      <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500">
-                        <Crown className="h-2.5 w-2.5 text-white" />
+                      <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold">
+                        <Crown className="h-2.5 w-2.5 text-gold-foreground" />
                       </div>
                     )}
                   </div>
@@ -439,11 +439,11 @@ export default function SurvivorPickHistory({
                               shouldHidePick
                                 ? ""
                                 : pickResult === "loss"
-                                  ? "ring-1 ring-red-500/30"
+                                  ? "ring-1 ring-destructive/30"
                                   : pickResult === "win"
-                                    ? "ring-1 ring-green-500/30"
+                                    ? "ring-1 ring-success/30"
                                     : pickResult === "draw"
-                                      ? "ring-1 ring-amber-500/30"
+                                      ? "ring-1 ring-warning/30"
                                       : ""
                             }`}
                           >
@@ -463,10 +463,10 @@ export default function SurvivorPickHistory({
                                     <Badge
                                       className={`gap-1 text-xs ${
                                         pickResult === "win"
-                                          ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                          ? "bg-success/10 text-success hover:bg-success/20"
                                           : pickResult === "draw"
-                                            ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
-                                            : "bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                            ? "bg-warning/10 text-warning hover:bg-warning/20"
+                                            : "bg-destructive/10 text-destructive hover:bg-destructive/20"
                                       }`}
                                       variant="secondary"
                                     >

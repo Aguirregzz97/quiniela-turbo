@@ -33,10 +33,10 @@ function StatCard({
 }) {
   const colorClasses = {
     primary: "from-primary/20 to-primary/10 text-primary",
-    success: "from-green-500/20 to-green-500/10 text-green-600",
-    warning: "from-yellow-500/20 to-yellow-500/10 text-yellow-600",
-    destructive: "from-red-500/20 to-red-500/10 text-red-600",
-    rose: "from-rose-500/20 to-rose-500/10 text-rose-600",
+    success: "from-success/20 to-success/10 text-success",
+    warning: "from-warning/20 to-warning/10 text-warning",
+    destructive: "from-destructive/20 to-destructive/10 text-destructive",
+    rose: "from-destructive/20 to-destructive/10 text-destructive",
   };
 
   return (
@@ -84,28 +84,28 @@ function PickResultsDistribution({
       label: "Victorias",
       value: wins,
       percentage: (wins / total) * 100,
-      color: "bg-green-500",
+      color: "bg-success",
       icon: CheckCircle2,
     },
     {
       label: "Empates",
       value: draws,
       percentage: (draws / total) * 100,
-      color: "bg-yellow-500",
+      color: "bg-warning",
       icon: MinusCircle,
     },
     {
       label: "Derrotas",
       value: losses,
       percentage: (losses / total) * 100,
-      color: "bg-red-500",
+      color: "bg-destructive",
       icon: XCircle,
     },
     {
       label: "Sin pick",
       value: missed,
       percentage: (missed / total) * 100,
-      color: "bg-gray-400",
+      color: "bg-muted-foreground",
       icon: Clock,
     },
   ];
@@ -117,12 +117,12 @@ function PickResultsDistribution({
           <item.icon
             className={`h-4 w-4 flex-shrink-0 ${
               item.label === "Victorias"
-                ? "text-green-500"
+                ? "text-success"
                 : item.label === "Empates"
-                  ? "text-yellow-500"
+                  ? "text-warning"
                   : item.label === "Derrotas"
-                    ? "text-red-500"
-                    : "text-gray-400"
+                    ? "text-destructive"
+                    : "text-muted-foreground"
             }`}
           />
           <div className="min-w-0 flex-1">
@@ -163,11 +163,11 @@ function MostPickedTeams({
           <div
             className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
               index === 0
-                ? "bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900"
+                ? "bg-gradient-to-br from-gold to-gold/85 text-gold-foreground"
                 : index === 1
-                  ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700"
+                  ? "bg-gradient-to-br from-silver to-silver/85 text-silver-foreground"
                   : index === 2
-                    ? "bg-gradient-to-br from-amber-500 to-amber-600 text-amber-100"
+                    ? "bg-gradient-to-br from-bronze to-bronze/85 text-bronze-foreground"
                     : "bg-muted text-muted-foreground"
             }`}
           >
@@ -196,7 +196,7 @@ export default function SurvivorStatistics() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-destructive" />
         <p className="mt-3 text-sm text-muted-foreground">
           Cargando estadísticas...
         </p>
@@ -221,8 +221,8 @@ export default function SurvivorStatistics() {
     return (
       <Card className="border-border/50">
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10">
-            <Swords className="h-8 w-8 text-rose-500" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10">
+            <Swords className="h-8 w-8 text-destructive" />
           </div>
           <h2 className="mb-2 text-xl font-semibold">Sin estadísticas aún</h2>
           <p className="max-w-md text-muted-foreground">
@@ -239,7 +239,7 @@ export default function SurvivorStatistics() {
       {/* Section 1: Overview Stats */}
       <section>
         <div className="mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-rose-500" />
+          <Target className="h-5 w-5 text-destructive" />
           <h3 className="text-lg font-semibold">Resumen General</h3>
         </div>
 
@@ -277,7 +277,7 @@ export default function SurvivorStatistics() {
       {/* Section 2: Pick Statistics */}
       <section>
         <div className="mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-rose-500" />
+          <Target className="h-5 w-5 text-destructive" />
           <h3 className="text-lg font-semibold">Estadísticas de Picks</h3>
         </div>
 

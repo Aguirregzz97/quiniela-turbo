@@ -130,25 +130,25 @@ export default function QuinielaDetailsDrawer({
             <div className="space-y-3">
               <h3 className="font-semibold text-foreground">Sistema de Puntos</h3>
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg bg-green-500/10 p-3 text-center">
-                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
-                    <Target className="h-4 w-4 text-green-600" />
+                <div className="rounded-lg bg-success/10 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-success/20">
+                    <Target className="h-4 w-4 text-success" />
                   </div>
-                  <p className="text-lg font-bold text-green-600">{exactPoints}</p>
+                  <p className="text-lg font-bold text-success">{exactPoints}</p>
                   <p className="text-xs text-muted-foreground">Resultado Exacto</p>
                 </div>
-                <div className="rounded-lg bg-blue-500/10 p-3 text-center">
-                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/20">
-                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                <div className="rounded-lg bg-success-subtle/20 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-success-subtle/20">
+                    <CheckCircle className="h-4 w-4 text-success" />
                   </div>
-                  <p className="text-lg font-bold text-blue-600">{correctResultPoints}</p>
+                  <p className="text-lg font-bold text-success">{correctResultPoints}</p>
                   <p className="text-xs text-muted-foreground">Resultado Correcto</p>
                 </div>
-                <div className="rounded-lg bg-red-500/10 p-3 text-center">
-                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20">
-                    <XCircle className="h-4 w-4 text-red-600" />
+                <div className="rounded-lg bg-destructive/10 p-3 text-center">
+                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-destructive/20">
+                    <XCircle className="h-4 w-4 text-destructive" />
                   </div>
-                  <p className="text-lg font-bold text-red-600">0</p>
+                  <p className="text-lg font-bold text-destructive">0</p>
                   <p className="text-xs text-muted-foreground">Incorrecto</p>
                 </div>
               </div>
@@ -165,12 +165,12 @@ export default function QuinielaDetailsDrawer({
                   {/* Total Prize */}
                   <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-                        <DollarSign className="h-5 w-5 text-green-500" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                        <DollarSign className="h-5 w-5 text-success" />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Pozo Total</p>
-                        <p className="text-xl font-bold text-green-600">
+                        <p className="text-xl font-bold text-success">
                           ${totalTournamentPrize.toLocaleString()}
                         </p>
                       </div>
@@ -200,11 +200,11 @@ export default function QuinielaDetailsDrawer({
                                 <div
                                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                                     prize.position === 1
-                                      ? "bg-yellow-500/20 text-yellow-600"
+                                      ? "bg-gold/20 text-gold-foreground"
                                       : prize.position === 2
-                                        ? "bg-gray-300/30 text-gray-500"
+                                        ? "bg-silver/30 text-silver-foreground"
                                         : prize.position === 3
-                                          ? "bg-orange-500/20 text-orange-600"
+                                          ? "bg-bronze/20 text-bronze-foreground"
                                           : "bg-muted text-muted-foreground"
                                   }`}
                                 >
@@ -241,19 +241,19 @@ export default function QuinielaDetailsDrawer({
             {hasRoundPrize && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-amber-500" />
+                  <Calendar className="h-4 w-4 text-warning" />
                   <h3 className="font-semibold text-foreground">Premio por Jornada</h3>
                 </div>
-                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
                   {/* Total Prize per Round */}
                   <div className="mb-4 flex items-center justify-between rounded-lg bg-background p-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
-                        <DollarSign className="h-5 w-5 text-amber-500" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
+                        <DollarSign className="h-5 w-5 text-warning" />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Pozo por Jornada</p>
-                        <p className="text-xl font-bold text-amber-600">
+                        <p className="text-xl font-bold text-warning">
                           ${totalRoundPrize.toLocaleString()}
                         </p>
                       </div>
@@ -283,11 +283,11 @@ export default function QuinielaDetailsDrawer({
                                 <div
                                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                                     prize.position === 1
-                                      ? "bg-yellow-500/20 text-yellow-600"
+                                      ? "bg-gold/20 text-gold-foreground"
                                       : prize.position === 2
-                                        ? "bg-gray-300/30 text-gray-500"
+                                        ? "bg-silver/30 text-silver-foreground"
                                         : prize.position === 3
-                                          ? "bg-orange-500/20 text-orange-600"
+                                          ? "bg-bronze/20 text-bronze-foreground"
                                           : "bg-muted text-muted-foreground"
                                   }`}
                                 >

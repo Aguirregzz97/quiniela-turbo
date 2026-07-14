@@ -116,8 +116,8 @@ function evaluatePrediction(
   if (predictedHome === actualHome && predictedAway === actualAway) {
     return {
       type: "exact",
-      bgColor: "bg-green-500",
-      textColor: "text-white",
+      bgColor: "bg-success",
+      textColor: "text-success-foreground",
       points: exactPoints,
     };
   }
@@ -139,8 +139,8 @@ function evaluatePrediction(
   if (predictedWinner === actualWinner) {
     return {
       type: "correct-result",
-      bgColor: "bg-green-300",
-      textColor: "text-green-900",
+      bgColor: "bg-success-subtle",
+      textColor: "text-success-subtle-foreground",
       points: correctResultPoints,
     };
   }
@@ -148,8 +148,8 @@ function evaluatePrediction(
   // Miss
   return {
     type: "miss",
-    bgColor: "bg-red-300",
-    textColor: "text-red-900",
+    bgColor: "bg-destructive/20",
+    textColor: "text-destructive",
     points: 0,
   };
 }
@@ -502,22 +502,22 @@ export default function ResultadosPorPartido({
             </span>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500">
-                  <Trophy className="h-3.5 w-3.5 text-white" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success">
+                  <Trophy className="h-3.5 w-3.5 text-success-foreground" />
                 </div>
                 <span className="text-xs">Exacto ({exactPoints} pts)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-300">
-                  <Check className="h-3.5 w-3.5 text-green-900" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success-subtle">
+                  <Check className="h-3.5 w-3.5 text-success-subtle-foreground" />
                 </div>
                 <span className="text-xs">
                   Resultado ({correctResultPoints} pt)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-300">
-                  <X className="h-3.5 w-3.5 text-red-900" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/20">
+                  <X className="h-3.5 w-3.5 text-destructive" />
                 </div>
                 <span className="text-xs">Incorrecto</span>
               </div>
@@ -640,25 +640,25 @@ export default function ResultadosPorPartido({
                           {(matchFinished || matchLive) && (
                             <div className="hidden items-center gap-2 sm:flex">
                               {stats.exact > 0 && (
-                                <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
-                                  <Trophy className="h-3.5 w-3.5 text-green-600" />
-                                  <span className="text-xs font-semibold text-green-600">
+                                <div className="flex items-center gap-1 rounded-md bg-success/10 px-2 py-1">
+                                  <Trophy className="h-3.5 w-3.5 text-success" />
+                                  <span className="text-xs font-semibold text-success">
                                     {stats.exact}
                                   </span>
                                 </div>
                               )}
                               {stats.correctResult > 0 && (
-                                <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
-                                  <Check className="h-3.5 w-3.5 text-green-700" />
-                                  <span className="text-xs font-semibold text-green-700">
+                                <div className="flex items-center gap-1 rounded-md bg-success-subtle/20 px-2 py-1">
+                                  <Check className="h-3.5 w-3.5 text-success" />
+                                  <span className="text-xs font-semibold text-success">
                                     {stats.correctResult}
                                   </span>
                                 </div>
                               )}
                               {stats.miss > 0 && (
-                                <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
-                                  <X className="h-3.5 w-3.5 text-red-600" />
-                                  <span className="text-xs font-semibold text-red-600">
+                                <div className="flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1">
+                                  <X className="h-3.5 w-3.5 text-destructive" />
+                                  <span className="text-xs font-semibold text-destructive">
                                     {stats.miss}
                                   </span>
                                 </div>
@@ -695,25 +695,25 @@ export default function ResultadosPorPartido({
                         {(matchFinished || matchLive) && (
                           <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3 sm:hidden">
                             {stats.exact > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-1">
-                                <Trophy className="h-3.5 w-3.5 text-green-600" />
-                                <span className="text-xs font-semibold text-green-600">
+                              <div className="flex items-center gap-1 rounded-md bg-success/10 px-2 py-1">
+                                <Trophy className="h-3.5 w-3.5 text-success" />
+                                <span className="text-xs font-semibold text-success">
                                   {stats.exact}
                                 </span>
                               </div>
                             )}
                             {stats.correctResult > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-green-300/20 px-2 py-1">
-                                <Check className="h-3.5 w-3.5 text-green-700" />
-                                <span className="text-xs font-semibold text-green-700">
+                              <div className="flex items-center gap-1 rounded-md bg-success-subtle/20 px-2 py-1">
+                                <Check className="h-3.5 w-3.5 text-success" />
+                                <span className="text-xs font-semibold text-success">
                                   {stats.correctResult}
                                 </span>
                               </div>
                             )}
                             {stats.miss > 0 && (
-                              <div className="flex items-center gap-1 rounded-md bg-red-300/20 px-2 py-1">
-                                <X className="h-3.5 w-3.5 text-red-600" />
-                                <span className="text-xs font-semibold text-red-600">
+                              <div className="flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1">
+                                <X className="h-3.5 w-3.5 text-destructive" />
+                                <span className="text-xs font-semibold text-destructive">
                                   {stats.miss}
                                 </span>
                               </div>
@@ -841,11 +841,11 @@ export default function ResultadosPorPartido({
                               key={user.id}
                               className={`overflow-hidden rounded-xl border ${
                                 evaluation.type === "exact"
-                                  ? "border-green-500/30 bg-gradient-to-b from-green-500/20 to-green-500/10"
+                                  ? "border-success/30 bg-gradient-to-b from-success/20 to-success/10"
                                   : evaluation.type === "correct-result"
-                                    ? "border-green-400/30 bg-gradient-to-b from-green-300/20 to-green-300/10"
+                                    ? "border-success-subtle/40 bg-gradient-to-b from-success-subtle/20 to-success-subtle/10"
                                     : evaluation.type === "miss"
-                                      ? "border-red-400/30 bg-gradient-to-b from-red-300/20 to-red-300/10"
+                                      ? "border-destructive/30 bg-gradient-to-b from-destructive/20 to-destructive/10"
                                       : "border-border/50 bg-muted/30"
                               }`}
                             >
@@ -876,11 +876,11 @@ export default function ResultadosPorPartido({
                               <div
                                 className={`px-3 py-2 text-center ${
                                   evaluation.type === "exact"
-                                    ? "bg-green-500/10"
+                                    ? "bg-success/10"
                                     : evaluation.type === "correct-result"
-                                      ? "bg-green-300/10"
+                                      ? "bg-success-subtle/10"
                                       : evaluation.type === "miss"
-                                        ? "bg-red-300/10"
+                                        ? "bg-destructive/10"
                                         : "bg-muted/30"
                                 }`}
                               >
@@ -890,11 +890,11 @@ export default function ResultadosPorPartido({
                                 <p
                                   className={`text-base font-bold tabular-nums ${
                                     evaluation.type === "exact"
-                                      ? "text-green-600"
-                                      : evaluation.type === "correct-result"
-                                        ? "text-green-700"
+                                    ? "text-success"
+                                    : evaluation.type === "correct-result"
+                                      ? "text-success"
                                         : evaluation.type === "miss"
-                                          ? "text-red-600"
+                                          ? "text-destructive"
                                           : "text-muted-foreground"
                                   }`}
                                 >

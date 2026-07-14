@@ -163,9 +163,9 @@ function StatCard({
 }) {
   const colorClasses = {
     primary: "from-primary/20 to-primary/10 text-primary",
-    success: "from-green-500/20 to-green-500/10 text-green-600",
-    warning: "from-yellow-500/20 to-yellow-500/10 text-yellow-600",
-    destructive: "from-red-500/20 to-red-500/10 text-red-600",
+    success: "from-success/20 to-success/10 text-success",
+    warning: "from-warning/20 to-warning/10 text-warning",
+    destructive: "from-destructive/20 to-destructive/10 text-destructive",
   };
 
   return (
@@ -276,11 +276,11 @@ function MostPredictedScores({
           <div
             className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
               index === 0
-                ? "bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900"
+                ? "bg-gradient-to-br from-gold to-gold/85 text-gold-foreground"
                 : index === 1
-                  ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700"
+                  ? "bg-gradient-to-br from-silver to-silver/85 text-silver-foreground"
                   : index === 2
-                    ? "bg-gradient-to-br from-amber-500 to-amber-600 text-amber-100"
+                    ? "bg-gradient-to-br from-bronze to-bronze/85 text-bronze-foreground"
                     : "bg-muted text-muted-foreground"
             }`}
           >
@@ -496,15 +496,15 @@ export default function UserStatistics() {
               />
               <div className="mt-3 flex justify-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <Home className="h-3.5 w-3.5 text-blue-500" />
+                  <Home className="h-3.5 w-3.5 text-info" />
                   <span>Local</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Minus className="h-3.5 w-3.5 text-yellow-500" />
+                  <Minus className="h-3.5 w-3.5 text-warning" />
                   <span>Empate</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Plane className="h-3.5 w-3.5 text-red-500" />
+                  <Plane className="h-3.5 w-3.5 text-destructive" />
                   <span>Visitante</span>
                 </div>
               </div>
@@ -539,22 +539,22 @@ export default function UserStatistics() {
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg bg-blue-500/10 p-2">
-                  <p className="text-lg font-bold text-blue-600">
+                <div className="rounded-lg bg-info/10 p-2">
+                  <p className="text-lg font-bold text-info">
                     {stats.homeWinPredictionRate.toFixed(0)}%
                   </p>
                   <p className="text-[10px] text-muted-foreground">
                     Victoria Local
                   </p>
                 </div>
-                <div className="rounded-lg bg-yellow-500/10 p-2">
-                  <p className="text-lg font-bold text-yellow-600">
+                <div className="rounded-lg bg-warning/10 p-2">
+                  <p className="text-lg font-bold text-warning">
                     {stats.drawPredictionRate.toFixed(0)}%
                   </p>
                   <p className="text-[10px] text-muted-foreground">Empates</p>
                 </div>
-                <div className="rounded-lg bg-red-500/10 p-2">
-                  <p className="text-lg font-bold text-red-600">
+                <div className="rounded-lg bg-destructive/10 p-2">
+                  <p className="text-lg font-bold text-destructive">
                     {stats.awayWinPredictionRate.toFixed(0)}%
                   </p>
                   <p className="text-[10px] text-muted-foreground">
