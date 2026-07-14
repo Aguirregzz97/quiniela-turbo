@@ -10,18 +10,29 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DollarSign, Crown, Trophy, Coins, AlertCircle } from "lucide-react";
+import {
+  DollarSign,
+  Crown,
+  Trophy,
+  Coins,
+  AlertCircle,
+  ArrowLeftRight,
+  ArrowRight,
+  Info,
+} from "lucide-react";
 import { useTournamentFixtures } from "@/hooks/api-football/useTournamentFixtures";
 import { useAllPredictions } from "@/hooks/predictions/useAllPredictions";
 import { getTournamentType } from "@/lib/tournament";
 import type { Quiniela } from "@/db/schema";
 import {
   computePrizeBreakdown,
+  computeSettlements,
   type PrizeDistribution,
   type RoundPrizeBreakdown,
   type TournamentPrizeBreakdown,
   type UserPrizeAward,
   type UserTotalAward,
+  type SettlementResult,
 } from "@/lib/prizes";
 
 interface Participant {
@@ -354,6 +365,21 @@ export default function PrizeBreakdownDrawer({
     prizeDistributionPerRound,
   ]);
 
+  const settlement = useMemo<SettlementResult | null>(() => {
+    if (!breakdown) return null;
+    return computeSettlements({
+      breakdown,
+      participants: participants.map((p) => ({
+        id: p.userId,
+        name: p.userName,
+        email: p.userEmail,
+        image: p.userImage,
+      })),
+      moneyToEnter: moneyToEnter ?? 0,
+      moneyPerRoundToEnter: moneyPerRoundToEnter ?? 0,
+    });
+  }, [breakdown, participants, moneyToEnter, moneyPerRoundToEnter]);
+
   const hasAnyPrizeConfigured =
     (moneyToEnter ?? 0) > 0 || (moneyPerRoundToEnter ?? 0) > 0;
 
@@ -448,11 +474,125 @@ export default function PrizeBreakdownDrawer({
                   <TotalsCard totals={breakdown.totalsByUser} />
                 </section>
               )}
+
+              {/* Who pays whom */}
+              {settlement && (
+                <section>
+                  <SettlementsCard
+                    settlement={settlement}
+                    finalizedRounds={
+                      breakdown.rounds.filter(
+                        (r) => r.prizePool > 0 && r.isFinalized,
+                      ).length
+                    }
+                    totalRoundsWithPrize={
+                      breakdown.rounds.filter((r) => r.prizePool > 0).length
+                    }
+                    tournamentConfigured={!!breakdown.tournament}
+                    tournamentIncluded={
+                      breakdown.tournament?.isFinalized ?? false
+                    }
+                  />
+                </section>
+              )}
             </div>
           )}
         </div>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+function SettlementsCard({
+  settlement,
+  finalizedRounds,
+  totalRoundsWithPrize,
+  tournamentConfigured,
+  tournamentIncluded,
+}: {
+  settlement: SettlementResult;
+  finalizedRounds: number;
+  totalRoundsWithPrize: number;
+  tournamentConfigured: boolean;
+  tournamentIncluded: boolean;
+}) {
+  const { settlements, unclaimed } = settlement;
+
+  // Spell out exactly which money is being settled so nobody assumes
+  // these transfers already include in-progress jornadas or the
+  // still-undecided tournament prize.
+  const scopeLines: string[] = [];
+  if (totalRoundsWithPrize > 0) {
+    scopeLines.push(
+      `${finalizedRounds} de ${totalRoundsWithPrize} ${
+        totalRoundsWithPrize === 1 ? "jornada finalizada" : "jornadas finalizadas"
+      }`,
+    );
+  }
+  if (tournamentConfigured) {
+    scopeLines.push(
+      tournamentIncluded
+        ? "premio del torneo (ya terminó)"
+        : "el premio del torneo se reparte cuando termine",
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/5 to-transparent p-3 sm:p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <ArrowLeftRight className="h-4 w-4 text-indigo-500" />
+          <h4 className="text-sm font-semibold">¿Quién le paga a quién?</h4>
+        </div>
+        {totalRoundsWithPrize > 0 && (
+          <span className="flex-shrink-0 rounded-full bg-indigo-500/15 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">
+            {finalizedRounds}/{totalRoundsWithPrize} jornadas
+          </span>
+        )}
+      </div>
+
+      {scopeLines.length > 0 && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2">
+          <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-200">
+            Solo se cuentan resultados ya cerrados:{" "}
+            <span className="font-semibold">{scopeLines.join("; ")}</span>. Los
+            montos crecerán conforme terminen más jornadas.
+          </p>
+        </div>
+      )}
+
+      {settlements.length > 0 ? (
+        <div className="space-y-1.5">
+          {settlements.map((s, i) => (
+            <div
+              key={`${s.from.id}-${s.to.id}-${i}`}
+              className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-card px-2.5 py-2"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                <UserPill user={s.from} size="sm" />
+                <ArrowRight className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                <UserPill user={s.to} size="sm" />
+              </div>
+              <span className="flex-shrink-0 text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                {formatMoney(s.amount)}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs italic text-muted-foreground">
+          Aún no hay pagos por liquidar.
+        </p>
+      )}
+
+      {unclaimed > 0 && (
+        <p className="mt-3 border-t border-border/40 pt-2 text-[10px] italic leading-relaxed text-muted-foreground">
+          {formatMoney(unclaimed)} del bote no se reparte (posiciones de premio
+          sin ganador). Ese monto no está incluido en los pagos de arriba.
+        </p>
+      )}
+    </div>
   );
 }
 

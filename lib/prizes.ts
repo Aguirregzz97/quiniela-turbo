@@ -509,3 +509,187 @@ export function computePrizeBreakdown({
 
   return { rounds, tournament, totalsByUser };
 }
+
+// ─────────────────────────── Settlements ───────────────────────────
+
+/** A single peer-to-peer transfer: `from` sends `amount` to `to`. */
+export interface Settlement {
+  from: PrizeUserInfo;
+  to: PrizeUserInfo;
+  amount: number;
+}
+
+/** Per-user money position within the settled scopes. */
+export interface UserNetPosition {
+  user: PrizeUserInfo;
+  /** Total buy-ins the user owes across settled pools. */
+  paid: number;
+  /** Total winnings across settled pools. */
+  won: number;
+  /** won - paid. Positive = should receive, negative = should pay. */
+  net: number;
+}
+
+export interface SettlementResult {
+  /** The list of transfers that settles every net balance. */
+  settlements: Settlement[];
+  netByUser: UserNetPosition[];
+  /**
+   * Pool money that was never awarded (prize positions with no eligible
+   * winner, e.g. only one person scored but the table pays top 3). This
+   * is why the transfers may not fully cover what payers put in.
+   */
+  unclaimed: number;
+}
+
+export interface ComputeSettlementsInput {
+  breakdown: PrizeBreakdownResult;
+  /** Every participant, so people who won nothing still show as payers. */
+  participants: PrizeUserInfo[];
+  moneyToEnter: number;
+  moneyPerRoundToEnter: number;
+}
+
+/** Round to whole cents to keep the running sums from drifting. */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/**
+ * Turns the prize breakdown into a minimal-ish set of peer-to-peer
+ * transfers ("who pays whom"), so players can settle directly instead of
+ * everyone funneling their buy-in through a central pot.
+ *
+ * Model: for every settled pool, every participant owes the buy-in and
+ * winners receive their award. Each user's net = won - paid. We then
+ * greedily match the biggest payer with the biggest receiver until all
+ * balances are cleared — the classic "minimum cash flow" settlement.
+ *
+ * Only fully finalized scopes settle: a round appears here once every
+ * fixture in it has ended, and the tournament pool once the whole thing
+ * is done. Projected (in-progress) money is deliberately excluded — you
+ * shouldn't tell people to pay each other based on unfinished results.
+ *
+ * This is display-only: no money actually moves through the app, we just
+ * tell players what to send each other.
+ */
+export function computeSettlements({
+  breakdown,
+  participants,
+  moneyToEnter,
+  moneyPerRoundToEnter,
+}: ComputeSettlementsInput): SettlementResult {
+  const userDir = new Map<string, PrizeUserInfo>();
+  const paid = new Map<string, number>();
+  const won = new Map<string, number>();
+
+  const ensureUser = (u: PrizeUserInfo) => {
+    if (!userDir.has(u.id)) userDir.set(u.id, u);
+    if (!paid.has(u.id)) paid.set(u.id, 0);
+    if (!won.has(u.id)) won.set(u.id, 0);
+  };
+
+  for (const p of participants) ensureUser(p);
+
+  let unclaimed = 0;
+
+  // Charges the buy-in to everyone and credits winners for one pool.
+  // Only finalized pools settle.
+  const settlePool = (
+    prizePool: number,
+    awards: UserPrizeAward[],
+    isFinalized: boolean,
+    buyInPerUser: number,
+  ) => {
+    const include = prizePool > 0 && awards.length > 0 && isFinalized;
+    if (!include) return;
+
+    for (const id of paid.keys()) {
+      paid.set(id, round2((paid.get(id) ?? 0) + buyInPerUser));
+    }
+
+    let awarded = 0;
+    for (const a of awards) {
+      ensureUser(a.user);
+      won.set(a.user.id, round2((won.get(a.user.id) ?? 0) + a.amount));
+      awarded = round2(awarded + a.amount);
+    }
+    unclaimed = round2(unclaimed + (prizePool - awarded));
+  };
+
+  for (const round of breakdown.rounds) {
+    settlePool(
+      round.prizePool,
+      round.awards,
+      round.isFinalized,
+      moneyPerRoundToEnter,
+    );
+  }
+
+  if (breakdown.tournament) {
+    settlePool(
+      breakdown.tournament.prizePool,
+      breakdown.tournament.awards,
+      breakdown.tournament.isFinalized,
+      moneyToEnter,
+    );
+  }
+
+  const netByUser: UserNetPosition[] = Array.from(userDir.values()).map(
+    (user) => {
+      const p = paid.get(user.id) ?? 0;
+      const w = won.get(user.id) ?? 0;
+      return { user, paid: p, won: w, net: round2(w - p) };
+    },
+  );
+
+  return {
+    settlements: minCashFlow(netByUser),
+    netByUser: netByUser.slice().sort((a, b) => b.net - a.net),
+    unclaimed: round2(unclaimed),
+  };
+}
+
+/**
+ * Greedy minimum-cash-flow: repeatedly match the largest debtor with the
+ * largest creditor. Not provably optimal (that problem is NP-hard) but
+ * close in practice and always beats routing everything through a pot.
+ *
+ * A cent of tolerance (0.005) absorbs floating-point dust so we don't
+ * emit `$0.00` transfers or loop forever on a residual rounding error.
+ */
+function minCashFlow(netByUser: UserNetPosition[]): Settlement[] {
+  const EPS = 0.005;
+
+  const payers = netByUser
+    .filter((n) => n.net < -EPS)
+    .map((n) => ({ user: n.user, amount: -n.net }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const receivers = netByUser
+    .filter((n) => n.net > EPS)
+    .map((n) => ({ user: n.user, amount: n.net }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const settlements: Settlement[] = [];
+  let pi = 0;
+  let ri = 0;
+
+  while (pi < payers.length && ri < receivers.length) {
+    const payer = payers[pi];
+    const receiver = receivers[ri];
+    const amount = round2(Math.min(payer.amount, receiver.amount));
+
+    if (amount > 0) {
+      settlements.push({ from: payer.user, to: receiver.user, amount });
+    }
+
+    payer.amount = round2(payer.amount - amount);
+    receiver.amount = round2(receiver.amount - amount);
+
+    if (payer.amount <= EPS) pi++;
+    if (receiver.amount <= EPS) ri++;
+  }
+
+  return settlements;
+}
