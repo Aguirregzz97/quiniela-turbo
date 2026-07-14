@@ -54,7 +54,7 @@ function SignInContent() {
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="h-18 w-18 mb-4 flex items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/20">
             <Image
-              src="/img/logo.png"
+              src="/img/logo_test.png"
               alt="Quiniela Turbo Logo"
               width={240}
               height={240}

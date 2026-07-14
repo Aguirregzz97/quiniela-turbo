@@ -135,7 +135,7 @@ const Sidebar = () => {
                 className="flex items-center gap-3 transition-opacity hover:opacity-80"
               >
                 <Image
-                  src="/img/logo.png"
+                  src="/img/logo_test.png"
                   alt="Logo"
                   width={240}
                   height={240}
@@ -346,7 +346,7 @@ const Sidebar = () => {
             className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <Image
-              src="/img/logo.png"
+              src="/img/logo_test.png"
               alt="Logo"
               width={240}
               height={240}

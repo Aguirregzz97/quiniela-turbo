@@ -183,7 +183,7 @@ export function generateSurvivorEmailHtml(
   missingSurvivorPicks: MissingSurvivorPick[],
 ): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const logoUrl = process.env.EMAIL_LOGO_URL || `${appUrl}/img/logo.png`;
+  const logoUrl = process.env.EMAIL_LOGO_URL || `${appUrl}/img/logo_test.png`;
 
   const survivorBlocks = missingSurvivorPicks
     .map(

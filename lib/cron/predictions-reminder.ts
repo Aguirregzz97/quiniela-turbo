@@ -167,7 +167,7 @@ export function generatePredictionsEmailHtml(
   missingPredictions: MissingPrediction[],
 ): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const logoUrl = process.env.EMAIL_LOGO_URL || `${appUrl}/img/logo.png`;
+  const logoUrl = process.env.EMAIL_LOGO_URL || `${appUrl}/img/logo_test.png`;
 
   // Group predictions by quiniela
   const groupedByQuiniela = missingPredictions.reduce(

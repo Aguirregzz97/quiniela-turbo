@@ -36,8 +36,8 @@ export const metadata: Metadata = {
       "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, juega en modo Survivor y demuestra quién sabe más de fútbol mexicano. ¡Únete ahora!",
   },
   icons: {
-    icon: "/img/logo.png",
-    apple: "/img/logo.png",
+    icon: "/img/logo_test.ico",
+    apple: "/img/logo_test.png",
   },
 };
 
