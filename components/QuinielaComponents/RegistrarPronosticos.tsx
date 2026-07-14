@@ -122,6 +122,85 @@ function formatDateTime(dateString: string): { date: string; time: string } {
   return { date: formattedDate, time: formattedTime };
 }
 
+// Keyboard-first score input used on the desktop layout. Typing a digit
+// sets the score and auto-advances to the next score box (home -> away ->
+// next match), Enter/Tab move forward, and Up/Down arrows nudge the value.
+// The 0-9 range mirrors the mobile dropdown.
+function ScoreInput({
+  value,
+  onChange,
+  disabled,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (score: string) => void;
+  disabled?: boolean;
+  ariaLabel: string;
+}) {
+  const clamp = (n: number) => Math.max(0, Math.min(9, n));
+
+  // Walk the score boxes in DOM order (home, away, next home, ...) so a
+  // finished/started match's disabled boxes are skipped automatically.
+  const focusStep = (el: HTMLInputElement, dir: 1 | -1) => {
+    const inputs = Array.from(
+      document.querySelectorAll<HTMLInputElement>(
+        "input[data-score-input]:not([disabled])",
+      ),
+    );
+    const index = inputs.indexOf(el);
+    if (index === -1) return;
+    const target = inputs[index + dir];
+    if (target) {
+      target.focus();
+      target.select();
+    } else {
+      el.blur();
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      maxLength={1}
+      data-score-input
+      aria-label={ariaLabel}
+      disabled={disabled}
+      value={value}
+      onFocus={(e) => e.currentTarget.select()}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/\D/g, "");
+        if (digits === "") {
+          onChange("0");
+          return;
+        }
+        // Single-digit field: keep the last digit typed, then advance.
+        onChange(clamp(parseInt(digits.slice(-1), 10)).toString());
+        focusStep(e.currentTarget, 1);
+      }}
+      onKeyDown={(e) => {
+        const current = parseInt(value || "0", 10);
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          onChange(clamp(current + 1).toString());
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          onChange(clamp(current - 1).toString());
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          focusStep(e.currentTarget, 1);
+        } else if (e.key === "Backspace") {
+          e.preventDefault();
+          onChange("0");
+          e.currentTarget.select();
+        }
+      }}
+      className="h-12 w-16 rounded-md border border-border/50 bg-muted/30 text-center text-xl font-bold tabular-nums outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+    />
+  );
+}
+
 // Fixture Card Component
 interface FixtureCardProps {
   fixture: FixtureData;
@@ -559,11 +638,11 @@ function FixtureCard({
                   </div>
 
                   {/* Home Team Prediction */}
-                  <Select
+                  <ScoreInput
                     value={
                       predictions[fixture.fixture.id.toString()]?.home ?? "0"
                     }
-                    onValueChange={(value) =>
+                    onChange={(value) =>
                       updatePrediction(
                         fixture.fixture.id.toString(),
                         "home",
@@ -571,23 +650,8 @@ function FixtureCard({
                       )
                     }
                     disabled={matchStarted}
-                  >
-                    <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
-                      <SelectValue>
-                        {predictions[fixture.fixture.id.toString()]?.home ??
-                          "0"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <SelectItem key={n} value={n.toString()}>
-                            {n}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                    ariaLabel={`Goles de ${fixture.teams.home.name}`}
+                  />
                 </div>
 
                 {/* Score */}
@@ -616,11 +680,11 @@ function FixtureCard({
                   </div>
 
                   {/* Away Team Prediction */}
-                  <Select
+                  <ScoreInput
                     value={
                       predictions[fixture.fixture.id.toString()]?.away ?? "0"
                     }
-                    onValueChange={(value) =>
+                    onChange={(value) =>
                       updatePrediction(
                         fixture.fixture.id.toString(),
                         "away",
@@ -628,23 +692,8 @@ function FixtureCard({
                       )
                     }
                     disabled={matchStarted}
-                  >
-                    <SelectTrigger className="h-12 w-16 border-border/50 bg-muted/30 text-center text-xl font-bold">
-                      <SelectValue>
-                        {predictions[fixture.fixture.id.toString()]?.away ??
-                          "0"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <SelectItem key={n} value={n.toString()}>
-                            {n}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                    ariaLabel={`Goles de ${fixture.teams.away.name}`}
+                  />
                 </div>
               </div>
             </>
