@@ -177,6 +177,57 @@ export function getActiveRound(
 }
 
 /**
+ * Returns the date the quiniela's schedule ends, or `null` when we can't
+ * confidently say the tournament is over.
+ *
+ * A quiniela is only considered "complete" when its *final* round has
+ * dates. If the last round has no dates yet (e.g. a World Cup bracket
+ * whose Final hasn't been published), the schedule is still open, so we
+ * return `null` rather than guessing from an earlier round.
+ *
+ * When complete, the end date is the latest match day across all rounds
+ * (defensive against out-of-order dates), pinned to end-of-day.
+ */
+export function getQuinielaEndDate(rounds: RoundSelected[]): Date | null {
+  if (!rounds.length) return null;
+
+  const lastRound = rounds[rounds.length - 1];
+  if (!lastRound.dates.length) return null;
+
+  let maxTs = -Infinity;
+  for (const round of rounds) {
+    for (const date of round.dates) {
+      const ts = new Date(date + "T23:59:59").getTime();
+      if (!Number.isNaN(ts) && ts > maxTs) maxTs = ts;
+    }
+  }
+
+  return maxTs === -Infinity ? null : new Date(maxTs);
+}
+
+/**
+ * A quiniela is "archived" once more than one month has passed since its
+ * last round ended. Used to tuck long-finished quinielas away behind a
+ * collapsible section instead of showing them alongside active ones.
+ *
+ * Returns `false` for quinielas whose schedule isn't fully known yet
+ * (see `getQuinielaEndDate`), so in-progress tournaments are never
+ * accidentally archived.
+ */
+export function isQuinielaArchived(
+  rounds: RoundSelected[],
+  now: Date = new Date(),
+): boolean {
+  const endDate = getQuinielaEndDate(rounds);
+  if (!endDate) return false;
+
+  const archiveThreshold = new Date(endDate);
+  archiveThreshold.setMonth(archiveThreshold.getMonth() + 1);
+
+  return now.getTime() >= archiveThreshold.getTime();
+}
+
+/**
  * Client-friendly wrapper that returns just the round name string.
  * Used by client components that need a default value for useState.
  */

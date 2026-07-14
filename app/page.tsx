@@ -1,18 +1,17 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Award,
-  Swords,
   BarChart3,
   TrendingUp,
   ChevronRight,
   Target,
-  Skull,
   Trophy,
   Zap,
+  ArrowRight,
 } from "lucide-react";
-import { SURVIVOR_ENABLED } from "@/lib/featureFlags";
 
 export default async function Home() {
   const session = await auth();
@@ -21,53 +20,21 @@ export default async function Home() {
     redirect("/api/auth/signin?callbackUrl=/");
   }
 
-  const games = [
-    {
-      href: "/quinielas",
-      icon: Award,
-      title: "Quinielas",
-      subtitle: "Predicción de resultados",
-      description:
-        "Predice los marcadores exactos de cada partido. Gana puntos por acertar el resultado (local/empate/visitante) y puntos extra por el marcador exacto.",
-      features: [
-        { icon: Target, text: "Predice marcadores" },
-        { icon: Trophy, text: "Acumula puntos" },
-        { icon: Zap, text: "Compite por jornada" },
-      ],
-      gradient: "from-warning to-warning/85",
-      bgGradient: "from-warning/10 via-warning/5 to-transparent",
-      iconBg: "bg-gradient-to-br from-warning to-warning/85",
-    },
-    ...(SURVIVOR_ENABLED
-      ? [
-          {
-            href: "/survivor",
-            icon: Swords,
-            title: "Survivor",
-            subtitle: "Último en pie",
-            description:
-              "Elige un equipo diferente cada jornada. Si tu equipo pierde, pierdes una vida. El último jugador con vidas gana. No puedes repetir equipos.",
-            features: [
-              { icon: Swords, text: "Elige un equipo" },
-              { icon: Skull, text: "Pierde = vida menos" },
-              { icon: Trophy, text: "Sobrevive hasta el final" },
-            ],
-            gradient: "from-destructive to-destructive/85",
-            bgGradient: "from-destructive/10 via-destructive/5 to-transparent",
-            iconBg: "bg-gradient-to-br from-destructive to-destructive/85",
-          },
-        ]
-      : []),
+  const firstName = session.user.name?.split(" ")[0] || "Jugador";
+
+  const quinielaFeatures = [
+    { icon: Target, text: "Predice marcadores" },
+    { icon: Trophy, text: "Acumula puntos" },
+    { icon: Zap, text: "Compite por jornada" },
   ];
 
-  const stats = [
+  const explore = [
     {
       href: "/puntuaciones",
       icon: BarChart3,
       title: "Puntuaciones",
       description:
         "Consulta las clasificaciones y posiciones de todos los participantes en tus quinielas.",
-      gradient: "from-info to-info/85",
       iconBg: "bg-gradient-to-br from-info to-info/85",
     },
     {
@@ -76,8 +43,7 @@ export default async function Home() {
       title: "Estadísticas",
       description:
         "Analiza tu rendimiento histórico, tendencias de aciertos y comparativas con otros jugadores.",
-      gradient: "from-primary to-primary/85",
-      iconBg: "bg-gradient-to-br from-primary to-primary/85",
+      iconBg: "bg-gradient-to-br from-success to-success/85",
     },
   ];
 
@@ -85,104 +51,106 @@ export default async function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative overflow-hidden border-b border-border/50 bg-gradient-to-b from-primary/5 via-background to-background">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--primary-rgb,59,130,246),0.08),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(var(--primary-rgb,59,130,246),0.05),transparent_50%)]" />
+        {/* Soft decorative glows */}
+        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/20 opacity-30 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 top-8 h-64 w-64 rounded-full bg-primary/10 opacity-40 blur-3xl" />
 
-        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-          <div className="text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-              <Trophy className="h-4 w-4" />
-              Liga MX & Más
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="flex flex-col items-center text-center">
+            {/* Logo */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 rounded-[1.75rem] bg-primary/30 blur-2xl" />
+              <Image
+                src="/img/logo_test.png"
+                alt="Quiniela Turbo"
+                width={112}
+                height={112}
+                priority
+                className="relative h-24 w-24 rounded-[1.75rem] shadow-xl ring-1 ring-border/60 sm:h-28 sm:w-28"
+              />
             </div>
-            <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              ¡Bienvenido,{" "}
+
+            <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+              Quiniela{" "}
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {session.user.name?.split(" ")[0] || "Jugador"}
+                Turbo
               </span>
-              !
             </h1>
-            <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Compite con tus amigos prediciendo resultados de fútbol. Elige tu
-              modo de juego favorito y demuestra quién sabe más.
+            <p className="mt-3 text-lg font-medium text-foreground/80">
+              ¡Hola de nuevo, {firstName}!
             </p>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
+              Compite con tus amigos prediciendo resultados de fútbol. Arma tu
+              quiniela, suma puntos y demuestra quién sabe más.
+            </p>
+
+            <Link
+              href="/quinielas"
+              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30 hover:brightness-110"
+            >
+              Ver mis quinielas
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-        {/* Games Section */}
-        <div className="mb-12">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="h-1 w-1 rounded-full bg-primary" />
-            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
-              Modos de Juego
-            </h2>
-          </div>
+        {/* Featured game mode: Quinielas */}
+        <Link href="/quinielas" className="group block">
+          <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 sm:p-8">
+            {/* Decorative gradient orb */}
+            <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-gradient-to-br from-primary to-primary/70 opacity-10 blur-3xl transition-all duration-500 group-hover:opacity-20" />
 
-          <div
-            className={`grid gap-4 sm:gap-6 ${
-              games.length > 1 ? "lg:grid-cols-2" : ""
-            }`}
-          >
-            {games.map((game) => (
-              <Link key={game.href} href={game.href} className="group">
-                <div
-                  className={`relative h-full overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br ${game.bgGradient} p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 sm:p-8`}
-                >
-                  {/* Decorative gradient orb */}
-                  <div
-                    className={`absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br ${game.gradient} opacity-10 blur-3xl transition-all duration-500 group-hover:opacity-20`}
-                  />
-
-                  <div className="relative">
-                    {/* Header */}
-                    <div className="mb-4 flex items-start justify-between">
-                      <div
-                        className={`flex h-14 w-14 items-center justify-center rounded-xl ${game.iconBg} shadow-lg`}
-                      >
-                        <game.icon className="h-7 w-7 text-white" />
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="mb-1 text-xl font-bold tracking-tight transition-colors group-hover:text-primary sm:text-2xl">
-                      {game.title}
-                    </h3>
-                    <p
-                      className={`mb-3 text-sm font-medium bg-gradient-to-r ${game.gradient} bg-clip-text text-transparent`}
-                    >
-                      {game.subtitle}
+            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                    <Award className="h-7 w-7 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+                      Quinielas
+                    </h2>
+                    <p className="text-sm font-medium text-primary">
+                      Predicción de resultados
                     </p>
-
-                    {/* Description */}
-                    <p className="mb-5 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                      {game.description}
-                    </p>
-
-                    {/* Features */}
-                    <div className="flex flex-wrap gap-2">
-                      {game.features.map((feature, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground/80 ring-1 ring-border/50 backdrop-blur-sm"
-                        >
-                          <feature.icon className="h-3.5 w-3.5" />
-                          {feature.text}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
 
-        {/* Stats Section */}
-        <div>
-          <div className="mb-6 flex items-center gap-3">
+                <p className="mb-5 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  Predice los marcadores exactos de cada partido. Gana puntos
+                  por acertar el resultado (local/empate/visitante) y puntos
+                  extra por el marcador exacto.
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {quinielaFeatures.map((feature, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground/80 ring-1 ring-border/50 backdrop-blur-sm"
+                    >
+                      <feature.icon className="h-3.5 w-3.5" />
+                      {feature.text}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex sm:justify-end">
+                <span className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-transform group-hover:translate-x-0.5">
+                  Jugar
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Explore Section */}
+        <div className="mt-10">
+          <div className="mb-5 flex items-center gap-3">
             <div className="h-1 w-1 rounded-full bg-primary" />
             <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
               Análisis y Resultados
@@ -190,24 +158,24 @@ export default async function Home() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {stats.map((stat) => (
-              <Link key={stat.href} href={stat.href} className="group">
+            {explore.map((item) => (
+              <Link key={item.href} href={item.href} className="group">
                 <div className="relative h-full overflow-hidden rounded-xl border border-border/50 bg-card p-5 transition-all duration-300 hover:border-primary/30 hover:shadow-lg sm:p-6">
                   <div className="flex items-start gap-4">
                     <div
-                      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${stat.iconBg} shadow-md`}
+                      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${item.iconBg} shadow-md`}
                     >
-                      <stat.icon className="h-6 w-6 text-white" />
+                      <item.icon className="h-6 w-6 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center justify-between">
                         <h3 className="font-semibold transition-colors group-hover:text-primary">
-                          {stat.title}
+                          {item.title}
                         </h3>
                         <ChevronRight className="h-4 w-4 text-muted-foreground/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                       </div>
                       <p className="text-sm leading-relaxed text-muted-foreground">
-                        {stat.description}
+                        {item.description}
                       </p>
                     </div>
                   </div>

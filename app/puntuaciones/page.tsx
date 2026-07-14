@@ -6,8 +6,6 @@ import {
   quinielas,
   quiniela_participants,
   quiniela_settings,
-  survivor_games,
-  survivor_game_participants,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,26 +38,7 @@ export default async function ClasificacionesPage() {
     .where(eq(quiniela_participants.userId, session.user.id))
     .orderBy(quiniela_participants.createdAt);
 
-  // Fetch user's survivor games
-  const userSurvivorGames = await db
-    .select({
-      id: survivor_games.id,
-      name: survivor_games.name,
-      league: survivor_games.league,
-      externalLeagueId: survivor_games.externalLeagueId,
-      joinCode: survivor_games.joinCode,
-    })
-    .from(survivor_game_participants)
-    .innerJoin(
-      survivor_games,
-      eq(survivor_game_participants.survivorGameId, survivor_games.id),
-    )
-    .where(eq(survivor_game_participants.userId, session.user.id))
-    .orderBy(survivor_game_participants.createdAt);
-
   const hasQuinielas = userQuinielas.length > 0;
-  const hasSurvivorGames = userSurvivorGames.length > 0;
-  const hasAnyGames = hasQuinielas || hasSurvivorGames;
 
   return (
     <div className="max-w-6xl px-4 py-6 sm:ml-6 sm:mt-6">
@@ -81,7 +60,7 @@ export default async function ClasificacionesPage() {
       </div>
 
       {/* Empty State */}
-      {!hasAnyGames ? (
+      {!hasQuinielas ? (
         <Card className="overflow-hidden border-border/50">
           <CardContent className="p-0">
             <div className="bg-gradient-to-b from-primary/5 to-transparent p-8 text-center sm:p-12">
@@ -89,21 +68,16 @@ export default async function ClasificacionesPage() {
                 <Trophy className="h-10 w-10 text-muted-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold">
-                No tienes juegos aún
+                No tienes quinielas aún
               </h3>
               <p className="mx-auto mb-6 max-w-sm text-muted-foreground">
-                Únete a una quiniela o juego de survivor para ver las
-                clasificaciones
+                Únete a una quiniela para ver las clasificaciones
               </p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <PuntuacionesTabs
-          quinielas={userQuinielas}
-          survivorGames={userSurvivorGames}
-          currentUserId={session.user.id}
-        />
+        <PuntuacionesTabs quinielas={userQuinielas} />
       )}
     </div>
   );

@@ -37,10 +37,10 @@ function AccuracyDonutChart({
   noPrediction: number;
 }) {
   const data = [
-    { name: "Exactos", value: exact, fill: "hsl(142, 76%, 36%)" },
-    { name: "Resultado", value: correctResult, fill: "hsl(142, 69%, 58%)" },
-    { name: "Incorrectos", value: miss, fill: "hsl(0, 84%, 60%)" },
-    { name: "Sin pronóstico", value: noPrediction, fill: "hsl(240, 5%, 64%)" },
+    { name: "Exactos", value: exact, fill: "var(--success)" },
+    { name: "Resultado", value: correctResult, fill: "var(--success-subtle)" },
+    { name: "Incorrectos", value: miss, fill: "var(--destructive)" },
+    { name: "Sin pronóstico", value: noPrediction, fill: "var(--muted-foreground)" },
   ].filter((d) => d.value > 0);
 
   const total = exact + correctResult + miss + noPrediction;
@@ -54,10 +54,10 @@ function AccuracyDonutChart({
   }
 
   const chartConfig: ChartConfig = {
-    exact: { label: "Exactos", color: "hsl(142, 76%, 36%)" },
-    correctResult: { label: "Resultado", color: "hsl(142, 69%, 58%)" },
-    miss: { label: "Incorrectos", color: "hsl(0, 84%, 60%)" },
-    noPrediction: { label: "Sin pronóstico", color: "hsl(240, 5%, 64%)" },
+    exact: { label: "Exactos", color: "var(--success)" },
+    correctResult: { label: "Resultado", color: "var(--success-subtle)" },
+    miss: { label: "Incorrectos", color: "var(--destructive)" },
+    noPrediction: { label: "Sin pronóstico", color: "var(--muted-foreground)" },
   };
 
   return (
@@ -105,15 +105,15 @@ function PredictionPatternsChart({
   awayWinRate: number;
 }) {
   const data = [
-    { name: "Local", value: homeWinRate, fill: "hsl(221, 83%, 53%)" },
-    { name: "Empate", value: drawRate, fill: "hsl(45, 93%, 47%)" },
-    { name: "Visitante", value: awayWinRate, fill: "hsl(0, 84%, 60%)" },
+    { name: "Local", value: homeWinRate, fill: "var(--info)" },
+    { name: "Empate", value: drawRate, fill: "var(--warning)" },
+    { name: "Visitante", value: awayWinRate, fill: "var(--destructive)" },
   ];
 
   const chartConfig: ChartConfig = {
-    home: { label: "Local", color: "hsl(221, 83%, 53%)" },
-    draw: { label: "Empate", color: "hsl(45, 93%, 47%)" },
-    away: { label: "Visitante", color: "hsl(0, 84%, 60%)" },
+    home: { label: "Local", color: "var(--info)" },
+    draw: { label: "Empate", color: "var(--warning)" },
+    away: { label: "Visitante", color: "var(--destructive)" },
   };
 
   return (
@@ -224,7 +224,7 @@ function PercentageRing({
             cy="50%"
             r={radius}
             fill="none"
-            stroke="hsl(var(--muted))"
+            stroke="var(--muted)"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -375,7 +375,7 @@ export default function UserStatistics() {
                   <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: "hsl(142, 76%, 36%)" }}
+                      style={{ backgroundColor: "var(--success)" }}
                     />
                     <span className="text-xs">
                       Exactos: {stats.exactPredictions}
@@ -384,7 +384,7 @@ export default function UserStatistics() {
                   <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: "hsl(142, 69%, 58%)" }}
+                      style={{ backgroundColor: "var(--success-subtle)" }}
                     />
                     <span className="text-xs">
                       Resultado: {stats.correctResultPredictions}
@@ -393,7 +393,7 @@ export default function UserStatistics() {
                   <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: "hsl(0, 84%, 60%)" }}
+                      style={{ backgroundColor: "var(--destructive)" }}
                     />
                     <span className="text-xs">
                       Incorrectos: {stats.missPredictions}
@@ -402,7 +402,7 @@ export default function UserStatistics() {
                   <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: "hsl(240, 5%, 64%)" }}
+                      style={{ backgroundColor: "var(--muted-foreground)" }}
                     />
                     <span className="text-xs">
                       Sin pronóstico: {stats.noPredictions}
@@ -424,12 +424,12 @@ export default function UserStatistics() {
                 <PercentageRing
                   percentage={stats.exactRate}
                   label="Exactos"
-                  color="hsl(142, 76%, 36%)"
+                  color="var(--success)"
                 />
                 <PercentageRing
                   percentage={stats.correctResultRate}
                   label="Resultado"
-                  color="hsl(142, 69%, 58%)"
+                  color="var(--success-subtle)"
                 />
                 <PercentageRing
                   percentage={stats.totalAccuracyRate}

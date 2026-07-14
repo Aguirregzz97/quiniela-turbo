@@ -29,59 +29,21 @@ interface UserStats {
   fill: string;
 }
 
-// Color palette based on primary color (hue ~240 blue)
-// Generates shades by rotating hue slightly and varying lightness/chroma
-// This creates a cohesive palette that works well together
+// Cohesive palette anchored on the app's primary hue (violet ~276).
+// Ranks get a lightness ramp (darkest = top of the table) with small
+// hue nudges so larger groups stay distinguishable without drifting out
+// of the violet family or clashing with the rest of the UI.
 const generatePrimaryPalette = (): string[] => {
-  const baseHue = 240; // Primary blue hue
+  const baseHue = 276; // matches --primary (violet)
+  const hueOffsets = [0, -14, 14, -28, 28, -42];
+  const lightnessRamp = [0.5, 0.58, 0.66, 0.73, 0.8];
   const colors: string[] = [];
 
-  // Core primary shades (darkest to lightest)
-  colors.push(`oklch(0.45 0.16 ${baseHue})`); // Very dark primary
-  colors.push(`oklch(0.52 0.15 ${baseHue})`); // Dark primary
-  colors.push(`oklch(0.59 0.14 ${baseHue})`); // Primary (matches --primary)
-  colors.push(`oklch(0.68 0.15 ${baseHue})`); // Light primary
-  colors.push(`oklch(0.75 0.14 ${baseHue})`); // Lighter primary
-  colors.push(`oklch(0.82 0.12 ${baseHue})`); // Very light primary
-
-  // Analogous colors (slight hue shifts for variety while staying cohesive)
-  colors.push(`oklch(0.55 0.14 ${baseHue - 20})`); // Blue-violet
-  colors.push(`oklch(0.62 0.15 ${baseHue - 20})`);
-  colors.push(`oklch(0.70 0.13 ${baseHue - 20})`);
-
-  colors.push(`oklch(0.55 0.14 ${baseHue + 20})`); // Blue-cyan
-  colors.push(`oklch(0.62 0.15 ${baseHue + 20})`);
-  colors.push(`oklch(0.70 0.13 ${baseHue + 20})`);
-
-  // More hue variations for large participant counts
-  colors.push(`oklch(0.50 0.13 ${baseHue - 35})`); // Violet
-  colors.push(`oklch(0.58 0.14 ${baseHue - 35})`);
-  colors.push(`oklch(0.66 0.12 ${baseHue - 35})`);
-
-  colors.push(`oklch(0.50 0.13 ${baseHue + 35})`); // Cyan
-  colors.push(`oklch(0.58 0.14 ${baseHue + 35})`);
-  colors.push(`oklch(0.66 0.12 ${baseHue + 35})`);
-
-  // Extended palette for even more participants
-  colors.push(`oklch(0.48 0.12 ${baseHue - 50})`); // Purple
-  colors.push(`oklch(0.56 0.13 ${baseHue - 50})`);
-  colors.push(`oklch(0.64 0.11 ${baseHue - 50})`);
-
-  colors.push(`oklch(0.48 0.12 ${baseHue + 50})`); // Teal
-  colors.push(`oklch(0.56 0.13 ${baseHue + 50})`);
-  colors.push(`oklch(0.64 0.11 ${baseHue + 50})`);
-
-  // Additional shades with different chroma levels
-  colors.push(`oklch(0.53 0.18 ${baseHue})`); // High chroma primary
-  colors.push(`oklch(0.60 0.10 ${baseHue})`); // Low chroma primary
-  colors.push(`oklch(0.53 0.18 ${baseHue - 25})`);
-  colors.push(`oklch(0.60 0.10 ${baseHue + 25})`);
-
-  // More variations for very large groups
-  colors.push(`oklch(0.47 0.15 ${baseHue - 15})`);
-  colors.push(`oklch(0.55 0.16 ${baseHue + 15})`);
-  colors.push(`oklch(0.63 0.14 ${baseHue - 30})`);
-  colors.push(`oklch(0.71 0.12 ${baseHue + 30})`);
+  for (const offset of hueOffsets) {
+    for (const lightness of lightnessRamp) {
+      colors.push(`oklch(${lightness} 0.17 ${baseHue + offset})`);
+    }
+  }
 
   return colors;
 };
@@ -367,10 +329,10 @@ export default function ClasificacionesChart({
               tickLine={false}
               axisLine={false}
               width={100}
-              tick={{ fontSize: 13, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 13, fill: "var(--muted-foreground)" }}
             />
             <ChartTooltip
-              cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
+              cursor={{ fill: "var(--muted)", opacity: 0.3 }}
               content={
                 <ChartTooltipContent
                   formatter={(value, _name, item) => (
@@ -423,10 +385,10 @@ export default function ClasificacionesChart({
               tickLine={false}
               axisLine={false}
               width={80}
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             />
             <ChartTooltip
-              cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
+              cursor={{ fill: "var(--muted)", opacity: 0.3 }}
               content={
                 <ChartTooltipContent
                   formatter={(value, _name, item) => (
