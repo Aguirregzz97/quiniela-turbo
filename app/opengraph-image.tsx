@@ -1,8 +1,11 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
-export const alt = "Quiniela Turbo - Compite con tus amigos prediciendo resultados de fútbol";
+export const alt =
+  "Quiniela Turbo - Compite con tus amigos prediciendo resultados de fútbol";
 export const size = {
   width: 1200,
   height: 630,
@@ -10,6 +13,11 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function Image() {
+  const logoData = await readFile(
+    join(process.cwd(), "public", "img", "logo_test.png"),
+  );
+  const logoSrc = Uint8Array.from(logoData).buffer as unknown as string;
+
   return new ImageResponse(
     (
       <div
@@ -20,20 +28,22 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0a1628 0%, #0d2847 50%, #0a1628 100%)",
+          background:
+            "linear-gradient(135deg, #0e0a1f 0%, #1a1140 50%, #0e0a1f 100%)",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Background decorative elements */}
+        {/* Background decorative glows (violet, matching the app theme) */}
         <div
           style={{
             position: "absolute",
-            top: "-100px",
-            right: "-100px",
-            width: "400px",
-            height: "400px",
-            background: "radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)",
+            top: "-120px",
+            right: "-120px",
+            width: "460px",
+            height: "460px",
+            background:
+              "radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, transparent 70%)",
             borderRadius: "50%",
             display: "flex",
           }}
@@ -41,11 +51,12 @@ export default async function Image() {
         <div
           style={{
             position: "absolute",
-            bottom: "-150px",
-            left: "-150px",
-            width: "500px",
-            height: "500px",
-            background: "radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%)",
+            bottom: "-160px",
+            left: "-160px",
+            width: "540px",
+            height: "540px",
+            background:
+              "radial-gradient(circle, rgba(124, 92, 255, 0.22) 0%, transparent 70%)",
             borderRadius: "50%",
             display: "flex",
           }}
@@ -58,67 +69,27 @@ export default async function Image() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: "24px",
+            gap: "28px",
           }}
         >
-          {/* Logo placeholder - using text-based logo since we can't easily load external images in edge */}
+          {/* App logo */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "200px",
-              height: "200px",
-              background: "linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%)",
-              borderRadius: "40px",
-              boxShadow: "0 20px 60px rgba(59, 130, 246, 0.4)",
-              position: "relative",
+              width: "220px",
+              height: "220px",
+              borderRadius: "48px",
+              boxShadow: "0 24px 70px rgba(124, 92, 255, 0.45)",
             }}
           >
-            {/* Soccer ball icon */}
-            <div
-              style={{
-                position: "absolute",
-                top: "-20px",
-                right: "-10px",
-                width: "70px",
-                height: "70px",
-                background: "white",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-                fontSize: "40px",
-              }}
-            >
-              ⚽
-            </div>
-            {/* Lightning bolt */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-15px",
-                left: "-15px",
-                fontSize: "50px",
-                filter: "drop-shadow(0 4px 10px rgba(250, 204, 21, 0.5))",
-                display: "flex",
-              }}
-            >
-              ⚡
-            </div>
-            <span
-              style={{
-                fontSize: "100px",
-                fontWeight: "900",
-                color: "white",
-                textShadow: "0 4px 20px rgba(0,0,0,0.3)",
-                fontFamily: "system-ui",
-                letterSpacing: "-4px",
-              }}
-            >
-              QT
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoSrc}
+              alt="Quiniela Turbo"
+              width={220}
+              height={220}
+              style={{ borderRadius: "48px" }}
+            />
           </div>
 
           {/* Title */}
@@ -127,14 +98,14 @@ export default async function Image() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "8px",
+              gap: "10px",
             }}
           >
             <span
               style={{
-                fontSize: "72px",
+                fontSize: "76px",
                 fontWeight: "800",
-                background: "linear-gradient(90deg, #ffffff 0%, #94a3b8 100%)",
+                background: "linear-gradient(90deg, #ffffff 0%, #c4b5fd 100%)",
                 backgroundClip: "text",
                 color: "transparent",
                 fontFamily: "system-ui",
@@ -146,7 +117,7 @@ export default async function Image() {
             <span
               style={{
                 fontSize: "28px",
-                color: "#94a3b8",
+                color: "#b8a9e0",
                 fontFamily: "system-ui",
                 fontWeight: "500",
               }}
@@ -160,7 +131,7 @@ export default async function Image() {
             style={{
               display: "flex",
               gap: "16px",
-              marginTop: "16px",
+              marginTop: "12px",
             }}
           >
             <div
@@ -168,17 +139,17 @@ export default async function Image() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                background: "rgba(59, 130, 246, 0.2)",
+                background: "rgba(139, 92, 246, 0.2)",
                 padding: "12px 24px",
                 borderRadius: "100px",
-                border: "1px solid rgba(59, 130, 246, 0.3)",
+                border: "1px solid rgba(139, 92, 246, 0.4)",
               }}
             >
               <span style={{ fontSize: "20px" }}>🏆</span>
               <span
                 style={{
                   fontSize: "18px",
-                  color: "#60a5fa",
+                  color: "#c4b5fd",
                   fontWeight: "600",
                   fontFamily: "system-ui",
                 }}
@@ -191,22 +162,22 @@ export default async function Image() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                background: "rgba(16, 185, 129, 0.2)",
+                background: "rgba(45, 212, 191, 0.18)",
                 padding: "12px 24px",
                 borderRadius: "100px",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
+                border: "1px solid rgba(45, 212, 191, 0.35)",
               }}
             >
               <span style={{ fontSize: "20px" }}>🎯</span>
               <span
                 style={{
                   fontSize: "18px",
-                  color: "#34d399",
+                  color: "#5eead4",
                   fontWeight: "600",
                   fontFamily: "system-ui",
                 }}
               >
-                Survivor
+                Pronósticos
               </span>
             </div>
           </div>
@@ -225,7 +196,7 @@ export default async function Image() {
           <span
             style={{
               fontSize: "20px",
-              color: "#64748b",
+              color: "#8b7fb0",
               fontFamily: "system-ui",
             }}
           >
@@ -236,7 +207,6 @@ export default async function Image() {
     ),
     {
       ...size,
-    }
+    },
   );
 }
-

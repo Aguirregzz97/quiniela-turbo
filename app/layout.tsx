@@ -17,14 +17,14 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Quiniela Turbo",
   description:
-    "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, juega en modo Survivor y demuestra quién sabe más de fútbol mexicano. ¡Únete ahora!",
+    "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, arma tus pronósticos y demuestra quién sabe más de fútbol. ¡Únete ahora!",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://www.quinielaturbo.com"
   ),
   openGraph: {
     title: "Quiniela Turbo",
     description:
-      "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, juega en modo Survivor y demuestra quién sabe más de fútbol mexicano. ¡Únete ahora!",
+      "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, arma tus pronósticos y demuestra quién sabe más de fútbol. ¡Únete ahora!",
     locale: "es_MX",
     type: "website",
     siteName: "Quiniela Turbo",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Quiniela Turbo",
     description:
-      "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, juega en modo Survivor y demuestra quién sabe más de fútbol mexicano. ¡Únete ahora!",
+      "Compite con tus amigos prediciendo resultados de fútbol. Crea quinielas, arma tus pronósticos y demuestra quién sabe más de fútbol. ¡Únete ahora!",
   },
   icons: {
     icon: "/img/logo_test.ico",
